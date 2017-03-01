@@ -61,5 +61,12 @@ project(":server") {
     dependencies {
         compile project(":api")
         compile project(":cache")
+        compile project(":scheduler")
+    }
+}
+
+project(":scheduler") {
+    dependencies {
+        compile project(":api")
     }
 }
