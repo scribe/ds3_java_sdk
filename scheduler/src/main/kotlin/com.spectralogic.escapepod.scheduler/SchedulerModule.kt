@@ -7,5 +7,4 @@ class SchedulerModule : AbstractModule() {
     override fun configure() {
         bind(Scheduler::class.java).to(EscapePodScheduler::class.java)
     }
-
 }

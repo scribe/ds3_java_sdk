@@ -5,9 +5,10 @@ import com.spectralogic.escapepod.api.Scheduler
 
 internal class EscapePodScheduler : Scheduler {
 
-    override var configuration: EscapePodConfiguration
-        get() = configuration
-        set(value) {}
+    var config : EscapePodConfiguration? = null
+    override var configuration: EscapePodConfiguration?
+        get() = config
+        set(value) {config = value}
 
     override fun start() {
         println("EscapePodScheduler [start]")
