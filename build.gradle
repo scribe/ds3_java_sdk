@@ -1,9 +1,9 @@
 buildscript {
-    ext.kotlin_version = '1.1.0-rc-91'
+    ext.kotlin_version = '1.1.0'
 
     repositories {
         maven {
-            url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1'
+            url "http://dl.bintray.com/kotlin/kotlin-eap-1.1"
         }
         mavenCentral()
     }
@@ -37,8 +37,8 @@ subprojects {
         compile 'com.google.inject:guice:4.1.0'
         compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.23'
         compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-        compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.10-rc'
-        compile 'org.jetbrains.kotlinx:kotlinx-coroutines-nio:0.10-rc'
+        compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.12'
+        compile 'org.jetbrains.kotlinx:kotlinx-coroutines-nio:0.12'
 
         testCompile 'junit:junit:4.12'
         testCompile 'org.hamcrest:hamcrest-core:1.3'
