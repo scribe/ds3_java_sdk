@@ -1,1 +1,1 @@
-include 'api', 'cache', 'util', 'diva', 'gui', 'server', 'bpclient', 'scheduler'
+include 'api', 'localcache', 'hazelcast', 'util', 'diva', 'gui', 'planner', 'server', 'bpclient', 'scheduler'

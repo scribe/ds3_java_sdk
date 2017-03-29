@@ -1,9 +1,11 @@
 package com.spectralogic.escapepod.scheduler
 
 import com.spectralogic.escapepod.api.EscapePodConfiguration
+import com.spectralogic.escapepod.api.MigrationPlanner
 import com.spectralogic.escapepod.api.Scheduler
+import javax.inject.Inject
 
-internal class EscapePodScheduler : Scheduler {
+internal class EscapePodScheduler @Inject constructor(val planner : MigrationPlanner) : Scheduler {
 
     var config : EscapePodConfiguration? = null
     override var configuration: EscapePodConfiguration?
@@ -12,14 +14,17 @@ internal class EscapePodScheduler : Scheduler {
 
     override fun start() {
         println("EscapePodScheduler [start]")
+
+
+        val migrationTasks = planner.getMigrationTasks()
+
+        val future = migrationTasks.iterator().next()
+
+        //future.suspend()
     }
 
     override fun stop() {
         println("EscapePodScheduler [stop]")
-    }
-
-    override fun migrate(tapeGroupName: String) {
-        println("EscapePodScheduler [migrate] " + tapeGroupName)
     }
 
 }

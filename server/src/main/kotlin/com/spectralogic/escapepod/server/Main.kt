@@ -1,31 +1,25 @@
 package com.spectralogic.escapepod.server
 
 import com.google.inject.Guice
-import com.spectralogic.escapepod.api.Scheduler
-import com.spectralogic.escapepod.api.Server
-import com.spectralogic.escapepod.cache.CacheModule
-import com.spectralogic.escapepod.scheduler.SchedulerModule
+import com.spectralogic.escapepod.cluster.HazelcastModule
+import ratpack.server.RatpackServer
 
 fun main(arg: Array<String>) {
-    println("Creating the injector")
-    val injector = Guice.createInjector(ServerModule(), CacheModule(), SchedulerModule())
+    val injector = Guice.createInjector(ServerModule(), HazelcastModule())
 
-    println("Get the Server instance from the injector")
-    val server = injector.getInstance(Server::class.java)
+    RatpackServer.start { server ->
 
-    println("running the server")
-    server.run()
+        val envVars = System.getenv()
 
-    println("Get the Scheduler instance from the injector")
-    val scheduler = injector.getInstance(Scheduler::class.java)
+        if ("serverPort" in envVars) {
+            server.serverConfig {  config ->
+                config.port(envVars["serverPort"]!!.toInt())
+            }
+        }
 
-    println("starting the scheduler")
-    scheduler.start()
-
-    println("migrating data")
-    scheduler.migrate("testTapeGroup")
-
-    println("stopping the scheduler")
-    scheduler.stop()
-
+        server.handlers { chain ->
+            val rootHandler = injector.getInstance(RootHandler::class.java)
+            chain.prefix("api", rootHandler)
+        }
+    }
 }
