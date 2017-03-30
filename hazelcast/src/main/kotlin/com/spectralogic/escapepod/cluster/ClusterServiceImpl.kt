@@ -5,6 +5,7 @@ import com.hazelcast.core.Hazelcast
 import com.hazelcast.core.HazelcastInstance
 import com.spectralogic.escapepod.api.ClusterNode
 import com.spectralogic.escapepod.api.ClusterService
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
@@ -19,19 +20,19 @@ class ClusterServiceImpl @Inject constructor(@Named("hazelcastInterface") privat
         private val NOT_IN_CLUSTER = "The server must be a member of a cluster"
     }
 
-    override fun leaveCluster() : Single<Unit> {
-        return Single.create { emitter ->
+    override fun leaveCluster() : Completable {
+        return Completable.create { emitter ->
             LOG.info("Attempting leaving cluster")
             hazelcastResource.getInstance().ifPresent(HazelcastInstance::shutdown)
             hazelcastResource.setInstance(null)
-            emitter.onSuccess(Unit)
+            emitter.onComplete()
         }
     }
 
-    override fun createCluster(name: String) : Single<Unit> {
+    override fun createCluster(name: String) : Completable {
         throwIfInCluster(CANNOT_JOIN_NEW_CLUSTER)
 
-        return Single.create { emitter ->
+        return Completable.create { emitter ->
             val config = Config()
             config.instanceName = name
             val networkConfig = config.networkConfig
@@ -43,7 +44,7 @@ class ClusterServiceImpl @Inject constructor(@Named("hazelcastInterface") privat
             join.tcpIpConfig.isEnabled = true
 
             hazelcastResource.setInstance(Hazelcast.newHazelcastInstance(config))
-            emitter.onSuccess(Unit)
+            emitter.onComplete()
         }
     }
 
