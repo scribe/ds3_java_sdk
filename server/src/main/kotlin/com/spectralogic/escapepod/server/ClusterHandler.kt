@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory
 import ratpack.func.Action
 import ratpack.handling.Chain
 import ratpack.handling.Context
+import ratpack.http.HttpMethod
 import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 
@@ -19,28 +20,35 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
     private val scheduler : Scheduler = Schedulers.from(workers)
 
     override fun execute(chain: Chain) {
-        chain.post { ctx ->
+        chain.all{ ctx ->
             try {
-                if ("name" in ctx.request.queryParams) {
-                    createCluster(ctx)
-                } else if ("ip" in ctx.request.queryParams) {
-                    joinCluster(ctx)
-                } else {
-                    ctx.response.status(400).send("The request must have either name or ip set")
+                when(ctx.request.method) {
+                    HttpMethod.POST -> {
+                        if ("name" in ctx.request.queryParams) {
+                            createCluster(ctx)
+                        } else if ("ip" in ctx.request.queryParams) {
+                            joinCluster(ctx)
+                        } else {
+                            ctx.response.status(400).send("The request must have either name or ip set")
+                        }
+                    }
+                    HttpMethod.DELETE -> {
+                        clusterService.leaveCluster().doOnSuccess {
+                            ctx.response.status(204).send("Successfully removed from cluster")
+                        }
+                        .doOnError {
+                            ctx.response.status(400).send("Failed to remove system from cluster")
+                        }
+                        .observeOn(scheduler).subscribe()
+                    }
+                    else -> {
+                        ctx.response.status(405).send("Method not implemented")
+                    }
                 }
+
             } catch (e : RuntimeException) {
                 ctx.response.status(400).send("Encountered an error with the cluster: " + e.message)
             }
-        }
-
-        chain.delete { ctx ->
-            clusterService.leaveCluster().doOnSuccess {
-                ctx.response.status(204).send("Successfully removed from cluster")
-            }
-            .doOnError {
-                ctx.response.status(400).send("Failed to remove system from cluster")
-            }
-            .observeOn(scheduler).subscribe()
         }
 
         chain.get("members") { ctx ->

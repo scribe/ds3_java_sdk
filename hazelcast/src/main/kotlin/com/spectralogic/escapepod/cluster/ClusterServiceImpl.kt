@@ -23,6 +23,7 @@ class ClusterServiceImpl @Inject constructor(@Named("hazelcastInterface") privat
         return Single.create { emitter ->
             LOG.info("Attempting leaving cluster")
             hazelcastResource.getInstance().ifPresent(HazelcastInstance::shutdown)
+            hazelcastResource.setInstance(null)
             emitter.onSuccess(Unit)
         }
     }
