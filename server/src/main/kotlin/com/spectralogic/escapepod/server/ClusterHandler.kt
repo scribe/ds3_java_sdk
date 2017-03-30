@@ -33,7 +33,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
                         }
                     }
                     HttpMethod.DELETE -> {
-                        clusterService.leaveCluster().doOnSuccess {
+                        clusterService.leaveCluster().doOnComplete {
                             ctx.response.status(204).send("Successfully removed from cluster")
                         }
                         .doOnError {
@@ -60,8 +60,6 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
                 ctx.response.status(400).send("Encountered an error with the cluster: " + e.message)
             }
         }
-
-
     }
 
     private fun joinCluster(ctx: Context) {
@@ -84,7 +82,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
             ctx.response.status(400).send("'name' cannot be empty")
         } else {
             clusterService.createCluster(clusterName!!)
-                    .doOnSuccess {
+                    .doOnComplete {
                         ctx.response.status(202).send("Successfully created a new cluster")
                     }
                     .doOnError { t ->

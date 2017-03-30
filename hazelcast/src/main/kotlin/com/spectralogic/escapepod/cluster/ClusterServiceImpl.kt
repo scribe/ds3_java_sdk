@@ -1,13 +1,14 @@
 package com.spectralogic.escapepod.cluster
 
 import com.hazelcast.config.Config
-import com.hazelcast.core.Hazelcast
-import com.hazelcast.core.HazelcastInstance
-import com.spectralogic.escapepod.api.ClusterNode
-import com.spectralogic.escapepod.api.ClusterService
+import com.hazelcast.core.*
+import com.spectralogic.escapepod.api.*
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.Single.create
+import io.reactivex.disposables.Disposable
+import io.reactivex.subjects.PublishSubject
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
 import javax.inject.Named
@@ -20,11 +21,14 @@ class ClusterServiceImpl @Inject constructor(@Named("hazelcastInterface") privat
         private val NOT_IN_CLUSTER = "The server must be a member of a cluster"
     }
 
+    private val clusterEvents = PublishSubject.create<ClusterEvent>()
+
     override fun leaveCluster() : Completable {
         return Completable.create { emitter ->
             LOG.info("Attempting leaving cluster")
             hazelcastResource.getInstance().ifPresent(HazelcastInstance::shutdown)
             hazelcastResource.setInstance(null)
+            clusterEvents.onNext(ClusterLeftEvent())
             emitter.onComplete()
         }
     }
@@ -33,17 +37,14 @@ class ClusterServiceImpl @Inject constructor(@Named("hazelcastInterface") privat
         throwIfInCluster(CANNOT_JOIN_NEW_CLUSTER)
 
         return Completable.create { emitter ->
-            val config = Config()
+            val config = createCommonClusterConfiguration()
             config.instanceName = name
-            val networkConfig = config.networkConfig
-            networkConfig.interfaces.isEnabled = true
-            networkConfig.interfaces.addInterface(hazelcastInterface)
 
-            val join = networkConfig.join
-            join.multicastConfig.isEnabled = false
-            join.tcpIpConfig.isEnabled = true
+            val hazelcastInstance = Hazelcast.newHazelcastInstance(config)
+            hazelcastResource.setInstance(hazelcastInstance)
 
-            hazelcastResource.setInstance(Hazelcast.newHazelcastInstance(config))
+            hazelcastInstance.cluster.addMembershipListener(HazelcastMembershipListner(clusterEvents))
+            clusterEvents.onNext(ClusterCreatedEvent(name))
             emitter.onComplete()
         }
     }
@@ -66,30 +67,49 @@ class ClusterServiceImpl @Inject constructor(@Named("hazelcastInterface") privat
     override fun joinCluster(ip : String) : Single<String> {
         throwIfInCluster(CANNOT_JOIN_NEW_CLUSTER)
 
-        return Single.create { emitter ->
+        return create { emitter ->
             try {
-                val config = Config()
-                val networkConfig = config.networkConfig
 
-                networkConfig.interfaces.isEnabled = true
-                networkConfig.interfaces.addInterface(hazelcastInterface)
-
-                val join = networkConfig.join
-                join.multicastConfig.isEnabled = false
-                val tcpIpConfig = join.tcpIpConfig
-                tcpIpConfig.isEnabled = true
-                tcpIpConfig.addMember(ip)
+                val config = createCommonClusterConfiguration()
+                config.networkConfig.join.tcpIpConfig.addMember(ip)
 
                 LOG.info("Attempting join to ip: {}", ip)
 
                 val newHazelcastInstance = Hazelcast.newHazelcastInstance(config)
                 hazelcastResource.setInstance(newHazelcastInstance)
 
+                newHazelcastInstance.cluster.addMembershipListener(HazelcastMembershipListner(clusterEvents))
+
+                clusterEvents.onNext(ClusterJoinedEvent(newHazelcastInstance.name))
                 emitter.onSuccess(newHazelcastInstance.name)
             } catch (t : Throwable) {
                 emitter.onError(t)
             }
         }
+    }
+
+    private fun createCommonClusterConfiguration() : Config {
+        val config = Config()
+        val networkConfig = config.networkConfig
+
+        networkConfig.interfaces.isEnabled = true
+        networkConfig.interfaces.addInterface(hazelcastInterface)
+
+        val join = networkConfig.join
+        join.multicastConfig.isEnabled = false
+        val tcpIpConfig = join.tcpIpConfig
+        tcpIpConfig.isEnabled = true
+
+        return config
+    }
+
+
+    override fun clusterEvents(onNext : (ClusterEvent) -> Unit, onError : (Throwable) -> Unit) : Disposable{
+        return clusterEvents.subscribe(onNext, onError)
+    }
+
+    override fun clusterEvents(onNext : (ClusterEvent) -> Unit) : Disposable {
+        return clusterEvents.subscribe(onNext)
     }
 
     private fun throwIfNotInCluster(message: String) = throwClusterExceptionIf(message) { !hazelcastResource.getInstance().isPresent }
@@ -102,5 +122,20 @@ class ClusterServiceImpl @Inject constructor(@Named("hazelcastInterface") privat
         }
     }
 }
+class HazelcastMembershipListner(private val clusterEvents: PublishSubject<ClusterEvent>) : MembershipListener {
+    override fun memberRemoved(membershipEvent: MembershipEvent) {
+        val address = membershipEvent.member.address
+        val clusterNode = ClusterNode(address.host, address.port)
+        clusterEvents.onNext(ClusterNodeLeftEvent(clusterNode))
+    }
 
-class ClusterException(message: String) : RuntimeException(message)
+    override fun memberAdded(membershipEvent: MembershipEvent) {
+        val address = membershipEvent.member.address
+        val clusterNode = ClusterNode(address.host, address.port)
+        clusterEvents.onNext(ClusterNodeJoinedEvent(clusterNode))
+    }
+
+    override fun memberAttributeChanged(memberAttributeEvent: MemberAttributeEvent) {
+    }
+}
+
