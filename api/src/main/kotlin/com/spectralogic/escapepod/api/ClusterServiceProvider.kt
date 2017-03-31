@@ -15,7 +15,15 @@ interface ClusterServiceProvider : ServiceProvider<ClusterService> {
 
 interface ClusterService {
     fun clusterNodes() : Observable<ClusterNode>
+    fun <K, V> getDistributedMap(name : String) : DistributedMap<K, V>
+    fun <V> getDistributedSet(name : String) : DistributedSet<V>
 }
+
+interface DistributedMap<K, V> : MutableMap<K, V> {
+    // TODO add listener registration
+}
+
+interface DistributedSet<V> : MutableSet<V>
 
 data class ClusterNode(val ip: String, val port: Int)
 

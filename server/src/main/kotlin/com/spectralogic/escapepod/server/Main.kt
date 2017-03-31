@@ -1,6 +1,7 @@
 package com.spectralogic.escapepod.server
 
 import com.google.inject.Guice
+import com.greyrock.escapepod.util.ifNotNull
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.cluster.HazelcastModule
 import com.spectralogic.escapepod.persistence.MongoPersistenceModule
@@ -22,7 +23,7 @@ class Main {
             Runtime.getRuntime().addShutdownHook(injector.getInstance(ShutdownHook::class.java))
 
             val clusterService = injector.getInstance(ClusterServiceProvider::class.java)
-            val persistenceService = injector.getInstance(PersistenceService::class.java)
+            val persistenceService = injector.getInstance(PersistenceServiceProvider::class.java)
 
             clusterService.clusterLifecycleEvents { event ->
                 if (event is ClusterCreatedEvent) {
@@ -44,7 +45,9 @@ class Main {
 
                 if ("serverPort" in envVars) {
                     server.serverConfig { config ->
-                        config.port(envVars["serverPort"]!!.toInt())
+                        envVars["serverPort"].ifNotNull {
+                            config.port(it.toInt())
+                        }
                     }
                 }
 

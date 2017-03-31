@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 import javax.inject.Inject
 import javax.inject.Named
 
-class ClusterServiceProviderImpl @Inject constructor(@Named("hazelcastInterface") private val hazelcastInterface: String) : ClusterServiceProvider {
+class ClusterServiceProviderImpl @Inject constructor(@Named("interfaceIp") private val hazelcastInterface: String) : ClusterServiceProvider {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(ClusterServiceProviderImpl::class.java)
@@ -137,6 +137,13 @@ class ClusterServiceProviderImpl @Inject constructor(@Named("hazelcastInterface"
 }
 
 class HazelcastClusterService(internal val hazelcastInstance: HazelcastInstance) : ClusterService {
+    override fun <K, V> getDistributedMap(name: String): DistributedMap<K, V> {
+        return HazelcastDistributedMap(hazelcastInstance.getMap(name))
+    }
+
+    override fun <V> getDistributedSet(name: String): DistributedSet<V> {
+        return HazelcastDistributedSet(hazelcastInstance.getSet(name))
+    }
 
     override fun clusterNodes(): Observable<ClusterNode> {
 
@@ -152,6 +159,10 @@ class HazelcastClusterService(internal val hazelcastInstance: HazelcastInstance)
         }
     }
 }
+
+class HazelcastDistributedMap<K, V>(hazelcastMap : IMap<K, V>) : MutableMap<K, V> by hazelcastMap, DistributedMap<K, V>
+
+class HazelcastDistributedSet<V>(hazelcastSet : ISet<V>) : MutableSet<V> by hazelcastSet, DistributedSet<V>
 
 class HazelcastMembershipListener(private val clusterEvents: PublishSubject<ClusterEvent>) : MembershipListener {
     override fun memberRemoved(membershipEvent: MembershipEvent) {

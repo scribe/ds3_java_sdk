@@ -1,11 +1,11 @@
 package com.spectralogic.escapepod.persistence
 
 import com.google.inject.AbstractModule
-import com.spectralogic.escapepod.api.PersistenceService
+import com.spectralogic.escapepod.api.PersistenceServiceProvider
 import javax.inject.Singleton
 
 class MongoPersistenceModule : AbstractModule() {
     override fun configure() {
-        bind(PersistenceService::class.java).to(MongoPersistence::class.java).`in`(Singleton::class.java)
+        bind(PersistenceServiceProvider::class.java).to(MongoPersistenceProvider::class.java).`in`(Singleton::class.java)
     }
 }
