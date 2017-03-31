@@ -1,6 +1,6 @@
 package com.spectralogic.escapepod.server
 
-import com.spectralogic.escapepod.api.ClusterService
+import com.spectralogic.escapepod.api.ClusterServiceProvider
 import io.reactivex.Scheduler
 import io.reactivex.schedulers.Schedulers
 import org.slf4j.LoggerFactory
@@ -11,7 +11,7 @@ import ratpack.http.HttpMethod
 import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 
-class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private val clusterService: ClusterService): Action<Chain> {
+class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private val clusterServiceProvider: ClusterServiceProvider): Action<Chain> {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(ClusterHandlerChain::class.java)
@@ -33,7 +33,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
                         }
                     }
                     HttpMethod.DELETE -> {
-                        clusterService.leaveCluster().doOnComplete {
+                        clusterServiceProvider.leaveCluster().doOnComplete {
                             ctx.response.status(204).send("Successfully removed from cluster")
                         }
                         .doOnError {
@@ -53,7 +53,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
 
         chain.get("members") { ctx ->
             try {
-                clusterService.clusterNodes().toList().doOnSuccess { clusterList ->
+                clusterServiceProvider.getService().clusterNodes().toList().doOnSuccess { clusterList ->
                     ctx.render(clusterList.joinToString(", ") { it.ip + ":" + it.port })
                 }.observeOn(scheduler).subscribe()
             } catch( e : RuntimeException) {
@@ -67,7 +67,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
         if (ip.isNullOrEmpty()) {
             ctx.response.status(400).send("'ip' cannot be empty")
         } else {
-            clusterService.joinCluster(ip!!).doOnSuccess {
+            clusterServiceProvider.joinCluster(ip!!).doOnSuccess {
                 ctx.response.status(202).send("Successfully joined a cluster")
             }.doOnError { t ->
                 LOG.error("Failed to join cluster", t)
@@ -81,7 +81,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
         if (clusterName.isNullOrEmpty()) {
             ctx.response.status(400).send("'name' cannot be empty")
         } else {
-            clusterService.createCluster(clusterName!!)
+            clusterServiceProvider.createCluster(clusterName!!)
                     .doOnComplete {
                         ctx.response.status(202).send("Successfully created a new cluster")
                     }

@@ -53,6 +53,11 @@ task wrapper(type: Wrapper) {
     gradleVersion = '3.4'
 }
 
+project (":api") {
+    dependencies {
+        compile project(":util")
+    }
+}
 project(":localcache") {
     dependencies {
         compile project(":api")
@@ -60,6 +65,12 @@ project(":localcache") {
 }
 
 project(":planner") {
+    dependencies {
+        compile project(":api")
+    }
+}
+
+project(":mongopersistence") {
     dependencies {
         compile project(":api")
     }
@@ -77,6 +88,7 @@ project(":server") {
         compile project(":hazelcast")
         compile project(":localcache")
         compile project(":scheduler")
+        compile project(":mongopersistence")
     }
 }
 

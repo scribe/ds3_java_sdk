@@ -15,6 +15,7 @@ class ServerModule : AbstractModule() {
         bind(Server::class.java).to(EscapePodServer::class.java)
         bind(RootHandler::class.java).`in`(Singleton::class.java)
         bind(ClusterHandlerChain::class.java).`in`(Singleton::class.java)
+        bind(ShutdownHook::class.java).`in`(Singleton::class.java)
     }
 
     @Provides

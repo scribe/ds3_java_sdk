@@ -1,5 +1,6 @@
 package com.spectralogic.escapepod.cluster
 
+import com.greyrock.escapepod.util.ifNotNull
 import com.hazelcast.config.Config
 import com.hazelcast.core.*
 import com.spectralogic.escapepod.api.*
@@ -13,22 +14,41 @@ import org.slf4j.LoggerFactory
 import javax.inject.Inject
 import javax.inject.Named
 
-class ClusterServiceImpl @Inject constructor(@Named("hazelcastInterface") private val hazelcastInterface: String, private val hazelcastResource : HazelcastResource) : ClusterService {
+class ClusterServiceProviderImpl @Inject constructor(@Named("hazelcastInterface") private val hazelcastInterface: String) : ClusterServiceProvider {
+
     private companion object {
-        private val LOG = LoggerFactory.getLogger(ClusterServiceImpl::class.java)
+        private val LOG = LoggerFactory.getLogger(ClusterServiceProviderImpl::class.java)
 
         private val CANNOT_JOIN_NEW_CLUSTER = "Cannot join another cluster when already a member of one"
         private val NOT_IN_CLUSTER = "The server must be a member of a cluster"
     }
 
-    private val clusterEvents = PublishSubject.create<ClusterEvent>()
+    private val clusterLifecycleEvents = PublishSubject.create<ClusterEvent>()
+
+    private var clusterService : HazelcastClusterService? = null
+
+    override fun startService(): Completable {
+
+        // TODO read cluster configuration information and create a new service on startup when this is called
+
+        return Completable.complete()
+    }
+
+    override fun getService(): ClusterService {
+        throwIfNotInCluster(NOT_IN_CLUSTER)
+        return clusterService!!
+    }
 
     override fun leaveCluster() : Completable {
+        throwIfNotInCluster(NOT_IN_CLUSTER)
         return Completable.create { emitter ->
             LOG.info("Attempting leaving cluster")
-            hazelcastResource.getInstance().ifPresent(HazelcastInstance::shutdown)
-            hazelcastResource.setInstance(null)
-            clusterEvents.onNext(ClusterLeftEvent())
+
+            clusterService.ifNotNull {
+                it.hazelcastInstance.shutdown()
+            }
+
+            clusterLifecycleEvents.onNext(ClusterLeftEvent())
             emitter.onComplete()
         }
     }
@@ -41,30 +61,15 @@ class ClusterServiceImpl @Inject constructor(@Named("hazelcastInterface") privat
             config.instanceName = name
 
             val hazelcastInstance = Hazelcast.newHazelcastInstance(config)
-            hazelcastResource.setInstance(hazelcastInstance)
 
-            hazelcastInstance.cluster.addMembershipListener(HazelcastMembershipListner(clusterEvents))
-            clusterEvents.onNext(ClusterCreatedEvent(name))
+            clusterService = createAndConfigureCluster(hazelcastInstance)
+
+            clusterLifecycleEvents.onNext(ClusterCreatedEvent(name))
             emitter.onComplete()
         }
     }
 
-    override fun clusterNodes(): Observable<ClusterNode> {
-        throwIfNotInCluster(NOT_IN_CLUSTER)
-
-        return Observable.create { emitter ->
-            hazelcastResource.getInstance().get()
-                .cluster
-                .members
-                .asSequence()
-                .map { ClusterNode(it.address.host, it.address.port) }
-                .forEach(emitter::onNext)
-
-            emitter.onComplete()
-        }
-    }
-
-    override fun joinCluster(ip : String) : Single<String> {
+   override fun joinCluster(ip : String) : Single<String> {
         throwIfInCluster(CANNOT_JOIN_NEW_CLUSTER)
 
         return create { emitter ->
@@ -76,11 +81,10 @@ class ClusterServiceImpl @Inject constructor(@Named("hazelcastInterface") privat
                 LOG.info("Attempting join to ip: {}", ip)
 
                 val newHazelcastInstance = Hazelcast.newHazelcastInstance(config)
-                hazelcastResource.setInstance(newHazelcastInstance)
 
-                newHazelcastInstance.cluster.addMembershipListener(HazelcastMembershipListner(clusterEvents))
+                clusterService = createAndConfigureCluster(newHazelcastInstance)
 
-                clusterEvents.onNext(ClusterJoinedEvent(newHazelcastInstance.name))
+                clusterLifecycleEvents.onNext(ClusterJoinedEvent(newHazelcastInstance.name))
                 emitter.onSuccess(newHazelcastInstance.name)
             } catch (t : Throwable) {
                 emitter.onError(t)
@@ -103,18 +107,27 @@ class ClusterServiceImpl @Inject constructor(@Named("hazelcastInterface") privat
         return config
     }
 
-
-    override fun clusterEvents(onNext : (ClusterEvent) -> Unit, onError : (Throwable) -> Unit) : Disposable{
-        return clusterEvents.subscribe(onNext, onError)
+    override fun shutdown() : Completable {
+        return leaveCluster()
     }
 
-    override fun clusterEvents(onNext : (ClusterEvent) -> Unit) : Disposable {
-        return clusterEvents.subscribe(onNext)
+    override fun clusterLifecycleEvents(onNext : (ClusterEvent) -> Unit, onError : (Throwable) -> Unit) : Disposable{
+        return clusterLifecycleEvents.subscribe(onNext, onError)
     }
 
-    private fun throwIfNotInCluster(message: String) = throwClusterExceptionIf(message) { !hazelcastResource.getInstance().isPresent }
+    override fun clusterLifecycleEvents(onNext : (ClusterEvent) -> Unit) : Disposable {
+        return clusterLifecycleEvents.subscribe(onNext)
+    }
 
-    private fun throwIfInCluster(message: String) = throwClusterExceptionIf(message) { hazelcastResource.getInstance().isPresent }
+    private fun createAndConfigureCluster(hazelcastInstance: HazelcastInstance) : HazelcastClusterService {
+        hazelcastInstance.cluster.addMembershipListener(HazelcastMembershipListner(clusterLifecycleEvents))
+
+        return HazelcastClusterService(hazelcastInstance)
+    }
+
+    private fun throwIfNotInCluster(message: String) = throwClusterExceptionIf(message) { clusterService == null }
+
+    private fun throwIfInCluster(message: String) = throwClusterExceptionIf(message) { clusterService != null }
 
     private fun throwClusterExceptionIf(message: String, condition : ()->Boolean) {
         if (condition.invoke()) {
@@ -122,6 +135,24 @@ class ClusterServiceImpl @Inject constructor(@Named("hazelcastInterface") privat
         }
     }
 }
+
+class HazelcastClusterService(internal val hazelcastInstance: HazelcastInstance) : ClusterService {
+
+    override fun clusterNodes(): Observable<ClusterNode> {
+
+        return Observable.create { emitter ->
+            hazelcastInstance
+                .cluster
+                .members
+                .asSequence()
+                .map { ClusterNode(it.address.host, it.address.port) }
+                .forEach(emitter::onNext)
+
+            emitter.onComplete()
+        }
+    }
+}
+
 class HazelcastMembershipListner(private val clusterEvents: PublishSubject<ClusterEvent>) : MembershipListener {
     override fun memberRemoved(membershipEvent: MembershipEvent) {
         val address = membershipEvent.member.address
