@@ -1,5 +1,6 @@
 package com.spectralogic.escapepod.persistence
 
+import com.greyrock.escapepod.util.ifNotNull
 import com.spectralogic.escapepod.api.PersistenceService
 import io.reactivex.Completable
 import org.slf4j.LoggerFactory
@@ -31,19 +32,17 @@ class MongoPersistence : PersistenceService {
         return Completable.create{ emitter ->
             try {
 
-                if (mongoProcess != null && mongoProcess!!.isAlive) {
-                    mongoProcess!!.destroy()
-                    mongoProcess!!.waitFor(30, TimeUnit.SECONDS)
+                mongoProcess.ifNotNull {
+                    it.destroy()
+                    it.waitFor(30, TimeUnit.SECONDS)
 
-                    if (mongoProcess!!.isAlive) {
+                    if (it.isAlive) {
                         LOG.error("Mongo instance still active after shutdown attempt")
                     } else {
-                        LOG.info("Mongo exited successfully with exit code: {}", mongoProcess!!.exitValue())
+                        LOG.info("Mongo exited successfully with exit code: {}", it.exitValue())
                     }
-
-                } else {
-                    LOG.info("No mongo instance to shutdown")
                 }
+
                 emitter.onComplete()
             } catch (t : Throwable) {
                 emitter.onError(t)

@@ -120,7 +120,7 @@ class ClusterServiceProviderImpl @Inject constructor(@Named("hazelcastInterface"
     }
 
     private fun createAndConfigureCluster(hazelcastInstance: HazelcastInstance) : HazelcastClusterService {
-        hazelcastInstance.cluster.addMembershipListener(HazelcastMembershipListner(clusterLifecycleEvents))
+        hazelcastInstance.cluster.addMembershipListener(HazelcastMembershipListener(clusterLifecycleEvents))
 
         return HazelcastClusterService(hazelcastInstance)
     }
@@ -153,7 +153,7 @@ class HazelcastClusterService(internal val hazelcastInstance: HazelcastInstance)
     }
 }
 
-class HazelcastMembershipListner(private val clusterEvents: PublishSubject<ClusterEvent>) : MembershipListener {
+class HazelcastMembershipListener(private val clusterEvents: PublishSubject<ClusterEvent>) : MembershipListener {
     override fun memberRemoved(membershipEvent: MembershipEvent) {
         val address = membershipEvent.member.address
         val clusterNode = ClusterNode(address.host, address.port)

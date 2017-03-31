@@ -11,7 +11,6 @@ class HazelcastModule : AbstractModule() {
     override fun configure() {
         bind(CacheService::class.java).to(CacheServiceImpl::class.java).`in`(Singleton::class.java)
         bind(ClusterServiceProvider::class.java).to(ClusterServiceProviderImpl::class.java).`in`(Singleton::class.java)
-        bind(HazelcastResource::class.java).`in`(Singleton::class.java)
     }
 
     @Provides
