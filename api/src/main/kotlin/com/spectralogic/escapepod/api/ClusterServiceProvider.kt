@@ -20,10 +20,15 @@ interface ClusterService {
 }
 
 interface DistributedMap<K, V> : MutableMap<K, V> {
-    // TODO add listener registration
+    fun entryAdded(onNext : (Pair<K, V>) -> Unit) : Disposable
+    fun entryRemoved(onNext : (Pair<K, V>) -> Unit) : Disposable
+    fun entryModified(onNext : (Pair<K, V>) -> Unit) : Disposable
 }
 
-interface DistributedSet<V> : MutableSet<V>
+interface DistributedSet<V> : MutableSet<V> {
+    fun entryAdded(onNext : (V) -> Unit) : Disposable
+    fun entryRemoved(onNext : (V) -> Unit) : Disposable
+}
 
 data class ClusterNode(val ip: String, val port: Int)
 

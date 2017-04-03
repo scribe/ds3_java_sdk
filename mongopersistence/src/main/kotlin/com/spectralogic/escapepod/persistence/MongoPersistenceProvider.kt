@@ -27,14 +27,23 @@ class MongoPersistenceProvider @Inject constructor(private val clusterServicePro
 
     private var mongoProcess : Process? = null
 
-    override fun joinPersistenceCluster(name: String, nodes: Sequence<String>) : Completable {
+    override fun joinPersistenceCluster(name : String, port : Int) : Completable {
         return Completable.create {
+            val clusterService = clusterServiceProvider.getService()
+
+            val distributedSet = clusterService.getDistributedSet<MongoNode>(MONGO_CLUSTER_ENDPOINT)
+            val processBuilder = ProcessBuilder("mongod", "--config", "/usr/local/etc/mongod.conf", "--port", port.toString(), "--replSet", name)
+
+            processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
+            processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
+            mongoProcess = processBuilder.start()
+
 
 
         }
     }
 
-    override fun createNewPersistenceCluster(name: String, port : Int) : Completable {
+    override fun createNewPersistenceCluster(name : String, port : Int) : Completable {
         // create new mongo process
 
         // TODO add check to make sure we are not already in a cluster
