@@ -1,7 +1,9 @@
 package com.spectralogic.escapepod.persistence
 
 import com.google.inject.AbstractModule
+import com.google.inject.Provides
 import com.spectralogic.escapepod.api.PersistenceServiceProvider
+import javax.inject.Named
 import javax.inject.Singleton
 
 class MongoPersistenceModule : AbstractModule() {

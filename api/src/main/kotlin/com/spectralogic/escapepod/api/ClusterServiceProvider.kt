@@ -6,7 +6,7 @@ import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 
 interface ClusterServiceProvider : ServiceProvider<ClusterService> {
-    fun joinCluster(ip: String) : Single<String>
+    fun joinCluster(endpoint: String) : Single<String>
     fun leaveCluster() : Completable
     fun createCluster(name: String) : Completable
     fun clusterLifecycleEvents(onNext : (ClusterEvent) -> Unit, onError : (Throwable) -> Unit) : Disposable
@@ -14,6 +14,8 @@ interface ClusterServiceProvider : ServiceProvider<ClusterService> {
 }
 
 interface ClusterService {
+    fun name() : Single<String>
+    fun instanceName() : Single<String>
     fun clusterNodes() : Observable<ClusterNode>
     fun <K, V> getDistributedMap(name : String) : DistributedMap<K, V>
     fun <V> getDistributedSet(name : String) : DistributedSet<V>

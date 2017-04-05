@@ -1,6 +1,8 @@
 package com.spectralogic.escapepod.server
 
 import com.google.inject.Guice
+import com.google.inject.Key
+import com.google.inject.name.Names
 import com.greyrock.escapepod.util.ifNotNull
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.cluster.HazelcastModule
@@ -25,13 +27,7 @@ class Main {
             val clusterService = injector.getInstance(ClusterServiceProvider::class.java)
             val persistenceService = injector.getInstance(PersistenceServiceProvider::class.java)
 
-            clusterService.clusterLifecycleEvents { event ->
-                if (event is ClusterCreatedEvent) {
-                    persistenceService.createNewPersistenceCluster(event.clusterName, 27017) // TODO default port for Mongo
-                } else if (event is ClusterLeftEvent) {
-                    persistenceService.shutdown()
-                }
-            }
+            clusterService.clusterLifecycleEvents(persistenceService::clusterHandler)
 
             clusterService.clusterLifecycleEvents { event ->
                 if (event is ClusterNodeJoinedEvent) {
@@ -41,14 +37,10 @@ class Main {
 
             RatpackServer.start { server ->
 
-                val envVars = System.getenv()
 
-                if ("serverPort" in envVars) {
-                    server.serverConfig { config ->
-                        envVars["serverPort"].ifNotNull {
-                            config.port(it.toInt())
-                        }
-                    }
+                server.serverConfig { config ->
+                    val portProvider = injector.getProvider(Key.get(Int::class.java, Names.named("httpPort")))
+                    config.port(portProvider.get())
                 }
 
                 server.handlers { chain ->

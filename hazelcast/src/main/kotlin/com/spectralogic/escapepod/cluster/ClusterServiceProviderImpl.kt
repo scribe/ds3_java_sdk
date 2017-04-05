@@ -8,14 +8,17 @@ import com.spectralogic.escapepod.api.*
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.Single.create
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
 import javax.inject.Named
 
-class ClusterServiceProviderImpl @Inject constructor(@Named("interfaceIp") private val hazelcastInterface: String) : ClusterServiceProvider {
+class ClusterServiceProviderImpl
+@Inject constructor(
+        @Named("interfaceIp") private val hazelcastInterface: String,
+        private val clusterClientFactory : ClusterClientFactory
+) : ClusterServiceProvider {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(ClusterServiceProviderImpl::class.java)
@@ -58,43 +61,48 @@ class ClusterServiceProviderImpl @Inject constructor(@Named("interfaceIp") priva
         throwIfInCluster(CANNOT_JOIN_NEW_CLUSTER)
 
         return Completable.create { emitter ->
-            val config = createCommonClusterConfiguration()
-            config.instanceName = name
+            val config = createCommonClusterConfiguration(name)
 
             val hazelcastInstance = Hazelcast.newHazelcastInstance(config)
 
             clusterService = createAndConfigureCluster(hazelcastInstance)
 
             clusterLifecycleEvents.onNext(ClusterCreatedEvent(name))
+
             emitter.onComplete()
         }
     }
 
-   override fun joinCluster(ip : String) : Single<String> {
+    override fun joinCluster(endpoint: String) : Single<String> {
         throwIfInCluster(CANNOT_JOIN_NEW_CLUSTER)
 
-        return create { emitter ->
-            try {
+       return clusterClientFactory.createClusterClient(endpoint).clusterName()
+               .doOnSuccess { name ->
+                   val config = createCommonClusterConfiguration(name)
 
-                val config = createCommonClusterConfiguration()
-                config.networkConfig.join.tcpIpConfig.addMember(ip)
+                   LOG.info("Attempting join to endpoint: {}", endpoint)
 
-                LOG.info("Attempting join to ip: {}", ip)
+                   config.networkConfig.join.tcpIpConfig.members.add(hazelcastEndpoint(endpoint))
 
-                val newHazelcastInstance = Hazelcast.newHazelcastInstance(config)
+                   val newHazelcastInstance = Hazelcast.newHazelcastInstance(config)
 
-                clusterService = createAndConfigureCluster(newHazelcastInstance)
+                   clusterService = createAndConfigureCluster(newHazelcastInstance)
 
-                clusterLifecycleEvents.onNext(ClusterJoinedEvent(newHazelcastInstance.name))
-                emitter.onSuccess(newHazelcastInstance.name)
-            } catch (t : Throwable) {
-                emitter.onError(t)
-            }
-        }
+                   clusterLifecycleEvents.onNext(ClusterJoinedEvent(name))
+       }
     }
 
-    private fun createCommonClusterConfiguration() : Config {
+    private fun hazelcastEndpoint(endpoint: String): String {
+        val colonIndex = endpoint.indexOf(':')
+        if (colonIndex > 0) {
+            return endpoint.substring(0, colonIndex)
+        }
+        return endpoint
+    }
+
+    private fun createCommonClusterConfiguration(name : String) : Config {
         val config = Config()
+        config.groupConfig.name = name
         val networkConfig = config.networkConfig
 
         networkConfig.interfaces.isEnabled = true
@@ -123,7 +131,9 @@ class ClusterServiceProviderImpl @Inject constructor(@Named("interfaceIp") priva
     private fun createAndConfigureCluster(hazelcastInstance: HazelcastInstance) : HazelcastClusterService {
         hazelcastInstance.cluster.addMembershipListener(HazelcastMembershipListener(clusterLifecycleEvents))
 
-        return HazelcastClusterService(hazelcastInstance)
+        val idGenerator = hazelcastInstance.getIdGenerator("clusterNodeId")
+
+        return HazelcastClusterService(hazelcastInstance, "instance_" + idGenerator.newId())
     }
 
     private fun throwIfNotInCluster(message: String) = throwClusterExceptionIf(message) { clusterService == null }
@@ -137,7 +147,15 @@ class ClusterServiceProviderImpl @Inject constructor(@Named("interfaceIp") priva
     }
 }
 
-class HazelcastClusterService(internal val hazelcastInstance: HazelcastInstance) : ClusterService {
+class HazelcastClusterService(internal val hazelcastInstance: HazelcastInstance, internal val instanceName : String) : ClusterService {
+    override fun instanceName(): Single<String> {
+        return Single.just(instanceName)
+    }
+
+    override fun name(): Single<String> {
+        return Single.just(hazelcastInstance.config.groupConfig.name)
+    }
+
     override fun <K, V> getDistributedMap(name: String): DistributedMap<K, V> {
         return HazelcastDistributedMap(hazelcastInstance.getMap(name))
     }

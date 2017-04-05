@@ -16,9 +16,7 @@ internal class EscapePodScheduler @Inject constructor(val planner : MigrationPla
         println("EscapePodScheduler [start]")
 
 
-        val migrationTasks = planner.getMigrationTasks()
 
-        val future = migrationTasks.iterator().next()
 
         //future.suspend()
     }

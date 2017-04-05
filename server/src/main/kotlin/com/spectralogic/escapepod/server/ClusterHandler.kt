@@ -20,9 +20,30 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
     private val scheduler : Scheduler = Schedulers.from(workers)
 
     override fun execute(chain: Chain) {
+
+        chain.get("members") { ctx ->
+            try {
+                clusterServiceProvider.getService().clusterNodes().toList().doOnSuccess { clusterList ->
+                    ctx.render(clusterList.joinToString(", ") { it.ip + ":" + it.port })
+                }.observeOn(scheduler).subscribe()
+            } catch( e : RuntimeException) {
+                ctx.response.status(400).send("Encountered an error with the cluster: " + e.message)
+            }
+        }
+
         chain.all{ ctx ->
             try {
                 when(ctx.request.method) {
+
+                    HttpMethod.GET -> {
+                        clusterServiceProvider.getService().name().doOnSuccess { name ->
+                            ctx.render(name)
+                        }.doOnError { t ->
+                            LOG.error("Failed to get cluster name", t)
+                            ctx.response.status(400).send("The cluster is not responding")
+                        }.observeOn(scheduler).subscribe()
+                    }
+
                     HttpMethod.POST -> {
                         if ("name" in ctx.request.queryParams) {
                             createCluster(ctx)
@@ -32,6 +53,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
                             ctx.response.status(400).send("The request must have either name or ip set")
                         }
                     }
+
                     HttpMethod.DELETE -> {
                         clusterServiceProvider.leaveCluster().doOnComplete {
                             ctx.response.status(204).send("Successfully removed from cluster")
@@ -51,15 +73,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
             }
         }
 
-        chain.get("members") { ctx ->
-            try {
-                clusterServiceProvider.getService().clusterNodes().toList().doOnSuccess { clusterList ->
-                    ctx.render(clusterList.joinToString(", ") { it.ip + ":" + it.port })
-                }.observeOn(scheduler).subscribe()
-            } catch( e : RuntimeException) {
-                ctx.response.status(400).send("Encountered an error with the cluster: " + e.message)
-            }
-        }
+
     }
 
     private fun joinCluster(ctx: Context) {
