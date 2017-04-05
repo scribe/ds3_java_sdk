@@ -12,7 +12,6 @@ import java.io.Serializable
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -52,6 +51,7 @@ class MongoPersistenceProvider
         val clusterService = clusterServiceProvider.getService()
         val distributedSet = clusterService.getDistributedSet<MongoNode>(MONGO_CLUSTER_ENDPOINT)
 
+        LOG.info("creating mongo client")
         mongoClient = MongoClient(distributedSet.map { ServerAddress(it.ip, it.port)})
     }
 
@@ -59,8 +59,36 @@ class MongoPersistenceProvider
         LOG.info("New Mongo Node registered for {}:{}", mongoNode.ip, mongoNode.port)
 
         mongoClient.ifNotNull {
+            LOG.info("Adding new Mongo node to cluster")
+            val clusterAddScript = writeClusterAddScript(mongoNode)
+            try {
+                val initClusterProcess = runProcess("mongo", "--port", persistencePort.toString(), clusterAddScript.toString())
 
+                initClusterProcess.waitFor(30, TimeUnit.SECONDS)
+                if (initClusterProcess.isAlive) {
+                    initClusterProcess.destroyForcibly()
+                } else if (initClusterProcess.exitValue() != 0) {
+                    LOG.error("Failed to initialize mongo replica set")
+                }
+
+            } finally {
+                Files.deleteIfExists(clusterAddScript)
+            }
         }
+    }
+
+    private fun  writeClusterAddScript(mongoNode: MongoNode): Path {
+       val createTempFile = Files.createTempFile("mongoConf", ".js")
+
+        LOG.info("temp file for cluster add script: {}", createTempFile.toString())
+
+        Files.newBufferedWriter(createTempFile, Charset.forName("UTF-8"), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE).use {
+            it.write("if (db.isMaster().ismaster === true) {\n")
+            it.write("rs.add(\"${mongoNode.ip}:${mongoNode.port}\")\n")
+            it.write("}\n")
+        }
+
+        return createTempFile
     }
 
     override fun createNewPersistenceCluster(name : String, port : Int) : Completable {
@@ -83,7 +111,7 @@ class MongoPersistenceProvider
             } finally {
                 Files.deleteIfExists(clusterInitScript)
             }
-        }
+        }.doOnComplete(this::createMongoClient)
     }
 
     private fun startMongo(name : String, port : Int) : Completable {
