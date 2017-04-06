@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 import javax.inject.Inject
 import javax.inject.Named
 
-class ClusterServiceProviderImpl
+internal class ClusterServiceProviderImpl
 @Inject constructor(
         @Named("interfaceIp") private val hazelcastInterface: String,
         private val clusterClientFactory : ClusterClientFactory
@@ -147,7 +147,7 @@ class ClusterServiceProviderImpl
     }
 }
 
-class HazelcastClusterService(internal val hazelcastInstance: HazelcastInstance, internal val instanceName : String) : ClusterService {
+internal class HazelcastClusterService(internal val hazelcastInstance: HazelcastInstance, internal val instanceName : String) : ClusterService {
     override fun instanceName(): Single<String> {
         return Single.just(instanceName)
     }
@@ -179,7 +179,7 @@ class HazelcastClusterService(internal val hazelcastInstance: HazelcastInstance,
     }
 }
 
-class HazelcastDistributedMap<K, V>(hazelcastMap : IMap<K, V>) : MutableMap<K, V> by hazelcastMap, DistributedMap<K, V> {
+internal class HazelcastDistributedMap<K, V>(hazelcastMap : IMap<K, V>) : MutableMap<K, V> by hazelcastMap, DistributedMap<K, V> {
 
     private val entryAddedSubject = PublishSubject.create<Pair<K,V>>()
     private val entryRemovedSubject = PublishSubject.create<Pair<K,V>>()
@@ -228,7 +228,7 @@ class HazelcastDistributedMap<K, V>(hazelcastMap : IMap<K, V>) : MutableMap<K, V
     }
 }
 
-class HazelcastDistributedSet<V>(hazelcastSet : ISet<V>) : MutableSet<V> by hazelcastSet, DistributedSet<V> {
+internal class HazelcastDistributedSet<V>(hazelcastSet : ISet<V>) : MutableSet<V> by hazelcastSet, DistributedSet<V> {
 
     private val entryAddedSubject = PublishSubject.create<V>()
     private val entryRemovedSubject = PublishSubject.create<V>()
@@ -259,7 +259,7 @@ class HazelcastDistributedSet<V>(hazelcastSet : ISet<V>) : MutableSet<V> by haze
     }
 }
 
-class HazelcastMembershipListener(private val clusterEvents: PublishSubject<ClusterEvent>) : MembershipListener {
+internal class HazelcastMembershipListener(private val clusterEvents: PublishSubject<ClusterEvent>) : MembershipListener {
     override fun memberRemoved(membershipEvent: MembershipEvent) {
         val address = membershipEvent.member.address
         val clusterNode = ClusterNode(address.host, address.port)

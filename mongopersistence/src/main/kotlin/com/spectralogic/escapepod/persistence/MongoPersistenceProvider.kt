@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Named
 
-class MongoPersistenceProvider
+internal class MongoPersistenceProvider
 @Inject constructor(
         private val clusterServiceProvider: ClusterServiceProvider,
         @Named("interfaceIp") private val interfaceIp : String,
@@ -246,8 +246,8 @@ class MongoPersistenceProvider
     }
 }
 
-data class MongoNode(val ip : String, val port : Int) : Serializable
+internal data class MongoNode(val ip : String, val port : Int) : Serializable
 
-class MongoPersistenceService : PersistenceService {
+internal class MongoPersistenceService : PersistenceService {
 
 }

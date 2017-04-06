@@ -15,7 +15,7 @@ interface ClusterClientFactory {
     fun createClusterClient(endpoint: String) : ClusterClient
 }
 
-class ClusterClientFactoryImpl : ClusterClientFactory {
+internal class ClusterClientFactoryImpl : ClusterClientFactory {
     override fun createClusterClient(endpoint: String): ClusterClient {
         //TODO think about adding in our common scheduler
         val retrofit = Retrofit.Builder()

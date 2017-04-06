@@ -6,8 +6,9 @@ import com.spectralogic.escapepod.api.PersistenceServiceProvider
 import javax.inject.Named
 import javax.inject.Singleton
 
-class MongoPersistenceModule : AbstractModule() {
+internal class MongoPersistenceGuiceModule : AbstractModule() {
     override fun configure() {
         bind(PersistenceServiceProvider::class.java).to(MongoPersistenceProvider::class.java).`in`(Singleton::class.java)
+        bind(PersistenceModuleLoader::class.java)
     }
 }

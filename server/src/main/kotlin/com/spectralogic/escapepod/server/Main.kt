@@ -1,12 +1,11 @@
 package com.spectralogic.escapepod.server
 
+import com.google.common.collect.ImmutableList
 import com.google.inject.Guice
 import com.google.inject.Key
 import com.google.inject.name.Names
-import com.greyrock.escapepod.util.ifNotNull
-import com.spectralogic.escapepod.api.*
-import com.spectralogic.escapepod.cluster.HazelcastModule
-import com.spectralogic.escapepod.persistence.MongoPersistenceModule
+import com.spectralogic.escapepod.cluster.ClusterModule
+import com.spectralogic.escapepod.persistence.PersistenceModule
 import org.slf4j.LoggerFactory
 import ratpack.server.RatpackServer
 
@@ -20,23 +19,20 @@ class Main {
 
         @JvmStatic
         fun main(arg: Array<String>) {
-            val injector = Guice.createInjector(ServerModule(), HazelcastModule(), MongoPersistenceModule())
+
+            val clusterModule = ClusterModule()
+            val persistenceModule = PersistenceModule()
+
+            val injector = Guice.createInjector(ServerModule(), clusterModule.guiceModule(), persistenceModule.guiceModule())
 
             Runtime.getRuntime().addShutdownHook(injector.getInstance(ShutdownHook::class.java))
 
-            val clusterService = injector.getInstance(ClusterServiceProvider::class.java)
-            val persistenceService = injector.getInstance(PersistenceServiceProvider::class.java)
-
-            clusterService.clusterLifecycleEvents(persistenceService::clusterHandler)
-
-            clusterService.clusterLifecycleEvents { event ->
-                if (event is ClusterNodeJoinedEvent) {
-                    LOG.info("New node joined cluster: {}:{}", event.clusterNode.ip, event.clusterNode.port)
-                }
-            }
+            ImmutableList.of(clusterModule, persistenceModule)
+                    .asSequence()
+                    .map { injector.getInstance(it.moduleLoader()) }
+                    .forEach { it.loadModule().subscribe() }
 
             RatpackServer.start { server ->
-
 
                 server.serverConfig { config ->
                     val portProvider = injector.getProvider(Key.get(Int::class.java, Names.named("httpPort")))
