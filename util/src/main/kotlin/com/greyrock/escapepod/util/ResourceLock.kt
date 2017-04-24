@@ -21,20 +21,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 class ResourceLock {
     private val lock = ReentrantReadWriteLock(true)
 
-    fun readLock(lockedFunction: () -> Unit) {
-        runLock(lock.readLock(), lockedFunction)
-    }
-
     fun <T> readLock(callable: () -> T): T {
         return runCallableLock(lock.readLock(), callable)
     }
 
     fun writeLock(lockedFunction: () -> Unit) {
         runLock(lock.writeLock(), lockedFunction)
-    }
-
-    fun <T> writeLock(callable : () -> T): T {
-        return runCallableLock(lock.writeLock(), callable)
     }
 
     private fun runLock(lock: Lock, lockedFunction: () -> Unit) {
