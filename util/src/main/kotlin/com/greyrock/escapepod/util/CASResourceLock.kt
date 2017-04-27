@@ -26,7 +26,7 @@ class CASResourceLock<T : Any>(private val resourceProvider: ResourceProvider<T?
         }
     }
 
-    private fun getCASFromResource(resource: T?) : Int {
+    private fun getCASFromResource(resource : T?) : Int {
         if (resource != null) {
             return resource.hashCode()
         } else {
