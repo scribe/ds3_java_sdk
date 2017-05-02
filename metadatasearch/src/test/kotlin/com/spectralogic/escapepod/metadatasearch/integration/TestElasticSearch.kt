@@ -233,7 +233,7 @@ class TestElasticSearch {
     }
 
     @Test
-    fun testsearchByMatchAll() {
+    fun testSearchByMatchAll() {
         val index1 = "test_search_by_match_all_1"
         val index2 = "test_search_by_match_all_2"
         val bucket1 = "test_bucket_1"

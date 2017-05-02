@@ -11,7 +11,7 @@ interface MetadataSearchApi {
     fun closeConnection()
 
     /***
-     * Query the health of the cluser
+     * Query the health of the cluster
      * @return
      */
     fun health(): Response
