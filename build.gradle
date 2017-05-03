@@ -52,7 +52,7 @@ subprojects {
     }
 
     protobuf {
-        generatedFilesBaseDir = "$projectDir/src/generated"
+        generatedFilesBaseDir = "$projectDir/src"
 
         protoc {
             artifact = 'com.google.protobuf:protoc:3.2.0'
