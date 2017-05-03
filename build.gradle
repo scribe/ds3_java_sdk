@@ -69,7 +69,7 @@ subprojects {
     }
 
     compileKotlin.dependsOn 'generateProto'
-    compileTestKotlin.dependsOn 'generateProto'
+    compileTestKotlin.dependsOn 'generateTestProto'
 }
 
 task wrapper(type: Wrapper) {
