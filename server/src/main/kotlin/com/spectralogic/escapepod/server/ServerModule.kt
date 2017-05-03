@@ -24,8 +24,20 @@ class ServerModule : AbstractModule() {
 
     @Provides
     @Named("dataDir")
-    fun dataDir() : Path {
-        val dataDirName = System.getenv()["dataDir"]
+    fun dataDir(@Named("baseDir") baseDir: Path) : Path {
+        return baseDir.resolve("data")
+    }
+
+    @Provides
+    @Named
+    fun configDir(@Named("baseDir") baseDir : Path) : Path {
+        return baseDir.resolve("config")
+    }
+
+    @Provides
+    @Named("baseDir")
+    fun baseDir() : Path {
+        val dataDirName = System.getenv()["baseDir"]
 
         if (dataDirName == null) {
             return Paths.get(System.getProperty("user.dir"), ".escapepod")

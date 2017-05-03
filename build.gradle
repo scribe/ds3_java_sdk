@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.1.2'
+    ext.kotlin_version = '1.1.2-2'
 
     repositories {
         maven {
@@ -35,14 +35,14 @@ subprojects {
     }
 
     dependencies {
-        compile 'io.reactivex.rxjava2:rxjava:2.0.7'
+        compile 'io.reactivex.rxjava2:rxjava:2.1.0'
         compile 'io.reactivex.rxjava2:rxkotlin:2.0.0'
         compile 'com.google.guava:guava:21.0'
         compile 'com.google.inject:guice:4.1.0'
         compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.23'
         compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-        compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.12'
-        compile 'org.jetbrains.kotlinx:kotlinx-coroutines-nio:0.12'
+        compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.14.1'
+        compile 'org.jetbrains.kotlinx:kotlinx-coroutines-nio:0.14.1'
         compile 'com.google.protobuf:protobuf-java:3.2.0'
 
         testCompile 'junit:junit:4.12'
@@ -50,6 +50,7 @@ subprojects {
         testCompile 'org.mockito:mockito-core:1.+'
         testCompile 'org.assertj:assertj-core:3.6.2'
     }
+
 
     protobuf {
         generatedFilesBaseDir = "$projectDir/src"
@@ -66,6 +67,9 @@ subprojects {
             }
         }
     }
+
+    compileKotlin.dependsOn 'generateProto'
+    compileTestKotlin.dependsOn 'generateProto'
 }
 
 task wrapper(type: Wrapper) {

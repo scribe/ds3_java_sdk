@@ -20,8 +20,11 @@ class PersistenceModule : Module<PersistenceModuleLoader> {
 
 class PersistenceModuleLoader @Inject constructor(private val clusterServiceProvider: ClusterServiceProvider, private val persistenceServiceProvider: PersistenceServiceProvider) : ModuleLoader {
     override fun loadModule(): Completable {
-        return Completable.create {
-            clusterServiceProvider.clusterLifecycleEvents(persistenceServiceProvider::clusterHandler)
+        return Completable.create { emitter ->
+
+            clusterServiceProvider.clusterLifecycleEvents().subscribe(persistenceServiceProvider::clusterHandler)
+
+            emitter.onComplete()
         }
     }
 }

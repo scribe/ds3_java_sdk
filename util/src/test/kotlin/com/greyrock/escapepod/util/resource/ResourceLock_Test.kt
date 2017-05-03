@@ -1,5 +1,6 @@
-package com.greyrock.escapepod.util
+package com.greyrock.escapepod.util.resource
 
+import com.greyrock.escapepod.util.resource.ResourceLock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.util.concurrent.CountDownLatch

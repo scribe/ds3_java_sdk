@@ -9,8 +9,7 @@ interface ClusterServiceProvider : ServiceProvider<ClusterService> {
     fun joinCluster(endpoint: String) : Single<String>
     fun leaveCluster() : Completable
     fun createCluster(name: String) : Completable
-    fun clusterLifecycleEvents(onNext : (ClusterEvent) -> Unit, onError : (Throwable) -> Unit) : Disposable
-    fun clusterLifecycleEvents(onNext : (ClusterEvent) -> Unit) : Disposable
+    fun clusterLifecycleEvents(): Observable<ClusterEvent>
 }
 
 interface ClusterService {

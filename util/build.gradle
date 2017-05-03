@@ -1,0 +1,3 @@
+clean.doFirst {
+    delete "${projectDir}/src/test/java"
+}

@@ -120,12 +120,8 @@ internal class ClusterServiceProviderImpl
         return leaveCluster()
     }
 
-    override fun clusterLifecycleEvents(onNext : (ClusterEvent) -> Unit, onError : (Throwable) -> Unit) : Disposable{
-        return clusterLifecycleEvents.subscribe(onNext, onError)
-    }
-
-    override fun clusterLifecycleEvents(onNext : (ClusterEvent) -> Unit) : Disposable {
-        return clusterLifecycleEvents.subscribe(onNext)
+    override fun clusterLifecycleEvents() : Observable<ClusterEvent> {
+        return clusterLifecycleEvents
     }
 
     private fun createAndConfigureCluster(hazelcastInstance: HazelcastInstance) : HazelcastClusterService {
