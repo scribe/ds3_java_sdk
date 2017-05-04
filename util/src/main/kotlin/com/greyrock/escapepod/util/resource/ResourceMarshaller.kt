@@ -1,8 +1,5 @@
 package com.greyrock.escapepod.util.resource
 
-import java.io.InputStream
-import java.io.OutputStream
-
 /**
  * A ResourceProvider is responsible for Marshalling and Un-Marshalling a Resource.
  *
