@@ -1,12 +1,9 @@
-package com.spectralogic.escapepod.metadatasearch
+package com.spectralogic.escapepod.api
 
-import org.elasticsearch.client.Response
-
-//TODO need to change the return type of all the api functions to something more generic and not elasticSearch specific
 //TODO change the return type to be Completable for async call support
 interface MetadataSearchApi {
     /***
-     * Close the connection to the underline search provider (ex. elasticsearch)
+     * Close the connection to the underline search provider
      */
     fun closeConnection()
 
@@ -14,7 +11,7 @@ interface MetadataSearchApi {
      * Query the health of the cluster
      * @return
      */
-    fun health(): Response
+    fun health(): MetadataSearchHealthResponse
 
     /***
      * Create an index in the underline search provider with a default of 5 shards and 2 replicas
@@ -22,7 +19,7 @@ interface MetadataSearchApi {
      * @param numberOfReplicas
      * @return
      */
-    fun createIndex(index: String, numberOfShard: Int = 5, numberOfReplicas: Int = 2): Response
+    fun createIndex(index: String, numberOfShard: Int = 5, numberOfReplicas: Int = 2)
 
     /***
      * Update the number of replicas for the given index
@@ -30,20 +27,19 @@ interface MetadataSearchApi {
      * @param numberOfReplicas
      * @return
      */
-    fun updateIndexNumberOfReplicas(index: String, numberOfReplicas: Int): Response
+    fun updateIndexNumberOfReplicas(index: String, numberOfReplicas: Int)
 
     /***
      * Get all the indices in the system
      */
-    fun getAllIndices(): Response
+    fun getAllIndices(): MetadataSearchIndicesResponse
 
     /***
      * Delete the given index
-     * @note Should be use for testing only
      * @param index
      * @return
      */
-    fun deleteIndex(index: String): Response
+    fun deleteIndex(index: String)
 
     /***
      * Delete a document from a bucket
@@ -51,7 +47,7 @@ interface MetadataSearchApi {
      * @param bucket
      * @param id
      */
-    fun deleteDocument(index: String, bucket: String, id: String): Response
+    fun deleteDocument(index: String, bucket: String, id: String)
 
     /***
      * Index a document
@@ -61,7 +57,7 @@ interface MetadataSearchApi {
      * @param metadata
      * @return
      */
-    fun indexDocument(index: String, bucket: String, id: String, metadata: Map<String, String>): Response
+    fun indexDocument(index: String, bucket: String, id: String, metadata: Map<String, String>)
 
     /***
      * Update an index document
@@ -71,7 +67,7 @@ interface MetadataSearchApi {
      * @param metadata
      * @return
      */
-    fun updateIndexedDocument(index: String, bucket: String, id: String, metadata: Map<String, String>): Response
+    fun updateIndexedDocument(index: String, bucket: String, id: String, metadata: Map<String, String>)
 
     /***
      * Search by id in a bucket
@@ -80,7 +76,7 @@ interface MetadataSearchApi {
      * @param id
      * @return
      */
-    fun searchById(index: String, bucket: String, id: String): Response
+    fun searchById(index: String, bucket: String, id: String): MetadataSearchResponse
 
     /***
      * Search by id in all the buckets
@@ -88,13 +84,13 @@ interface MetadataSearchApi {
      * @param id
      * @return
      */
-    fun searchById(index: String, id: String): Response
+    fun searchById(index: String, id: String): MetadataSearchResponse
 
     /***
      * Search by id in all the system
      * @param id
      */
-    fun searchById(id: String): Response
+    fun searchById(id: String): MetadataSearchResponse
 
     /***
      * Search by metadata in a bucket
@@ -104,7 +100,7 @@ interface MetadataSearchApi {
      * @param value
      * @return
      */
-    fun searchByMetadata(index: String, bucket: String, key: String, value: String): Response
+    fun searchByMetadata(index: String, bucket: String, key: String, value: String): MetadataSearchResponse
 
     /***
      * Search by metadata in all the buckets
@@ -113,30 +109,34 @@ interface MetadataSearchApi {
      * @param value
      * @return
      */
-    fun searchByMetadata(index: String, key: String, value: String): Response
+    fun searchByMetadata(index: String, key: String, value: String):  MetadataSearchResponse
 
     /***
      * Search by metadata in all the system
      * @param key
      * @param value
      */
-    fun searchByMetadata(key: String, value: String): Response
+    fun searchByMetadata(key: String, value: String): MetadataSearchResponse
 
     /***
      * Return all the indexed documents in a bucket
      * @param index
      * @param bucket
      */
-    fun searchByMatchAll(index: String, bucket: String): Response
+    fun searchByMatchAll(index: String, bucket: String): MetadataSearchResponse
 
     /***
      * Return all the indexed documents in all the buckets
      * @param index
      */
-    fun searchByMatchAll(index: String): Response
+    fun searchByMatchAll(index: String): MetadataSearchResponse
 
     /***
      * Return all the indexed documents in all the system
      */
-    fun searchByMatchAll(): Response
+    fun searchByMatchAll(): MetadataSearchResponse
 }
+
+class MetadataSearchHealthResponse
+class MetadataSearchIndicesResponse
+class MetadataSearchResponse

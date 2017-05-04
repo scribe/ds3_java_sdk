@@ -125,6 +125,7 @@ project(":scheduler") {
 
 project(":metadatasearch") {
     dependencies {
+        compile project(":api")
         compile project(":util")
     }
 }
