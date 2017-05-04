@@ -137,6 +137,7 @@ interface MetadataSearchApi {
     fun searchByMatchAll(): MetadataSearchResponse
 }
 
-class MetadataSearchHealthResponse
+data class MetadataSearchHealthResponse(val clusterName: String, val status: String)
+
 class MetadataSearchIndicesResponse
 class MetadataSearchResponse

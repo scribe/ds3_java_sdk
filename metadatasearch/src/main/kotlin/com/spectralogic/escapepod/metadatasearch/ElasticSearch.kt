@@ -4,10 +4,13 @@ import com.spectralogic.escapepod.api.MetadataSearchApi
 import com.spectralogic.escapepod.api.MetadataSearchHealthResponse
 import com.spectralogic.escapepod.api.MetadataSearchIndicesResponse
 import com.spectralogic.escapepod.api.MetadataSearchResponse
+import com.spectralogic.escapepod.metadatasearch.modle.ElasticSearchHealthResponse
+import com.spectralogic.escapepod.util.JsonMapping
 import com.spectralogic.escapepod.util.ReadFileFromResources
 import org.apache.http.HttpHost
 import org.apache.http.entity.ContentType
 import org.apache.http.nio.entity.NStringEntity
+import org.apache.http.util.EntityUtils
 import org.elasticsearch.client.RestClient
 import java.util.*
 
@@ -30,7 +33,11 @@ class ElasticSearch : MetadataSearchApi {
 
         //TODO in case of a failure, rerun an exaction
 
-        return MetadataSearchHealthResponse()
+        val elasticSearchHealthResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                ElasticSearchHealthResponse::class.java)
+
+        return MetadataSearchHealthResponse(elasticSearchHealthResponse.clusterName, elasticSearchHealthResponse.status)
+
     }
 
     override fun createIndex(index: String, numberOfShard: Int, numberOfReplicas: Int) {

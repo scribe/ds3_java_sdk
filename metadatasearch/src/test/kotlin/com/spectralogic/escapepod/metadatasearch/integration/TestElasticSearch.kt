@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap
 import com.spectralogic.escapepod.api.MetadataSearchApi
 import com.spectralogic.escapepod.metadatasearch.ElasticSearch
 import org.apache.http.HttpHost
+import org.assertj.core.api.Assertions.assertThat
 import org.elasticsearch.client.RestClient
 import org.junit.AfterClass
 import org.junit.BeforeClass
@@ -32,6 +33,14 @@ class TestElasticSearch {
             elasticSearch.closeConnection()
         }
     }
+
+    @Test
+    fun testHealth() {
+        val response = elasticSearch.health()
+        assertThat(response.clusterName).isEqualTo("localCluster")
+        assertThat(response.status).isEqualTo("green")
+    }
+
 
     @Test
     fun testCreateIndexWithDefaultValues() {
