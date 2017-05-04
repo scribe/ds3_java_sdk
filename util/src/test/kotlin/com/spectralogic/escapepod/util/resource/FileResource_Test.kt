@@ -1,6 +1,6 @@
 package com.spectralogic.escapepod.util.resource
 
-import com.spectralogic.escapepod.uti.test.models.Messages
+import com.spectralogic.escapepod.util.test.models.Messages
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.nio.file.Files
