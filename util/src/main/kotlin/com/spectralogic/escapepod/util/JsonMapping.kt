@@ -10,12 +10,16 @@ import java.io.OutputStream
 
 object JsonMapping {
 
-    val MAPPER = ObjectMapper()
+    private val MAPPER = ObjectMapper()
 
     init {
         MAPPER.registerModule(GuavaModule())
         MAPPER.registerModule(JavaTimeModule())
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    }
+
+    fun mapper() : ObjectMapper {
+        return MAPPER.copy()
     }
 
     fun <T> fromJson(stream: InputStream, clazz: Class<T>): T {
