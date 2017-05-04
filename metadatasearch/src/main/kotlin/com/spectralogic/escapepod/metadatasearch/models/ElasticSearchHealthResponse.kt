@@ -1,4 +1,4 @@
-package com.spectralogic.escapepod.metadatasearch.modle
+package com.spectralogic.escapepod.metadatasearch.models
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty

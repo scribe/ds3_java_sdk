@@ -139,5 +139,7 @@ interface MetadataSearchApi {
 
 data class MetadataSearchHealthResponse(val clusterName: String, val status: String)
 
-class MetadataSearchIndicesResponse
+data class Index(val indexName: String, val primaries: Int, val replications: Int, val numberOfDocuments: Long)
+
+data class MetadataSearchIndicesResponse(val indices: List<Index>)
 class MetadataSearchResponse

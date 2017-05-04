@@ -1,10 +1,8 @@
 package com.spectralogic.escapepod.metadatasearch
 
-import com.spectralogic.escapepod.api.MetadataSearchApi
-import com.spectralogic.escapepod.api.MetadataSearchHealthResponse
-import com.spectralogic.escapepod.api.MetadataSearchIndicesResponse
-import com.spectralogic.escapepod.api.MetadataSearchResponse
-import com.spectralogic.escapepod.metadatasearch.modle.ElasticSearchHealthResponse
+import com.spectralogic.escapepod.api.*
+import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchHealthResponse
+import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchIndicesResponse
 import com.spectralogic.escapepod.util.JsonMapping
 import com.spectralogic.escapepod.util.ReadFileFromResources
 import org.apache.http.HttpHost
@@ -67,12 +65,23 @@ class ElasticSearch : MetadataSearchApi {
     override fun getAllIndices(): MetadataSearchIndicesResponse {
         val response = restClient.performRequest(
                 "GET",
-                "/_cat/indices"
+                "/_cat/indices",
+                Collections.singletonMap("format", "json")
         )
 
         //TODO in case of a failure, rerun an exaction
 
-        return MetadataSearchIndicesResponse()
+        val elasticSearchIndicesResponse =
+                JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                        ElasticSearchIndicesResponse::class.java)
+
+
+        return MetadataSearchIndicesResponse(
+                elasticSearchIndicesResponse.indices.map {
+                    (indexName, primaries, replications, numberOfDocuments) ->
+                        Index(indexName, primaries, replications, numberOfDocuments)
+                }
+        )
     }
 
     private fun ensureIndexExists(index: String) {

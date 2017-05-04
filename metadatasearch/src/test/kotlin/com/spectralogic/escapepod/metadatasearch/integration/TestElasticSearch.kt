@@ -1,6 +1,7 @@
 package com.spectralogic.escapepod.metadatasearch.integration
 
 import com.google.common.collect.ImmutableMap
+import com.spectralogic.escapepod.api.Index
 import com.spectralogic.escapepod.api.MetadataSearchApi
 import com.spectralogic.escapepod.metadatasearch.ElasticSearch
 import org.apache.http.HttpHost
@@ -37,7 +38,6 @@ class TestElasticSearch {
     @Test
     fun testHealth() {
         val response = elasticSearch.health()
-        assertThat(response.clusterName).isEqualTo("localCluster")
         assertThat(response.status).isEqualTo("green")
     }
 
@@ -49,8 +49,8 @@ class TestElasticSearch {
             elasticSearch.createIndex(index)
 
             val response = elasticSearch.getAllIndices()
-//            assertThat(EntityUtils.toString(response.entity)).containsPattern(
-//                    String.format(indexPattern, index, 5, 2, 0, 0))
+            val expected = Index(index, 5, 2, 0)
+            assertThat(response.indices).contains(expected)
         } finally {
             elasticSearch.deleteIndex(index)
         }
@@ -63,8 +63,8 @@ class TestElasticSearch {
             elasticSearch.createIndex(index, 8, 7)
 
             val response = elasticSearch.getAllIndices()
-//            assertThat(EntityUtils.toString(response.entity)).containsPattern(
-//                    String.format(indexPattern, index, 8, 7, 0, 0))
+            val expected = Index(index, 8, 7, 0)
+            assertThat(response.indices).contains(expected)
         } finally {
             elasticSearch.deleteIndex(index)
         }
@@ -76,14 +76,14 @@ class TestElasticSearch {
         try {
             elasticSearch.createIndex(index)
             var response = elasticSearch.getAllIndices()
-//            assertThat(EntityUtils.toString(response.entity)).containsPattern(
-//                    String.format(indexPattern, index, 5, 2, 0, 0))
+            var expected = Index(index, 5, 2, 0)
+            assertThat(response.indices).contains(expected)
 
             elasticSearch.updateIndexNumberOfReplicas(index, 9)
 
             response = elasticSearch.getAllIndices()
-//            assertThat(EntityUtils.toString(response.entity)).containsPattern(
-//                    String.format(indexPattern, index, 5, 9, 0, 0))
+            expected = Index(index, 5, 9, 0)
+            assertThat(response.indices).contains(expected)
         } finally {
             elasticSearch.deleteIndex(index)
         }
@@ -102,9 +102,8 @@ class TestElasticSearch {
             TimeUnit.SECONDS.sleep(5)
 
             val response = elasticSearch.getAllIndices()
-//            assertThat(EntityUtils.toString(response.entity)).containsPattern(
-//                    String.format(indexPattern, index, 5, 2, 1, 0))
-
+            val expected = Index(index, 5, 2, 1)
+            assertThat(response.indices).contains(expected)
         } finally {
             elasticSearch.deleteIndex(index)
         }
@@ -115,13 +114,13 @@ class TestElasticSearch {
         val index = "test_delete_index"
         elasticSearch.createIndex(index)
         var response = elasticSearch.getAllIndices()
-//        assertThat(EntityUtils.toString(response.entity)).containsPattern(
-//                String.format(indexPattern, index, 5, 2, 0, 0))
+        var expected = Index(index, 5, 2, 0)
+        assertThat(response.indices).contains(expected)
 
         elasticSearch.deleteIndex(index)
         response = elasticSearch.getAllIndices()
-//        assertThat(EntityUtils.toString(response.entity)).doesNotContain(
-//                String.format(indexPattern, index, 5, 2, 0, 0))
+        expected = Index(index, 5, 2, 0)
+        assertThat(response.indices).doesNotContain(expected)
     }
 
     @Test
@@ -136,16 +135,15 @@ class TestElasticSearch {
             TimeUnit.SECONDS.sleep(5)
 
             var response = elasticSearch.getAllIndices()
-//            assertThat(EntityUtils.toString(response.entity)).containsPattern(
-//                    String.format(indexPattern, index, 5, 2, 1, 0))
+            var expected = Index(index, 5, 2, 1)
+            assertThat(response.indices).contains(expected)
 
             elasticSearch.deleteDocument(index, bucket, fileName)
             TimeUnit.SECONDS.sleep(5)
 
             response = elasticSearch.getAllIndices()
-//            assertThat(EntityUtils.toString(response.entity)).containsPattern(
-//                    String.format(indexPattern, index, 5, 2, 0, 0))
-
+            expected = Index(index, 5, 2, 0)
+            assertThat(response.indices).contains(expected)
         } finally {
             elasticSearch.deleteIndex(index)
         }
