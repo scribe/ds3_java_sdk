@@ -1,6 +1,6 @@
 package com.spectralogic.escapepod.persistence
 
-import com.greyrock.escapepod.util.ifNotNull
+import com.spectralogic.escapepod.util.ifNotNull
 import com.mongodb.MongoClient
 import com.mongodb.ServerAddress
 import com.spectralogic.escapepod.api.*

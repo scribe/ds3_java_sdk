@@ -13,10 +13,6 @@ class Main {
 
     companion object {
 
-        private val LOG = LoggerFactory.getLogger(Main::class.java)
-
-        // TODO need to add a shutdown thread for the persistence layer and any other subprocesses that could be running
-
         @JvmStatic
         fun main(arg: Array<String>) {
 

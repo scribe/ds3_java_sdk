@@ -1,4 +1,4 @@
-package com.greyrock.escapepod.util
+package com.spectralogic.escapepod.util
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test

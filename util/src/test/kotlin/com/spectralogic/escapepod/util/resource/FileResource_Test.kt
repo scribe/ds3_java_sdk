@@ -1,4 +1,4 @@
-package com.greyrock.escapepod.util.resource
+package com.spectralogic.escapepod.util.resource
 
 import com.spectralogic.escapepod.uti.test.models.Messages
 import org.assertj.core.api.Assertions.assertThat

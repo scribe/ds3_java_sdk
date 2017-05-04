@@ -1,4 +1,4 @@
-package com.greyrock.escapepod.util.resource
+package com.spectralogic.escapepod.util.resource
 
 /**
  * A ResourceProvider is responsible for Marshalling and Un-Marshalling a Resource.

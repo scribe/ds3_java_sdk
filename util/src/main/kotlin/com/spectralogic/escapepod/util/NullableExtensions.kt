@@ -1,4 +1,4 @@
-package com.greyrock.escapepod.util
+package com.spectralogic.escapepod.util
 
 fun <T> T?.ifNotNull(action : (T) -> Unit) {
     if (this != null) {

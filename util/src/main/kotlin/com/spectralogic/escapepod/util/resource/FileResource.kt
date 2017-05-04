@@ -1,4 +1,4 @@
-package com.greyrock.escapepod.util.resource
+package com.spectralogic.escapepod.util.resource
 
 import org.slf4j.LoggerFactory
 import java.nio.file.Files

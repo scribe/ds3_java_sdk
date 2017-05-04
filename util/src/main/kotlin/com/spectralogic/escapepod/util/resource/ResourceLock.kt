@@ -13,7 +13,7 @@
  * ***************************************************************************
  */
 
-package com.greyrock.escapepod.util.resource
+package com.spectralogic.escapepod.util.resource
 
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantReadWriteLock

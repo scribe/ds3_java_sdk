@@ -2,7 +2,6 @@ package com.spectralogic.escapepod.server
 
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
-import com.greyrock.escapepod.util.ifNotNull
 import com.spectralogic.escapepod.api.Server
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -29,7 +28,7 @@ class ServerModule : AbstractModule() {
     }
 
     @Provides
-    @Named
+    @Named("configDir")
     fun configDir(@Named("baseDir") baseDir : Path) : Path {
         return baseDir.resolve("config")
     }

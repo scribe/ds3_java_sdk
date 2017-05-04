@@ -1,4 +1,4 @@
-package com.greyrock.escapepod.util.resource
+package com.spectralogic.escapepod.util.resource
 
 interface Resource<T> {
     fun getResource(): T?

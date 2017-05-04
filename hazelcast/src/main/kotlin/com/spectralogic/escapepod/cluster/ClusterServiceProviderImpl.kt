@@ -1,10 +1,11 @@
 package com.spectralogic.escapepod.cluster
 
-import com.greyrock.escapepod.util.ifNotNull
+import com.spectralogic.escapepod.util.ifNotNull
 import com.hazelcast.config.Config
 import com.hazelcast.core.*
 import com.hazelcast.map.listener.*
 import com.spectralogic.escapepod.api.*
+import com.spectralogic.escapepod.cluster.config.ClusterConfigResource
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -17,6 +18,7 @@ import javax.inject.Named
 internal class ClusterServiceProviderImpl
 @Inject constructor(
         @Named("interfaceIp") private val hazelcastInterface: String,
+        private val clusterConfigResource: ClusterConfigResource,
         private val clusterClientFactory : ClusterClientFactory
 ) : ClusterServiceProvider {
 
@@ -33,8 +35,19 @@ internal class ClusterServiceProviderImpl
 
     override fun startService(): Completable {
 
-        // TODO read cluster configuration information and create a new service on startup when this is called
+        val resource = clusterConfigResource.getResource()
+        if (resource != null) {
+            LOG.info("attempting to re-join cluster after restart")
+            val firstNode = resource.nodesList.stream().findFirst()
 
+            if (firstNode.isPresent) {
+                val node = firstNode.get()
+                return joinCluster(node.host.endpoint + node.host.port)
+                        .toCompletable()
+            }
+        }
+
+        LOG.info("This node is not a member of a cluster.  Starting up as un-configured")
         return Completable.complete()
     }
 
