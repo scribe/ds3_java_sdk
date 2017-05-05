@@ -1,9 +1,9 @@
-package com.spectralogic.escapepod.metadatasearch.integration
+package com.spectralogic.escapepod.metadatasearch
 
 import com.google.common.collect.ImmutableMap
-import com.spectralogic.escapepod.api.Index
+import com.spectralogic.escapepod.api.MetadataIndex
 import com.spectralogic.escapepod.api.MetadataSearchApi
-import com.spectralogic.escapepod.metadatasearch.ElasticSearch
+import com.spectralogic.escapepod.api.MetadataSearchHitsNode
 import org.apache.http.HttpHost
 import org.assertj.core.api.Assertions.assertThat
 import org.elasticsearch.client.RestClient
@@ -17,8 +17,6 @@ class TestElasticSearch {
 
     companion object {
         private val LOG = LoggerFactory.getLogger(TestElasticSearch::class.java)
-        private val indexPattern = "%s\\s+\\S+\\s+%d %d %d %d"
-        private val searchPattern ="\"hits\" : {\n    \"total\" : %d"
         lateinit var elasticSearch: MetadataSearchApi
 
         @BeforeClass @JvmStatic
@@ -49,7 +47,7 @@ class TestElasticSearch {
             elasticSearch.createIndex(index)
 
             val response = elasticSearch.getAllIndices()
-            val expected = Index(index, 5, 2, 0)
+            val expected = MetadataIndex(index, 5, 2, 0)
             assertThat(response.indices).contains(expected)
         } finally {
             elasticSearch.deleteIndex(index)
@@ -63,7 +61,7 @@ class TestElasticSearch {
             elasticSearch.createIndex(index, 8, 7)
 
             val response = elasticSearch.getAllIndices()
-            val expected = Index(index, 8, 7, 0)
+            val expected = MetadataIndex(index, 8, 7, 0)
             assertThat(response.indices).contains(expected)
         } finally {
             elasticSearch.deleteIndex(index)
@@ -76,13 +74,13 @@ class TestElasticSearch {
         try {
             elasticSearch.createIndex(index)
             var response = elasticSearch.getAllIndices()
-            var expected = Index(index, 5, 2, 0)
+            var expected = MetadataIndex(index, 5, 2, 0)
             assertThat(response.indices).contains(expected)
 
             elasticSearch.updateIndexNumberOfReplicas(index, 9)
 
             response = elasticSearch.getAllIndices()
-            expected = Index(index, 5, 9, 0)
+            expected = MetadataIndex(index, 5, 9, 0)
             assertThat(response.indices).contains(expected)
         } finally {
             elasticSearch.deleteIndex(index)
@@ -102,7 +100,7 @@ class TestElasticSearch {
             TimeUnit.SECONDS.sleep(5)
 
             val response = elasticSearch.getAllIndices()
-            val expected = Index(index, 5, 2, 1)
+            val expected = MetadataIndex(index, 5, 2, 1)
             assertThat(response.indices).contains(expected)
         } finally {
             elasticSearch.deleteIndex(index)
@@ -114,12 +112,12 @@ class TestElasticSearch {
         val index = "test_delete_index"
         elasticSearch.createIndex(index)
         var response = elasticSearch.getAllIndices()
-        var expected = Index(index, 5, 2, 0)
+        var expected = MetadataIndex(index, 5, 2, 0)
         assertThat(response.indices).contains(expected)
 
         elasticSearch.deleteIndex(index)
         response = elasticSearch.getAllIndices()
-        expected = Index(index, 5, 2, 0)
+        expected = MetadataIndex(index, 5, 2, 0)
         assertThat(response.indices).doesNotContain(expected)
     }
 
@@ -135,14 +133,14 @@ class TestElasticSearch {
             TimeUnit.SECONDS.sleep(5)
 
             var response = elasticSearch.getAllIndices()
-            var expected = Index(index, 5, 2, 1)
+            var expected = MetadataIndex(index, 5, 2, 1)
             assertThat(response.indices).contains(expected)
 
             elasticSearch.deleteDocument(index, bucket, fileName)
             TimeUnit.SECONDS.sleep(5)
 
             response = elasticSearch.getAllIndices()
-            expected = Index(index, 5, 2, 0)
+            expected = MetadataIndex(index, 5, 2, 0)
             assertThat(response.indices).contains(expected)
         } finally {
             elasticSearch.deleteIndex(index)
@@ -166,21 +164,16 @@ class TestElasticSearch {
             TimeUnit.SECONDS.sleep(5)
 
             var response = elasticSearch.searchById(index1, bucket1, fileName)
-//            assertThat(EntityUtils.toString(response.entity)).contains(
-//                    String.format(searchPattern, 1))
+            assertThat(response.hits.numberOfHits).isEqualTo(1)
 
             response = elasticSearch.searchById(index1, bucket2, fileName)
-//            assertThat(EntityUtils.toString(response.entity)).contains(
-//                    String.format(searchPattern, 1))
+            assertThat(response.hits.numberOfHits).isEqualTo(1)
 
             response = elasticSearch.searchById(index1,fileName)
-//            assertThat(EntityUtils.toString(response.entity)).contains(
-//                    String.format(searchPattern, 2))
+            assertThat(response.hits.numberOfHits).isEqualTo(2)
 
             response = elasticSearch.searchById(fileName)
-//            assertThat(EntityUtils.toString(response.entity)).contains(
-//                    String.format(searchPattern, 3))
-
+            assertThat(response.hits.numberOfHits).isEqualTo(3)
         } finally {
             elasticSearch.deleteIndex(index1)
             elasticSearch.deleteIndex(index2)
@@ -204,21 +197,16 @@ class TestElasticSearch {
             TimeUnit.SECONDS.sleep(5)
 
             var response = elasticSearch.searchByMetadata(index1, bucket1, "m1", "v1")
-//            assertThat(EntityUtils.toString(response.entity)).contains(
-//                    String.format(searchPattern, 1))
+            assertThat(response.hits.numberOfHits).isEqualTo(1)
 
             response = elasticSearch.searchByMetadata(index1, bucket2, "m1", "v1")
-//            assertThat(EntityUtils.toString(response.entity)).contains(
-//                    String.format(searchPattern, 1))
+            assertThat(response.hits.numberOfHits).isEqualTo(1)
 
             response = elasticSearch.searchByMetadata(index1, "m1", "v1")
-//            assertThat(EntityUtils.toString(response.entity)).contains(
-//                    String.format(searchPattern, 2))
+            assertThat(response.hits.numberOfHits).isEqualTo(2)
 
             response = elasticSearch.searchByMetadata("m1", "v1")
-//            assertThat(EntityUtils.toString(response.entity)).contains(
-//                    String.format(searchPattern, 3))
-
+            assertThat(response.hits.numberOfHits).isEqualTo(3)
         } finally {
             elasticSearch.deleteIndex(index1)
             elasticSearch.deleteIndex(index2)
@@ -242,21 +230,33 @@ class TestElasticSearch {
             TimeUnit.SECONDS.sleep(5)
 
             var response = elasticSearch.searchByMatchAll(index1, bucket1)
-//            assertThat(EntityUtils.toString(response.entity)).contains(
-//                    String.format(searchPattern, 1))
+
+            assertThat(response.hits.numberOfHits).isEqualTo(1)
+
+            var expected = MetadataSearchHitsNode(index1, bucket1, fileName, 1.0, metadata)
+            assertThat(response.hits.hits).containsOnly(expected)
 
             response = elasticSearch.searchByMatchAll(index1, bucket2)
-//            assertThat(EntityUtils.toString(response.entity)).contains(
-//                    String.format(searchPattern, 1))
+            assertThat(response.hits.numberOfHits).isEqualTo(1)
+
+            expected = MetadataSearchHitsNode(index1, bucket2, fileName, 1.0, metadata)
+            assertThat(response.hits.hits).containsOnly(expected)
 
             response = elasticSearch.searchByMatchAll(index1)
-//            assertThat(EntityUtils.toString(response.entity)).contains(
-//                    String.format(searchPattern, 2))
+            assertThat(response.hits.numberOfHits).isEqualTo(2)
+
+            val expected1 = MetadataSearchHitsNode(index1, bucket1, fileName, 1.0, metadata)
+            val expected2 = MetadataSearchHitsNode(index1, bucket2, fileName, 1.0, metadata)
+            assertThat(response.hits.hits).contains(expected1, expected2)
 
             response = elasticSearch.searchByMatchAll(index2)
-//            assertThat(EntityUtils.toString(response.entity)).contains(
-//                    String.format(searchPattern, 1))
+            assertThat(response.hits.numberOfHits).isEqualTo(1)
 
+            expected = MetadataSearchHitsNode(index2, bucket1, fileName, 1.0, metadata)
+            assertThat(response.hits.hits).containsOnly(expected)
+
+            response = elasticSearch.searchByMatchAll()
+            assertThat(response.hits.numberOfHits).isGreaterThanOrEqualTo(3) //could be more than 3 if there was data before the test
         } finally {
             elasticSearch.deleteIndex(index1)
             elasticSearch.deleteIndex(index2)

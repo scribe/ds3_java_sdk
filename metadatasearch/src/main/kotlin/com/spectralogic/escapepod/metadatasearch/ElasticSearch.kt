@@ -3,12 +3,14 @@ package com.spectralogic.escapepod.metadatasearch
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchHealthResponse
 import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchIndicesResponse
+import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchResponse
 import com.spectralogic.escapepod.util.JsonMapping
 import com.spectralogic.escapepod.util.ReadFileFromResources
 import org.apache.http.HttpHost
 import org.apache.http.entity.ContentType
 import org.apache.http.nio.entity.NStringEntity
 import org.apache.http.util.EntityUtils
+import org.elasticsearch.client.ResponseException
 import org.elasticsearch.client.RestClient
 import java.util.*
 
@@ -24,83 +26,116 @@ class ElasticSearch : MetadataSearchApi {
     }
 
     override fun health(): MetadataSearchHealthResponse {
-        val response = restClient.performRequest(
-                "GET",
-                "/_cluster/health",
-                Collections.singletonMap("pretty", "true"))
+        try {
+            val response = restClient.performRequest(
+                    "GET",
+                    "/_cluster/health",
+                    Collections.singletonMap("pretty", "true"))
 
-        //TODO in case of a failure, rerun an exaction
+            if (response.statusLine.statusCode > 300) {
+                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+            }
 
-        val elasticSearchHealthResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                ElasticSearchHealthResponse::class.java)
+            val elasticSearchHealthResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                    ElasticSearchHealthResponse::class.java)
 
-        return MetadataSearchHealthResponse(elasticSearchHealthResponse.clusterName, elasticSearchHealthResponse.status)
-
+            return MetadataSearchHealthResponse(elasticSearchHealthResponse.clusterName, elasticSearchHealthResponse.status)
+        } catch (ex: ResponseException) {
+            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
+        } catch (ex: Exception) {
+            throw MetadataException(ex)
+        }
     }
 
     override fun createIndex(index: String, numberOfShard: Int, numberOfReplicas: Int) {
-        val response =  restClient.performRequest(
-                "PUT",
-                index,
-                Collections.singletonMap("pretty", "true"),
-                NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/index/createIndex.json"),
-                        numberOfShard, numberOfReplicas), ContentType.APPLICATION_JSON)
-        )
+        try {
+            val response = restClient.performRequest(
+                    "PUT",
+                    index,
+                    Collections.singletonMap("pretty", "true"),
+                    NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/index/createIndex.json"),
+                            numberOfShard, numberOfReplicas), ContentType.APPLICATION_JSON)
+            )
 
-        //TODO in case of a failure, rerun an exaction
+            if (response.statusLine.statusCode > 300) {
+                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+            }
+        } catch (ex: ResponseException) {
+            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
+        } catch (ex: Exception) {
+            throw MetadataException(ex)
+        }
     }
 
     override fun updateIndexNumberOfReplicas(index: String, numberOfReplicas: Int) {
-        val response = restClient.performRequest(
-                "PUT",
-                "/$index/_settings",
-                Collections.singletonMap("pretty", "true"),
-                NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/index/updateIndexNumberOfReplicas.json"),
-                        numberOfReplicas), ContentType.APPLICATION_JSON)
-        )
+        try {
+            val response = restClient.performRequest(
+                    "PUT",
+                    "/$index/_settings",
+                    Collections.singletonMap("pretty", "true"),
+                    NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/index/updateIndexNumberOfReplicas.json"),
+                            numberOfReplicas), ContentType.APPLICATION_JSON)
+            )
 
-        //TODO in case of a failure, rerun an exaction
+            if (response.statusLine.statusCode > 300) {
+                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+            }
+        } catch (ex: ResponseException) {
+            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
+        } catch (ex: Exception) {
+            throw MetadataException(ex)
+        }
     }
 
     override fun getAllIndices(): MetadataSearchIndicesResponse {
-        val response = restClient.performRequest(
-                "GET",
-                "/_cat/indices",
-                Collections.singletonMap("format", "json")
-        )
+        try {
+            val response = restClient.performRequest(
+                    "GET",
+                    "/_cat/indices",
+                    Collections.singletonMap("format", "json")
+            )
 
-        //TODO in case of a failure, rerun an exaction
+            if (response.statusLine.statusCode > 300) {
+                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+            }
 
-        val elasticSearchIndicesResponse =
-                JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                        ElasticSearchIndicesResponse::class.java)
+            val elasticSearchIndicesResponse =
+                    JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                            ElasticSearchIndicesResponse::class.java)
 
 
-        return MetadataSearchIndicesResponse(
-                elasticSearchIndicesResponse.indices.map {
-                    (indexName, primaries, replications, numberOfDocuments) ->
-                        Index(indexName, primaries, replications, numberOfDocuments)
-                }
-        )
+            return MetadataSearchIndicesResponse(
+                    elasticSearchIndicesResponse.indices.map {
+                        (indexName, primaries, replications, numberOfDocuments) ->
+                        MetadataIndex(indexName, primaries, replications, numberOfDocuments)
+                    }
+            )
+        } catch (ex: ResponseException) {
+            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
+        } catch (ex: Exception) {
+            throw MetadataException(ex)
+        }
     }
 
     private fun ensureIndexExists(index: String) {
-        val response = restClient.performRequest("HEAD", "/$index")
-        if (response.statusLine.statusCode != 200){
-            createIndex(index)
+        try {
+            val response = restClient.performRequest("HEAD", "/$index")
+            if (response.statusLine.statusCode != 200) {
+                createIndex(index)
+            }
+        } catch (ex: ResponseException) {
+            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
+        } catch (ex: Exception) {
+            throw MetadataException(ex)
         }
     }
 
     override fun indexDocument(index: String, bucket: String, id: String, metadata: Map<String, String>) {
-        val response = indexDocumentHelper(index, bucket, id, metadata, "PUT")
-
-        //TODO in case of a failure, rerun an exaction
+        indexDocumentHelper(index, bucket, id, metadata, "PUT")
     }
 
     override fun updateIndexedDocument(index: String, bucket: String, id: String, metadata: Map<String, String>) {
-        val response = indexDocumentHelper(index, bucket, id, metadata, "POST")
-
-        //TODO in case of a failure, rerun an exaction
+        indexDocumentHelper(index, bucket, id, metadata, "POST")
     }
 
     private fun indexDocumentHelper(index: String, bucket: String, id: String, metadata: Map<String, String>,
@@ -112,43 +147,51 @@ class ElasticSearch : MetadataSearchApi {
         val entity = NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/index/indexFile.json"), metadataString),
                 ContentType.APPLICATION_JSON)
 
-        val response = restClient.performRequest(
-                method,
-                "/$index/$bucket/$id",
-                Collections.singletonMap("pretty", "true"),
-                entity)
+        try {
+            val response = restClient.performRequest(
+                    method,
+                    "/$index/$bucket/$id",
+                    Collections.singletonMap("pretty", "true"),
+                    entity)
 
-        //TODO in case of a failure, rerun an exaction
+            if (response.statusLine.statusCode > 300) {
+                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+            }
+        } catch (ex: ResponseException) {
+            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
+        } catch (ex: Exception) {
+            throw MetadataException(ex)
+        }
     }
 
     override fun deleteDocument(index: String, bucket: String, id: String) {
-        val response = deleteHelper("/$index/$bucket/$id")
-
-        //TODO in case of a failure, rerun an exaction
+        deleteHelper("/$index/$bucket/$id")
     }
 
     override fun deleteIndex(index: String) {
-        val response = deleteHelper("/$index")
-
-        //TODO in case of a failure, rerun an exaction
+        deleteHelper("/$index")
     }
 
     private fun deleteHelper(endpoint: String) {
-        val response = restClient.performRequest(
-                "DELETE",
-                endpoint,
-                Collections.singletonMap("pretty", "true")
-        )
+        try {
+            val response = restClient.performRequest(
+                    "DELETE",
+                    endpoint,
+                    Collections.singletonMap("pretty", "true")
+            )
 
-        //TODO in case of a failure, rerun an exaction
+            if (response.statusLine.statusCode > 300) {
+                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+            }
+        } catch (ex: ResponseException) {
+            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
+        } catch (ex: Exception) {
+            throw MetadataException(ex)
+        }
     }
 
     override fun searchById(index: String, bucket: String, id: String): MetadataSearchResponse {
-        val response = searchByIdHelper("/$index/$bucket/_search", id)
-
-        //TODO in case of a failure, rerun an exaction
-
-        return MetadataSearchResponse()
+        return searchByIdHelper("/$index/$bucket/_search", id)
     }
 
     override fun searchById(index: String, id: String): MetadataSearchResponse {
@@ -160,17 +203,32 @@ class ElasticSearch : MetadataSearchApi {
     }
 
     private fun searchByIdHelper(endpoint: String, id: String): MetadataSearchResponse {
-        val response = restClient.performRequest(
-                "GET",
-                endpoint,
-                Collections.singletonMap("pretty", "true"),
-                NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/search/searchById.json"), id),
-                        ContentType.APPLICATION_JSON)
-        )
+        try {
+            val response = restClient.performRequest(
+                    "GET",
+                    endpoint,
+                    Collections.singletonMap("pretty", "true"),
+                    NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/search/searchById.json"), id),
+                            ContentType.APPLICATION_JSON)
+            )
 
-        //TODO in case of a failure, rerun an exaction
+            if (response.statusLine.statusCode > 300) {
+                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+            }
 
-        return MetadataSearchResponse()
+            val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                    ElasticSearchResponse::class.java)
+
+            return MetadataSearchResponse(elasticSearchResponse.took,
+                    MetadataSearchHits(elasticSearchResponse.hits.numberOfHits, elasticSearchResponse.hits.hits.map {
+                        (index, type, id, score, source) ->
+                        MetadataSearchHitsNode(index, type, id, score, source)
+                    }))
+        } catch (ex: ResponseException) {
+            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
+        } catch (ex: Exception) {
+            throw MetadataException(ex)
+        }
     }
 
     override fun searchByMetadata(index: String, bucket: String, key: String, value: String): MetadataSearchResponse {
@@ -186,17 +244,32 @@ class ElasticSearch : MetadataSearchApi {
     }
 
     private fun searchByMetadataHelper(endpoint: String, key: String, value: String): MetadataSearchResponse {
-        val response = restClient.performRequest(
-                "GET",
-                endpoint,
-                Collections.singletonMap("pretty", "true"),
-                NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/search/searchByMetadata.json"),
-                        key, value), ContentType.APPLICATION_JSON)
-        )
+        try {
+            val response = restClient.performRequest(
+                    "GET",
+                    endpoint,
+                    Collections.singletonMap("pretty", "true"),
+                    NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/search/searchByMetadata.json"),
+                            key, value), ContentType.APPLICATION_JSON)
+            )
 
-        //TODO in case of a failure, rerun an exaction
+            if (response.statusLine.statusCode > 300) {
+                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+            }
 
-        return MetadataSearchResponse()
+            val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                    ElasticSearchResponse::class.java)
+
+            return MetadataSearchResponse(elasticSearchResponse.took,
+                    MetadataSearchHits(elasticSearchResponse.hits.numberOfHits, elasticSearchResponse.hits.hits.map {
+                        (index, type, id, score, source) ->
+                        MetadataSearchHitsNode(index, type, id, score, source)
+                    }))
+        } catch (ex: ResponseException) {
+            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
+        } catch (ex: Exception) {
+            throw MetadataException(ex)
+        }
     }
 
     override fun searchByMatchAll(index: String, bucket: String): MetadataSearchResponse {
@@ -212,22 +285,40 @@ class ElasticSearch : MetadataSearchApi {
     }
 
     private fun searchByMatchAllHelper(endpoint: String): MetadataSearchResponse {
-        val response = restClient.performRequest(
-                "GET",
-                endpoint,
-                Collections.singletonMap("pretty", "true"),
-                NStringEntity(ReadFileFromResources.readFile("elasticsearch/search/searchByMatchAll.json"), ContentType.APPLICATION_JSON)
-        )
+        try {
+            val response = restClient.performRequest(
+                    "GET",
+                    endpoint,
+                    Collections.singletonMap("pretty", "true"),
+                    NStringEntity(ReadFileFromResources.readFile("elasticsearch/search/searchByMatchAll.json"), ContentType.APPLICATION_JSON)
+            )
 
-        //TODO in case of a failure, rerun an exaction
+            if (response.statusLine.statusCode > 300) {
+                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+            }
 
-        return MetadataSearchResponse()
+            val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                    ElasticSearchResponse::class.java)
+
+            val metadataSearchHit = MetadataSearchHits(
+                    elasticSearchResponse.hits.numberOfHits, elasticSearchResponse.hits.hits.map {
+                (index, type, id, score, source) ->
+                MetadataSearchHitsNode(index, type, id, score, source)
+            }
+            )
+
+            return MetadataSearchResponse(elasticSearchResponse.took, metadataSearchHit)
+        } catch (ex: ResponseException) {
+            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
+        } catch (ex: Exception) {
+            throw MetadataException(ex)
+        }
     }
 
     private fun getMetadataString(metadata: Map<String, String>): String {
         return metadata.entries
                 .stream()
-                .map({entry -> "\"${entry.key}\" : \"${entry.value}\""})
+                .map({ entry -> "\"${entry.key}\" : \"${entry.value}\"" })
                 .toArray()
                 .joinToString(", ")
     }

@@ -139,7 +139,18 @@ interface MetadataSearchApi {
 
 data class MetadataSearchHealthResponse(val clusterName: String, val status: String)
 
-data class Index(val indexName: String, val primaries: Int, val replications: Int, val numberOfDocuments: Long)
+data class MetadataIndex(val indexName: String, val primaries: Int, val replications: Int, val numberOfDocuments: Long)
 
-data class MetadataSearchIndicesResponse(val indices: List<Index>)
-class MetadataSearchResponse
+data class MetadataSearchIndicesResponse(val indices: List<MetadataIndex>)
+
+data class MetadataSearchResponse(val took: Int, val hits: MetadataSearchHits)
+
+data class MetadataSearchHits(val numberOfHits: Long, val hits: List<MetadataSearchHitsNode>)
+
+data class MetadataSearchHitsNode(val index: String, val type: String, val id: String, val score: Double, val source: Map<String, String>)
+
+class MetadataException : Exception {
+    constructor(errorCode: Int, message: String): super("($errorCode, $message)")
+    constructor(errorCode: Int, message: String, ex: Exception): super("($errorCode, $message)", ex)
+    constructor(ex: Exception): super(ex)
+}
