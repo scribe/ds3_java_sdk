@@ -4,7 +4,7 @@ import com.spectralogic.escapepod.util.ifNotNull
 import com.hazelcast.config.Config
 import com.hazelcast.core.*
 import com.spectralogic.escapepod.api.*
-import com.spectralogic.escapepod.cluster.config.ClusterConfigResource
+import com.spectralogic.escapepod.cluster.config.ClusterConfigService
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -16,7 +16,7 @@ import javax.inject.Named
 internal class ClusterServiceProviderImpl
 @Inject constructor(
         @Named("interfaceIp") private val hazelcastInterface: String,
-        private val clusterConfigResource: ClusterConfigResource,
+        private val clusterConfigService: ClusterConfigService,
         private val clusterClientFactory : ClusterClientFactory
 ) : ClusterServiceProvider {
 
@@ -33,7 +33,7 @@ internal class ClusterServiceProviderImpl
 
     override fun startService(): Completable {
 
-        val resource = clusterConfigResource.getResource()
+        val resource = clusterConfigService.getConfig()
         if (resource != null) {
             LOG.info("attempting to re-join cluster after restart")
             val firstNode = resource.nodesList.stream().findFirst()
