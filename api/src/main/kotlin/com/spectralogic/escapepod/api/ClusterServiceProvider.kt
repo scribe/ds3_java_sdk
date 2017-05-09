@@ -33,14 +33,20 @@ interface DistributedSet<V> : MutableSet<V> {
 
 data class ClusterNode(val ip: String, val port: Int)
 
+
+/**
+ * There are various cluster events that will be emitted depending on what the cluster is doing.
+ */
 abstract class ClusterEvent
 
 class ClusterCreatedEvent(val clusterName : String) : ClusterEvent()
-
 class ClusterJoinedEvent(val clusterName : String) : ClusterEvent()
 
 class ClusterNodeJoinedEvent(val clusterNode : ClusterNode) : ClusterEvent()
 class ClusterNodeLeftEvent(val clusterNode: ClusterNode) : ClusterEvent()
+
+class ClusterShutdownEvent() : ClusterEvent()
+class ClusterStartupEvent() : ClusterEvent()
 
 class ClusterLeftEvent : ClusterEvent()
 
