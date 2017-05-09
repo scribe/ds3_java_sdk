@@ -3,13 +3,11 @@ package com.spectralogic.escapepod.cluster
 import com.spectralogic.escapepod.util.ifNotNull
 import com.hazelcast.config.Config
 import com.hazelcast.core.*
-import com.hazelcast.map.listener.*
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.cluster.config.ClusterConfigResource
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
@@ -153,118 +151,6 @@ internal class ClusterServiceProviderImpl
         if (condition.invoke()) {
             throw ClusterException(message)
         }
-    }
-}
-
-internal class HazelcastClusterService(internal val hazelcastInstance: HazelcastInstance, internal val instanceName : String) : ClusterService {
-    override fun instanceName(): Single<String> {
-        return Single.just(instanceName)
-    }
-
-    override fun name(): Single<String> {
-        return Single.just(hazelcastInstance.config.groupConfig.name)
-    }
-
-    override fun <K, V> getDistributedMap(name: String): DistributedMap<K, V> {
-        return HazelcastDistributedMap(hazelcastInstance.getMap(name))
-    }
-
-    override fun <V> getDistributedSet(name: String): DistributedSet<V> {
-        return HazelcastDistributedSet(hazelcastInstance.getSet(name))
-    }
-
-    override fun clusterNodes(): Observable<ClusterNode> {
-
-        return Observable.create { emitter ->
-            hazelcastInstance
-                .cluster
-                .members
-                .asSequence()
-                .map { ClusterNode(it.address.host, it.address.port) }
-                .forEach(emitter::onNext)
-
-            emitter.onComplete()
-        }
-    }
-}
-
-internal class HazelcastDistributedMap<K, V>(hazelcastMap : IMap<K, V>) : MutableMap<K, V> by hazelcastMap, DistributedMap<K, V> {
-
-    private val entryAddedSubject = PublishSubject.create<Pair<K,V>>()
-    private val entryRemovedSubject = PublishSubject.create<Pair<K,V>>()
-    private val entryModifiedSubject = PublishSubject.create<Pair<K,V>>()
-
-    init {
-        val entryListener = object : EntryAddedListener<K, V>, EntryRemovedListener<K, V>, EntryUpdatedListener<K, V>, EntryEvictedListener<K, V> {
-            override fun entryAdded(event: EntryEvent<K, V>?) {
-                event.ifNotNull {
-                    entryAddedSubject.onNext(Pair(it.key, it.value))
-                }
-            }
-
-            override fun entryRemoved(event: EntryEvent<K, V>?) {
-                event.ifNotNull {
-                    entryRemovedSubject.onNext(Pair(it.key, it.value))
-                }
-            }
-
-            override fun entryUpdated(event: EntryEvent<K, V>?) {
-                event.ifNotNull {
-                    entryModifiedSubject.onNext(Pair(it.key, it.value))
-                }
-            }
-
-            override fun entryEvicted(event: EntryEvent<K, V>?) {
-                event.ifNotNull {
-                    entryRemovedSubject.onNext(Pair(it.key, it.value))
-                }
-            }
-        }
-
-        hazelcastMap.addEntryListener(entryListener, true)
-    }
-
-    override fun entryAdded(onNext: (Pair<K, V>) -> Unit): Disposable {
-        return entryAddedSubject.subscribe(onNext)
-    }
-
-    override fun entryRemoved(onNext: (Pair<K, V>) -> Unit): Disposable {
-        return entryRemovedSubject.subscribe(onNext)
-    }
-
-    override fun entryModified(onNext: (Pair<K, V>) -> Unit): Disposable {
-        return entryModifiedSubject.subscribe(onNext)
-    }
-}
-
-internal class HazelcastDistributedSet<V>(hazelcastSet : ISet<V>) : MutableSet<V> by hazelcastSet, DistributedSet<V> {
-
-    private val entryAddedSubject = PublishSubject.create<V>()
-    private val entryRemovedSubject = PublishSubject.create<V>()
-
-    init {
-        hazelcastSet.addItemListener(object : ItemListener<V> {
-            override fun itemAdded(item: ItemEvent<V>?) {
-                item.ifNotNull {
-                    entryAddedSubject.onNext(it.item)
-                }
-            }
-
-            override fun itemRemoved(item: ItemEvent<V>?) {
-                item.ifNotNull {
-                    entryRemovedSubject.onNext(it.item)
-                }
-            }
-        }, true)
-    }
-
-
-    override fun entryAdded(onNext: (V) -> Unit): Disposable {
-        return entryAddedSubject.subscribe(onNext)
-    }
-
-    override fun entryRemoved(onNext: (V) -> Unit): Disposable {
-        return entryRemovedSubject.subscribe(onNext)
     }
 }
 
