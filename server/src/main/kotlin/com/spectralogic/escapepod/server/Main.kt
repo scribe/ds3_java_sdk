@@ -5,8 +5,8 @@ import com.google.inject.Guice
 import com.google.inject.Key
 import com.google.inject.name.Names
 import com.spectralogic.escapepod.cluster.ClusterModule
+import com.spectralogic.escapepod.metadatasearch.MetadataSearchModule
 import com.spectralogic.escapepod.persistence.PersistenceModule
-import org.slf4j.LoggerFactory
 import ratpack.server.RatpackServer
 
 class Main {
@@ -18,12 +18,14 @@ class Main {
 
             val clusterModule = ClusterModule()
             val persistenceModule = PersistenceModule()
+            val metadataSearchModule = MetadataSearchModule()
 
-            val injector = Guice.createInjector(ServerModule(), clusterModule.guiceModule(), persistenceModule.guiceModule())
+            val injector = Guice.createInjector(ServerModule(), clusterModule.guiceModule(),
+                    persistenceModule.guiceModule(), metadataSearchModule.guiceModule())
 
             Runtime.getRuntime().addShutdownHook(injector.getInstance(ShutdownHook::class.java))
 
-            ImmutableList.of(clusterModule, persistenceModule)
+            ImmutableList.of(clusterModule, /*persistenceModule,*/ metadataSearchModule)
                     .asSequence()
                     .map { injector.getInstance(it.moduleLoader()) }
                     .forEach { it.loadModule().subscribe() }

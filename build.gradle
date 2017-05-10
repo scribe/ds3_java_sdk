@@ -114,6 +114,7 @@ project(":server") {
         compile project(":localcache")
         compile project(":scheduler")
         compile project(":mongopersistence")
+        compile project(":metadatasearch")
     }
 }
 
