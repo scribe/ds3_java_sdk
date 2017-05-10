@@ -14,7 +14,7 @@ class ClusterConfigService_Test {
         val clusterConfigResource = ResourceStub()
         val clusterConfigService = ClusterConfigServiceImpl(clusterConfigResource)
 
-        clusterConfigService.createConfig("test", ClusterNode("localhost", 8080))
+        clusterConfigService.createConfig("test")
 
         val resource = clusterConfigService.getConfig()
 
@@ -30,8 +30,9 @@ class ClusterConfigService_Test {
         val clusterConfigResource = ResourceStub()
         val clusterConfigService = ClusterConfigServiceImpl(clusterConfigResource)
 
-        clusterConfigService.createConfig("test", ClusterNode("localhost", 8080))
+        clusterConfigService.createConfig("test")
 
+        clusterConfigService.addNode(ClusterNode("localhost", 8080))
         val resource = clusterConfigService.getConfig()
         assertThat(resource).isNotNull()  // This is a precondition for the rest of the test
 
@@ -45,7 +46,9 @@ class ClusterConfigService_Test {
         val clusterConfigResource = ResourceStub()
         val clusterConfigService = ClusterConfigServiceImpl(clusterConfigResource)
 
-        clusterConfigService.createConfig("test", ClusterNode("localhost", 8080))
+        clusterConfigService.createConfig("test")
+
+        clusterConfigService.addNode(ClusterNode("localhost", 8080))
 
         val resource = clusterConfigService.getConfig()
         assertThat(resource).isNotNull()  // This is a precondition for the rest of the test
@@ -67,7 +70,8 @@ class ClusterConfigService_Test {
         val clusterConfigResource = ResourceStub()
         val clusterConfigService = ClusterConfigServiceImpl(clusterConfigResource)
 
-        clusterConfigService.createConfig("test", ClusterNode("localhost", 8080))
+        clusterConfigService.createConfig("test")
+        clusterConfigService.addNode(ClusterNode("localhost", 8080))
 
         val newNode = ClusterNode("test2", 8090)
         clusterConfigService.addNode(newNode)

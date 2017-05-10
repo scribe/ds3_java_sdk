@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 import javax.inject.Inject
 
 interface ClusterConfigService {
-    fun createConfig(clusterName : String, node : ClusterNode)
+    fun createConfig(clusterName : String)
     fun getConfig() : ClusterConfigProto.ClusterConfig?
     fun addNode(node : ClusterNode)
     fun removeNode(node : ClusterNode)
@@ -21,9 +21,13 @@ class ClusterConfigServiceImpl @Inject constructor(private val clusterConfigReso
         private val LOG = LoggerFactory.getLogger(ClusterConfigServiceImpl::class.java)
     }
 
-    override fun createConfig(clusterName: String, node: ClusterNode) {
+    override fun createConfig(clusterName: String) {
+        LOG.info("Creating cluster config")
+        clusterConfigResource.saveResource(createClusterConfig(clusterName))
+    }
 
-        clusterConfigResource.saveResource(node.toProto(clusterName))
+    private fun createClusterConfig(clusterName: String) : ClusterConfigProto.ClusterConfig {
+         return ClusterConfigProto.ClusterConfig.newBuilder().setName(clusterName).build()
     }
 
     override fun getConfig(): ClusterConfigProto.ClusterConfig? {
@@ -40,7 +44,6 @@ class ClusterConfigServiceImpl @Inject constructor(private val clusterConfigReso
         } else {
             LOG.warn("Attempting to add a node to the config when there is no configuration")
         }
-
     }
 
     override fun removeNode(node: ClusterNode) {
@@ -69,6 +72,4 @@ private fun ClusterNode.toConfigNode() : ClusterConfigProto.ClusterConfig.Cluste
     return ClusterConfigProto.ClusterConfig.ClusterNode.newBuilder().setHost(Url.URL.newBuilder().setEndpoint(this.ip).setPort(this.port)).build()
 }
 
-private fun ClusterNode.toProto(clusterName: String) : ClusterConfigProto.ClusterConfig {
-    return ClusterConfigProto.ClusterConfig.newBuilder().setName(clusterName).addNodes(this.toConfigNode()).build()
-}
+

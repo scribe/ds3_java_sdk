@@ -39,15 +39,40 @@ data class ClusterNode(val ip: String, val port: Int)
  */
 abstract class ClusterEvent
 
+/**
+ * This event is thrown when the cluster is first created
+ */
 class ClusterCreatedEvent(val clusterName : String) : ClusterEvent()
+
+/**
+ * This event is thrown when the current node joins a cluster
+ */
 class ClusterJoinedEvent(val clusterName : String) : ClusterEvent()
 
+/**
+ * This event is thrown when a new node joins the cluster
+ */
 class ClusterNodeJoinedEvent(val clusterNode : ClusterNode) : ClusterEvent()
+
+/**
+ * This event is thrown when a node leaves the cluster.
+ * This event should not be thrown in the event that the node is restarted.
+ */
 class ClusterNodeLeftEvent(val clusterNode: ClusterNode) : ClusterEvent()
 
-class ClusterShutdownEvent() : ClusterEvent()
-class ClusterStartupEvent() : ClusterEvent()
+/**
+ * This event is thrown when the current node is started up after a restart
+ */
+class ClusterStartupEvent : ClusterEvent()
 
-class ClusterLeftEvent : ClusterEvent()
+/**
+ * This event is thrown when the current node is shutting down gracefully
+ */
+class ClusterShutdownEvent : ClusterEvent()
 
-class ClusterException(message: String) : RuntimeException(message)
+/**
+ * This event is thrown when the current node leaves the cluster
+ */
+class ClusterLeftEvent: ClusterEvent()
+
+open class ClusterException(message: String) : RuntimeException(message)

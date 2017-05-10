@@ -16,6 +16,7 @@ import javax.inject.Named
 internal class ClusterServiceProviderImpl
 @Inject constructor(
         @Named("interfaceIp") private val hazelcastInterface: String,
+        @Named("managementPort") private val managementPort : Int,
         private val clusterConfigService: ClusterConfigService,
         private val clusterClientFactory : ClusterClientFactory
 ) : ClusterServiceProvider {
@@ -29,7 +30,13 @@ internal class ClusterServiceProviderImpl
 
     private val clusterLifecycleEvents = PublishSubject.create<ClusterEvent>()
 
+    private val internalLifecycleEvents = PublishSubject.create<ConfigChangeEvent>()
+
     private var clusterService : HazelcastClusterService? = null
+
+    init {
+        internalLifecycleEvents.subscribe(this::clusterEventsHandler)
+    }
 
     override fun startService(): Completable {
 
@@ -40,8 +47,16 @@ internal class ClusterServiceProviderImpl
 
             if (firstNode.isPresent) {
                 val node = firstNode.get()
-                return joinCluster(node.host.endpoint + node.host.port)
+                return innerJoinCluster(node.host.endpoint + node.host.port)
+                        .doOnSuccess {
+                            clusterLifecycleEvents.onNext(ClusterStartupEvent())
+                        }
                         .toCompletable()
+            } else {
+                LOG.info("There are no other nodes in the cluster, starting up as a single node cluster")
+                return innerCreateCluster(resource.name).doOnComplete {
+                    clusterLifecycleEvents.onNext(ClusterStartupEvent())
+                }
             }
         }
 
@@ -71,14 +86,20 @@ internal class ClusterServiceProviderImpl
     override fun createCluster(name: String) : Completable {
         throwIfInCluster(CANNOT_JOIN_NEW_CLUSTER)
 
+        return innerCreateCluster(name).doOnComplete {
+            clusterLifecycleEvents.onNext(ClusterCreatedEvent(name))
+            internalLifecycleEvents.onNext(ConfigCreatedChangeEvent(name))
+        }
+    }
+
+    fun innerCreateCluster(name : String) : Completable {
+
         return Completable.create { emitter ->
             val config = createCommonClusterConfiguration(name)
 
             val hazelcastInstance = Hazelcast.newHazelcastInstance(config)
 
             clusterService = createAndConfigureCluster(hazelcastInstance)
-
-            clusterLifecycleEvents.onNext(ClusterCreatedEvent(name))
 
             emitter.onComplete()
         }
@@ -87,7 +108,13 @@ internal class ClusterServiceProviderImpl
     override fun joinCluster(endpoint: String) : Single<String> {
         throwIfInCluster(CANNOT_JOIN_NEW_CLUSTER)
 
-       return clusterClientFactory.createClusterClient(endpoint).clusterName()
+       return innerJoinCluster(endpoint).doOnSuccess { name ->
+           clusterLifecycleEvents.onNext(ClusterJoinedEvent(name))
+       }
+    }
+
+    private fun innerJoinCluster(endpoint : String) : Single<String> {
+        return clusterClientFactory.createClusterClient(endpoint).clusterName()
                .doOnSuccess { name ->
                    val config = createCommonClusterConfiguration(name)
 
@@ -99,7 +126,7 @@ internal class ClusterServiceProviderImpl
 
                    clusterService = createAndConfigureCluster(newHazelcastInstance)
 
-                   clusterLifecycleEvents.onNext(ClusterJoinedEvent(name))
+                   internalLifecycleEvents.onNext(ConfigCreatedChangeEvent(name))
        }
     }
 
@@ -128,15 +155,28 @@ internal class ClusterServiceProviderImpl
     }
 
     override fun shutdown() : Completable {
-        return leaveCluster()
+        return Completable.create { emitter ->
+            clusterLifecycleEvents.onNext(ClusterShutdownEvent())
+            clusterLifecycleEvents.onComplete()
+            emitter.onComplete()
+        }
     }
 
     override fun clusterLifecycleEvents() : Observable<ClusterEvent> {
         return clusterLifecycleEvents
     }
 
+    private fun clusterEventsHandler(event : ConfigChangeEvent) {
+        when (event) {
+            is ConfigCreatedChangeEvent -> clusterConfigService.createConfig(event.clusterName)
+            is ConfigNodeAddedChangeEvent -> clusterConfigService.addNode(event.clusterNode)
+            is ConfigNodeRemovedChangeEvent -> clusterConfigService.removeNode(event.clusterNode)
+            is ConfigDeletedChangeEvent -> clusterConfigService.deleteConfig()
+        }
+    }
+
     private fun createAndConfigureCluster(hazelcastInstance: HazelcastInstance) : HazelcastClusterService {
-        hazelcastInstance.cluster.addMembershipListener(HazelcastMembershipListener(clusterLifecycleEvents))
+        hazelcastInstance.cluster.addMembershipListener(HazelcastMembershipListener(internalLifecycleEvents))
 
         val idGenerator = hazelcastInstance.getIdGenerator("clusterNodeId")
 
@@ -147,27 +187,33 @@ internal class ClusterServiceProviderImpl
 
     private fun throwIfInCluster(message: String) = throwClusterExceptionIf(message) { clusterService != null }
 
-    private fun throwClusterExceptionIf(message: String, condition : ()->Boolean) {
+    private fun throwClusterExceptionIf(message: String, condition : () -> Boolean) {
         if (condition.invoke()) {
             throw ClusterException(message)
         }
     }
 }
 
-internal class HazelcastMembershipListener(private val clusterEvents: PublishSubject<ClusterEvent>) : MembershipListener {
+private class HazelcastMembershipListener(private val clusterEvents: PublishSubject<ConfigChangeEvent>) : MembershipListener {
     override fun memberRemoved(membershipEvent: MembershipEvent) {
         val address = membershipEvent.member.address
         val clusterNode = ClusterNode(address.host, address.port)
-        clusterEvents.onNext(ClusterNodeLeftEvent(clusterNode))
+        clusterEvents.onNext(ConfigNodeRemovedChangeEvent(clusterNode))
     }
 
     override fun memberAdded(membershipEvent: MembershipEvent) {
         val address = membershipEvent.member.address
         val clusterNode = ClusterNode(address.host, address.port)
-        clusterEvents.onNext(ClusterNodeJoinedEvent(clusterNode))
+        clusterEvents.onNext(ConfigNodeAddedChangeEvent(clusterNode))
     }
 
     override fun memberAttributeChanged(memberAttributeEvent: MemberAttributeEvent) {
     }
 }
 
+private abstract class ConfigChangeEvent
+
+private class ConfigCreatedChangeEvent(val clusterName: String) : ConfigChangeEvent()
+private class ConfigNodeAddedChangeEvent(val clusterNode: ClusterNode) : ConfigChangeEvent()
+private class ConfigNodeRemovedChangeEvent(val clusterNode: ClusterNode) : ConfigChangeEvent()
+private class ConfigDeletedChangeEvent : ConfigChangeEvent()

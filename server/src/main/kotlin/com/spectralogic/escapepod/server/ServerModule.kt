@@ -46,8 +46,8 @@ class ServerModule : AbstractModule() {
     }
 
     @Provides
-    @Named("httpPort")
-    fun httpPort() : Int {
+    @Named("managementPort")
+    fun managementPort() : Int {
         val envVars = System.getenv()
         if ("serverPort" in envVars) {
             val port = envVars["serverPort"]
