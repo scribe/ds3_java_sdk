@@ -51,6 +51,10 @@ internal class HazelcastClusterService(internal val hazelcastInstance: Hazelcast
     }
 }
 
+/**
+ * The current implementation for this creates new event listeners each time the collection is retrieved.  This
+ * will leak resources if we do not update this to cache the results and handle the event handlers separately.
+ */
 internal class HazelcastDistributedMap<K, V>(hazelcastMap : IMap<K, V>) : MutableMap<K, V> by hazelcastMap, DistributedMap<K, V> {
 
     private val entryAddedSubject = PublishSubject.create<Pair<K,V>>()
@@ -84,7 +88,7 @@ internal class HazelcastDistributedMap<K, V>(hazelcastMap : IMap<K, V>) : Mutabl
             }
         }
 
-        hazelcastMap.addEntryListener(entryListener, true)
+        hazelcastMap.addEntryListener(entryListener, true)  // TODO this returns a string that we need to remove the listener
     }
 
     override fun entryAdded(onNext: (Pair<K, V>) -> Unit): Disposable {

@@ -8,6 +8,7 @@ import com.spectralogic.escapepod.cluster.config.ClusterConfigService
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
@@ -24,8 +25,9 @@ internal class ClusterServiceProviderImpl
     private companion object {
         private val LOG = LoggerFactory.getLogger(ClusterServiceProviderImpl::class.java)
 
-        private val CANNOT_JOIN_NEW_CLUSTER = "Cannot join another cluster when already a member of one"
-        private val NOT_IN_CLUSTER = "The server must be a member of a cluster"
+        private const val CANNOT_JOIN_NEW_CLUSTER = "Cannot join another cluster when already a member of one"
+        private const val NOT_IN_CLUSTER = "The server must be a member of a cluster"
+        private const val CLUSTER_MAP = "cluster_map"
     }
 
     private val clusterLifecycleEvents = PublishSubject.create<ClusterEvent>()
@@ -75,6 +77,9 @@ internal class ClusterServiceProviderImpl
             LOG.info("Attempting leaving cluster")
 
             clusterService.ifNotNull {
+                val distributedMap = it.getDistributedMap<ClusterNode, ClusterNode>(CLUSTER_MAP)
+                distributedMap.remove(ClusterNode(hazelcastInterface, it.getInstance().config.networkConfig.port))
+
                 it.getInstance().shutdown()
             }
 
@@ -159,6 +164,11 @@ internal class ClusterServiceProviderImpl
         return Completable.create { emitter ->
             clusterLifecycleEvents.onNext(ClusterShutdownEvent())
             clusterLifecycleEvents.onComplete()
+            internalLifecycleEvents.onComplete()
+
+            clusterService.ifNotNull {
+                it.getInstance().shutdown()
+            }
             emitter.onComplete()
         }
     }
@@ -180,8 +190,21 @@ internal class ClusterServiceProviderImpl
         hazelcastInstance.cluster.addMembershipListener(HazelcastMembershipListener(internalLifecycleEvents))
 
         val idGenerator = hazelcastInstance.getIdGenerator("clusterNodeId")
+        val hazelcastClusterService = HazelcastClusterService(hazelcastInstance, "instance_" + idGenerator.newId())
 
-        return HazelcastClusterService(hazelcastInstance, "instance_" + idGenerator.newId())
+        val clusterMap = hazelcastClusterService.getDistributedMap<ClusterNode, ClusterNode>(CLUSTER_MAP)
+
+        clusterMap.putIfAbsent(ClusterNode(hazelcastInterface, hazelcastInstance.config.networkConfig.port), ClusterNode(hazelcastInterface, managementPort))
+
+        clusterMap.entryAdded { (_, publicNode) ->
+            clusterLifecycleEvents.onNext(ClusterNodeJoinedEvent(publicNode))
+        }
+
+        clusterMap.entryRemoved { (_, publicNode) ->
+            clusterLifecycleEvents.onNext(ClusterNodeLeftEvent(publicNode))
+        }
+
+        return hazelcastClusterService
     }
 
     private fun throwIfNotInCluster(message: String) = throwClusterExceptionIf(message) { clusterService == null }

@@ -4,6 +4,7 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
+import java.io.Serializable
 
 interface ClusterServiceProvider : ServiceProvider<ClusterService> {
     fun joinCluster(endpoint: String) : Single<String>
@@ -31,8 +32,7 @@ interface DistributedSet<V> : MutableSet<V> {
     fun entryRemoved(onNext : (V) -> Unit) : Disposable
 }
 
-data class ClusterNode(val ip: String, val port: Int)
-
+data class ClusterNode(val ip: String, val port: Int) : Serializable
 
 /**
  * There are various cluster events that will be emitted depending on what the cluster is doing.
