@@ -75,9 +75,10 @@ internal class ClusterServiceProviderImpl
             LOG.info("Attempting leaving cluster")
 
             clusterService.ifNotNull {
-                it.hazelcastInstance.shutdown()
+                it.getInstance().shutdown()
             }
 
+            internalLifecycleEvents.onNext(ConfigDeletedChangeEvent())
             clusterLifecycleEvents.onNext(ClusterLeftEvent())
             emitter.onComplete()
         }

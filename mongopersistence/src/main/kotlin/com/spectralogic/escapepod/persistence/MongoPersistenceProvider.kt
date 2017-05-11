@@ -41,7 +41,6 @@ internal class MongoPersistenceProvider
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-
     override fun joinPersistenceCluster(name : String, port : Int) : Completable {
         return startMongo(name, port)
                 .doOnComplete(this::createMongoClient)
@@ -239,8 +238,7 @@ internal class MongoPersistenceProvider
                     .doOnError { t ->
                         LOG.error("Failed to join existing mongo cluster", t)
                     }.subscribe()
-        }
-        else if (event is ClusterLeftEvent) {
+        } else if (event is ClusterLeftEvent) {
             shutdown().subscribe()
         }
     }

@@ -6,7 +6,6 @@ import com.google.inject.Key
 import com.google.inject.name.Names
 import com.spectralogic.escapepod.cluster.ClusterModule
 import com.spectralogic.escapepod.persistence.PersistenceModule
-import org.slf4j.LoggerFactory
 import ratpack.server.RatpackServer
 
 class Main {

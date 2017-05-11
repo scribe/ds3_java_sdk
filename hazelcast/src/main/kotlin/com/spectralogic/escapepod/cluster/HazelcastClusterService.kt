@@ -20,6 +20,10 @@ internal class HazelcastClusterService(internal val hazelcastInstance: Hazelcast
         return Single.just(instanceName)
     }
 
+    internal fun getInstance() : HazelcastInstance {
+        return hazelcastInstance
+    }
+
     override fun name(): Single<String> {
         return Single.just(hazelcastInstance.config.groupConfig.name)
     }
