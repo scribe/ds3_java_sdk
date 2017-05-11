@@ -26,7 +26,7 @@ internal class MongoPersistenceProvider
 ): PersistenceServiceProvider {
     private companion object {
         private val LOG = LoggerFactory.getLogger(MongoPersistenceProvider::class.java)
-        private val MONGO_CLUSTER_ENDPOINT = "mongoClusterEndpoint"
+        private const val MONGO_CLUSTER_ENDPOINT = "mongoClusterEndpoint"
     }
 
     private var mongoProcess : Process? = null
@@ -40,7 +40,6 @@ internal class MongoPersistenceProvider
     override fun getService(): PersistenceService {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
-
 
     override fun joinPersistenceCluster(name : String, port : Int) : Completable {
         return startMongo(name, port)
@@ -239,8 +238,7 @@ internal class MongoPersistenceProvider
                     .doOnError { t ->
                         LOG.error("Failed to join existing mongo cluster", t)
                     }.subscribe()
-        }
-        else if (event is ClusterLeftEvent) {
+        } else if (event is ClusterLeftEvent) {
             shutdown().subscribe()
         }
     }
