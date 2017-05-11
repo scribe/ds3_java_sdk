@@ -26,7 +26,7 @@ internal class MongoPersistenceProvider
 ): PersistenceServiceProvider {
     private companion object {
         private val LOG = LoggerFactory.getLogger(MongoPersistenceProvider::class.java)
-        private val MONGO_CLUSTER_ENDPOINT = "mongoClusterEndpoint"
+        private const val MONGO_CLUSTER_ENDPOINT = "mongoClusterEndpoint"
     }
 
     private var mongoProcess : Process? = null

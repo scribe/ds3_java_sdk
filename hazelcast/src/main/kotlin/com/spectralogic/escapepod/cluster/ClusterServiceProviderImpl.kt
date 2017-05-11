@@ -8,7 +8,6 @@ import com.spectralogic.escapepod.cluster.config.ClusterConfigService
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
@@ -28,6 +27,7 @@ internal class ClusterServiceProviderImpl
         private const val CANNOT_JOIN_NEW_CLUSTER = "Cannot join another cluster when already a member of one"
         private const val NOT_IN_CLUSTER = "The server must be a member of a cluster"
         private const val CLUSTER_MAP = "cluster_map"
+        private const val SHUTDOWN_HOOK = "hazelcast.shutdownhook.enabled"
     }
 
     private val clusterLifecycleEvents = PublishSubject.create<ClusterEvent>()
@@ -78,11 +78,12 @@ internal class ClusterServiceProviderImpl
 
             clusterService.ifNotNull {
                 val distributedMap = it.getDistributedMap<ClusterNode, ClusterNode>(CLUSTER_MAP)
-                distributedMap.remove(ClusterNode(hazelcastInterface, it.getInstance().config.networkConfig.port))
+                distributedMap.remove(it.getClusterNode())
 
-                it.getInstance().shutdown()
+                it.shutdown()
             }
 
+            clusterService = null
             internalLifecycleEvents.onNext(ConfigDeletedChangeEvent())
             clusterLifecycleEvents.onNext(ClusterLeftEvent())
             emitter.onComplete()
@@ -146,6 +147,7 @@ internal class ClusterServiceProviderImpl
 
     private fun createCommonClusterConfiguration(name : String) : Config {
         val config = Config()
+        config.setProperty(SHUTDOWN_HOOK, "false")
         config.groupConfig.name = name
         val networkConfig = config.networkConfig
 
@@ -167,8 +169,10 @@ internal class ClusterServiceProviderImpl
             internalLifecycleEvents.onComplete()
 
             clusterService.ifNotNull {
-                it.getInstance().shutdown()
+                it.shutdown()
             }
+
+            clusterService = null
             emitter.onComplete()
         }
     }
