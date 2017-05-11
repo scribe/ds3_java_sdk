@@ -77,7 +77,7 @@ internal class MongoPersistenceProvider
         }
     }
 
-    private fun  writeClusterAddScript(mongoNode: MongoNode): Path {
+    private fun writeClusterAddScript(mongoNode: MongoNode): Path {
        val createTempFile = Files.createTempFile("mongoConf", ".js")
 
         LOG.info("temp file for cluster add script: {}", createTempFile.toString())
@@ -184,7 +184,7 @@ internal class MongoPersistenceProvider
 
     override fun leavePersistenceCluster(): Completable {
 
-        return Completable.concatArray(Completable.create { emitter ->
+        return Completable.concatArray(Completable.create { _ ->
             //TODO delete any cluster information and cleanup the data directory
 
         }, shutdown())

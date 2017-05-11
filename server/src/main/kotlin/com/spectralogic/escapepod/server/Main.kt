@@ -33,7 +33,7 @@ class Main {
             RatpackServer.start { server ->
 
                 server.serverConfig { config ->
-                    val portProvider = injector.getProvider(Key.get(Int::class.java, Names.named("httpPort")))
+                    val portProvider = injector.getProvider(Key.get(Int::class.java, Names.named("managementPort")))
                     config.port(portProvider.get())
                 }
 

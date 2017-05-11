@@ -56,6 +56,7 @@ class FileResource<T>(
     }
 
     private fun loadConfigFromFile(configPath : Path) : T {
+        LOG.info("Reading config from file")
         Files.newInputStream(configPath).use {
             return resourceMarshaller.loadResource(it)
         }
