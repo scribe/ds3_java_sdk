@@ -10,4 +10,7 @@ interface Module<T : ModuleLoader> {
 
 interface ModuleLoader {
     fun loadModule() : Completable
+    fun startModule() : Completable {
+        return Completable.complete()
+    }
 }

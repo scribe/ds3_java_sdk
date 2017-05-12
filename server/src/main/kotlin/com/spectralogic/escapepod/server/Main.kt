@@ -6,6 +6,7 @@ import com.google.inject.Key
 import com.google.inject.name.Names
 import com.spectralogic.escapepod.cluster.ClusterModule
 import com.spectralogic.escapepod.persistence.PersistenceModule
+import com.spectralogic.escapepod.util.collections.GuavaCollectors
 import ratpack.server.RatpackServer
 
 class Main {
@@ -22,10 +23,15 @@ class Main {
 
             Runtime.getRuntime().addShutdownHook(injector.getInstance(ShutdownHook::class.java))
 
-            ImmutableList.of(clusterModule, persistenceModule)
-                    .asSequence()
+            val moduleList = ImmutableList.of(clusterModule, persistenceModule)
+
+            val moduleInstances = moduleList.stream()
                     .map { injector.getInstance(it.moduleLoader()) }
-                    .forEach { it.loadModule().subscribe() }
+                    .collect(GuavaCollectors.immutableList())
+
+            // 2 stage loading of the modules
+            moduleInstances.forEach { it.loadModule() }
+            moduleInstances.forEach { it.startModule() }
 
             RatpackServer.start { server ->
 
