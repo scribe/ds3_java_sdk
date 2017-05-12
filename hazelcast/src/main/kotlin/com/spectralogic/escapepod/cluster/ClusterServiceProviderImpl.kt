@@ -198,14 +198,18 @@ internal class ClusterServiceProviderImpl
 
         val clusterMap = hazelcastClusterService.getDistributedMap<ClusterNode, ClusterNode>(CLUSTER_MAP)
 
-        clusterMap.putIfAbsent(ClusterNode(hazelcastInterface, hazelcastInstance.config.networkConfig.port), ClusterNode(hazelcastInterface, managementPort))
+        clusterMap.put(ClusterNode(hazelcastInterface, hazelcastInstance.config.networkConfig.port), ClusterNode(hazelcastInterface, managementPort))
 
-        clusterMap.entryAdded { (_, publicNode) ->
-            clusterLifecycleEvents.onNext(ClusterNodeJoinedEvent(publicNode))
+        clusterMap.entryAdded { (clusterNode, publicNode) ->
+            if (hazelcastClusterService.getClusterNode() != clusterNode) {
+                clusterLifecycleEvents.onNext(ClusterNodeJoinedEvent(publicNode))
+            }
         }
 
-        clusterMap.entryRemoved { (_, publicNode) ->
-            clusterLifecycleEvents.onNext(ClusterNodeLeftEvent(publicNode))
+        clusterMap.entryRemoved { (clusterNode, publicNode) ->
+            if (hazelcastClusterService.getClusterNode() != clusterNode) {
+                clusterLifecycleEvents.onNext(ClusterNodeLeftEvent(publicNode))
+            }
         }
 
         return hazelcastClusterService
