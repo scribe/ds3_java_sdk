@@ -125,7 +125,7 @@ internal class MongoPersistenceProvider
                     mongoProcess = process
 
                     if (mongoProcess == null || !mongoProcess!!.isAlive) {
-                        emitter.onError(Exception("Failed to start mongo node"))
+                        emitter.onError(Exception("Failed to startModule mongo node"))
                     } else {
 
                         val distributedSet = clusterService.getDistributedSet<MongoNode>(MONGO_CLUSTER_ENDPOINT)

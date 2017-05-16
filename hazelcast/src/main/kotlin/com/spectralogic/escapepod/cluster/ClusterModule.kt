@@ -23,17 +23,25 @@ class ClusterModuleLoader @Inject constructor(private val clusterServiceProvider
     }
 
     override fun loadModule(): Completable {
-         clusterServiceProvider.clusterLifecycleEvents().subscribe { event ->
-            when (event) {
-                is ClusterNodeJoinedEvent -> {
-                    LOG.info("New node joined cluster: {}:{}", event.clusterNode.ip, event.clusterNode.port)
-                }
-                is ClusterNodeLeftEvent -> {
-                    LOG.info("Node left the cluster: {}:{}", event.clusterNode.ip, event.clusterNode.port)
+
+        return Completable.create { emitter ->
+            clusterServiceProvider.clusterLifecycleEvents().subscribe { event ->
+                when (event) {
+                    is ClusterNodeJoinedEvent -> {
+                        LOG.info("New node joined cluster: {}:{}", event.clusterNode.ip, event.clusterNode.port)
+                    }
+                    is ClusterNodeLeftEvent -> {
+                        LOG.info("Node left the cluster: {}:{}", event.clusterNode.ip, event.clusterNode.port)
+                    }
                 }
             }
-        }
 
+            emitter.onComplete()
+        }
+    }
+
+    override fun startModule(): Completable {
+        LOG.info("Starting the cluster module")
         return clusterServiceProvider.startService()
     }
 }

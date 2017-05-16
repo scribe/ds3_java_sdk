@@ -18,10 +18,10 @@ internal class ElasticSearchServiceProvider
         private val clusterServiceProvider: ClusterServiceProvider,
         @Named("interfaceIp") private val interfaceIp: String,
         @Named("elasticSearchPort") private val elasticSearchPort: Int,
-        @Named("elasticSearchBinDir") private val elasticSearchBinDir : Path,
-        @Named("elasticSearchConfigDir") private val elasticSearchConfigDir : Path) : MetadataSearchServiceProvider {
-
+        @Named("elasticSearchBinDir") private val elasticSearchBinDir: Path,
+        @Named("elasticSearchConfigDir") private val elasticSearchConfigDir: Path) : MetadataSearchServiceProvider {
     private companion object {
+
         private val LOG = LoggerFactory.getLogger(ElasticSearchServiceProvider::class.java)
         private val ElasticSearch_CLUSTER_ENDPOINT = "elasticSearchClusterEndpoint"
     }
@@ -33,39 +33,86 @@ internal class ElasticSearchServiceProvider
         // create new ElasticSearch process
 
         // TODO add check to make sure we are not already in a cluster
-        return startElasticSearch().doOnComplete(this::createElasticSearchClient)
+        return startElasticSearch(true).doOnComplete(this::createElasticSearchClient)
     }
 
-    override fun joinCluster(): Completable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun joinMetadataSearchCluster(): Completable {
+        // TODO add check to make sure we are not already in a cluster
+        return startElasticSearch(true).doOnComplete(this::createElasticSearchClient)
     }
 
-    override fun leaveCluster(): Completable {
+    override fun metadataSearchNodeJoinedEvent(): Completable {
+        elasticSearchProcess.destroy()
+        return startElasticSearch(false).doOnComplete(this::createElasticSearchClient)
+    }
+
+    override fun leaveMetadataSearchCluster(): Completable {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun clusterHandler(event: ClusterEvent) {
-        val createNewMetadataSearchCluster = createNewMetadataSearchCluster()
+//        val createNewMetadataSearchCluster = createNewMetadataSearchCluster()
         if (event is ClusterCreatedEvent) {
-            createNewMetadataSearchCluster
+            LOG.info("ClusterCreatedEvent -> Create ElasticSearch cluster")
+            createNewMetadataSearchCluster()
                     .doOnError { t ->
                         LOG.error("Failed to create ElasticSearch node", t)
                     }.subscribe()
+        } else if (event is ClusterJoinedEvent) {
+            LOG.info("ClusterJoinedEvent -> Attempting to join existing ElasticSearch cluster")
+            joinMetadataSearchCluster()
+                    .doOnError { t ->
+                        LOG.error("Failed to join existing ElasticSearch cluster", t)
+                    }.subscribe()
+        } else if (event is ClusterNodeJoinedEvent) {
+            LOG.info("ClusterNodeJoinedEvent -> New ElasticSearch Node joined the cluster")
+            metadataSearchNodeJoinedEvent()
+                    .doOnError { t ->
+                        LOG.error("Failed to join the new node to the ElasticSearch cluster", t)
+                    }.subscribe()
+
+        } else if (event is ClusterLeftEvent) {
+            LOG.info("ClusterLeftEvent -> shutdown the elasticSearch node")
+            shutdown().subscribe()
+        } else if (event is ClusterStartupEvent) {
+            LOG.error("ClusterStartupEvent -> startup the elasticSearch node after restart")
+        } else {
+            LOG.error("Got an unhandled event: $event")
         }
-//       else if (event is ClusterJoinedEvent) {
-//            LOG.info("Attempting to join existing ElasticSearch cluster")
-//            joinMetadataSearchCluster(event.clusterName)
-//                    .doOnError { t ->
-//                        LOG.error("Failed to join existing ElasticSearch cluster", t)
-//                    }.subscribe()
-//        }
-//        else if (event is ClusterLeftEvent) {
-//            shutdown().subscribe()
-//        }
     }
 
     override fun shutdown(): Completable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        throw Exception()
+//        return Completable.create { emitter ->
+//            try {
+//
+//                entryAddedDisposable.ifNotNull {
+//                    it.dispose()
+//                    entryAddedDisposable = null
+//                }
+//
+//                mongoClient.ifNotNull {
+//                    it.close()
+//                    mongoClient = null
+//                }
+//
+//                mongoProcess.ifNotNull {
+//                    it.destroy()
+//                    it.waitFor(30, TimeUnit.SECONDS)
+//
+//                    if (it.isAlive) {
+//                        LOG.error("Mongo instance still active after shutdown attempt")
+//                    } else {
+//                        LOG.info("Mongo exited successfully with exit code: {}", it.exitValue())
+//                    }
+//                    mongoProcess = null
+//                }
+//
+//                emitter.onComplete()
+//            } catch (t : Throwable) {
+//                emitter.onError(t)
+//            }
+//        }
     }
 
     override fun startService(): Completable {
@@ -84,11 +131,11 @@ internal class ElasticSearchServiceProvider
         elasticSearchClient = ElasticSearch(distributedSet.map { HttpHost(it.ip, it.port) })
     }
 
-    private fun startElasticSearch(): Completable {
+    private fun startElasticSearch(newNode: Boolean): Completable {
         return Completable.create { emitter ->
 
             try {
-                LOG.info("Starting new ElasticSearch cluster")
+                LOG.info("Starting ElasticSearch node")
 
                 val clusterService = clusterServiceProvider.getService()
                 createElasticSearchNodeProcess().doOnSuccess { process ->
@@ -98,13 +145,11 @@ internal class ElasticSearchServiceProvider
                     if (!elasticSearchProcess.isAlive) {
                         emitter.onError(Exception("Failed to start ElasticSearch node"))
                     } else {
-
-                        val distributedSet = clusterService.getDistributedSet<ElasticSearchNode>(ElasticSearch_CLUSTER_ENDPOINT)
-
-                        distributedSet.add(ElasticSearchNode(interfaceIp, elasticSearchPort))
-
+                        if (newNode) {
+                            val distributedSet = clusterService.getDistributedSet<ElasticSearchNode>(ElasticSearch_CLUSTER_ENDPOINT)
+                            distributedSet.add(ElasticSearchNode(interfaceIp, elasticSearchPort))
+                        }
                         LOG.info("Started ElasticSearch node")
-
                         emitter.onComplete()
                     }
                 }.subscribe()
@@ -116,11 +161,7 @@ internal class ElasticSearchServiceProvider
     }
 
     private fun createElasticSearchNodeProcess(): Single<Process> {
-
-        val clusterService = clusterServiceProvider.getService()
-
-        return clusterService.instanceName().map { instanceName ->
-
+        return Single.create {
             //Create the configuration file before starting elasticSearch node
             createElasticSearchClusterConfig()
 
@@ -149,11 +190,13 @@ internal class ElasticSearchServiceProvider
             val fileWriter = it
 
             clusterServiceProvider.getService().name().doOnSuccess {
-                name -> fileWriter.write("cluster.name: $name\n")
+                name ->
+                fileWriter.write("cluster.name: $name\n")
             }.subscribe()
 
             clusterServiceProvider.getService().instanceName().doOnSuccess {
-                instanceName -> fileWriter.write("node.name: $instanceName\n")
+                instanceName ->
+                fileWriter.write("node.name: $instanceName\n")
             }.subscribe()
 
             fileWriter.write("network.host: $interfaceIp\n")
@@ -161,16 +204,22 @@ internal class ElasticSearchServiceProvider
 
             fileWriter.write("discovery.zen.ping.unicast.hosts: [")
             clusterServiceProvider.getService().getDistributedSet<ElasticSearchNode>(ElasticSearch_CLUSTER_ENDPOINT).map {
-                fileWriter.write("${it.ip}:${it.port}")
+                fileWriter.write("\"${it.ip}:${it.port}\"")
             }
             fileWriter.write("]\n")
 
             clusterServiceProvider.getService().clusterNodes().count().doOnSuccess {
-                size -> fileWriter.write("discovery.zen.minimum_master_nodes: ${(size / 2) + 1}\n")
+                size ->
+                fileWriter.write("discovery.zen.minimum_master_nodes: ${(size / 2) + 1}\n")
             }.subscribe()
 
             //TODO delete this
             fileWriter.write("cluster.routing.allocation.disk.threshold_enabled: false\n")
+
+            clusterServiceProvider.getService().clusterNodes().map {
+                (ip, port) ->
+                LOG.warn("node.ip = ${ip} ; node.port = ${port}")
+            }
         }
 
         return configFile
