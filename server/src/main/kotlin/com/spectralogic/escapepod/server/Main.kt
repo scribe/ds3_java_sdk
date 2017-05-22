@@ -33,8 +33,8 @@ class Main {
                     .collect(GuavaCollectors.immutableList())
 
             // 2 stage loading of the modules
-            moduleInstances.forEach { it.loadModule() }
-            moduleInstances.forEach { it.startModule() }
+            moduleInstances.forEach { it.loadModule().subscribe() }
+            moduleInstances.forEach { it.startModule().subscribe() }
 
             RatpackServer.start { server ->
 

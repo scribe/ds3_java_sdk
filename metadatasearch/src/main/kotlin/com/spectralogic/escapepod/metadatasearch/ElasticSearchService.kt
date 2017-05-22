@@ -14,7 +14,7 @@ import org.elasticsearch.client.ResponseException
 import org.elasticsearch.client.RestClient
 import java.util.*
 
-class ElasticSearch : MetadataSearchApi {
+class ElasticSearchService : MetadataSearchService {
     var restClient: RestClient
 
     constructor(httpHosts: List<HttpHost>) {

@@ -2,40 +2,39 @@ package com.spectralogic.escapepod.metadatasearch
 
 import com.google.common.collect.ImmutableMap
 import com.spectralogic.escapepod.api.MetadataIndex
-import com.spectralogic.escapepod.api.MetadataSearchApi
 import com.spectralogic.escapepod.api.MetadataSearchHitsNode
+import com.spectralogic.escapepod.api.MetadataSearchService
 import org.apache.http.HttpHost
 import org.assertj.core.api.Assertions.assertThat
 import org.elasticsearch.client.RestClient
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
-import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
-class TestElasticSearch {
+class TestElasticSearchService {
 
     companion object {
-        private val LOG = LoggerFactory.getLogger(TestElasticSearch::class.java)
-        lateinit var elasticSearch: MetadataSearchApi
+//        private val LOG = LoggerFactory.getLogger(TestElasticSearchService::class.java)
+        lateinit var metadataSearchService: MetadataSearchService
 
         @BeforeClass @JvmStatic
         fun beforeClass() {
             val restClient = RestClient.builder(*arrayOf(
                     HttpHost("localhost", 9200),
                     HttpHost("localhost", 9201))).build()
-            elasticSearch = ElasticSearch(restClient)
+            metadataSearchService = ElasticSearchService(restClient)
         }
 
         @AfterClass @JvmStatic
         fun afterClass() {
-            elasticSearch.closeConnection()
+            metadataSearchService.closeConnection()
         }
     }
 
     @Test
     fun testHealth() {
-        val response = elasticSearch.health()
+        val response = metadataSearchService.health()
         assertThat(response.status).isEqualTo("green")
     }
 
@@ -44,13 +43,13 @@ class TestElasticSearch {
     fun testCreateIndexWithDefaultValues() {
         val index = "test_create_index_with_default_values"
         try {
-            elasticSearch.createIndex(index)
+            metadataSearchService.createIndex(index)
 
-            val response = elasticSearch.getAllIndices()
+            val response = metadataSearchService.getAllIndices()
             val expected = MetadataIndex(index, 5, 2, 0)
             assertThat(response.indices).contains(expected)
         } finally {
-            elasticSearch.deleteIndex(index)
+            metadataSearchService.deleteIndex(index)
         }
     }
 
@@ -58,13 +57,13 @@ class TestElasticSearch {
     fun testCreateIndexWithValues() {
         val index = "test_create_index_with_values"
         try {
-            elasticSearch.createIndex(index, 8, 7)
+            metadataSearchService.createIndex(index, 8, 7)
 
-            val response = elasticSearch.getAllIndices()
+            val response = metadataSearchService.getAllIndices()
             val expected = MetadataIndex(index, 8, 7, 0)
             assertThat(response.indices).contains(expected)
         } finally {
-            elasticSearch.deleteIndex(index)
+            metadataSearchService.deleteIndex(index)
         }
     }
 
@@ -72,18 +71,18 @@ class TestElasticSearch {
     fun testUpdateIndexNumberOfReplicas() {
         val index = "test_update_index_number_of_replicas"
         try {
-            elasticSearch.createIndex(index)
-            var response = elasticSearch.getAllIndices()
+            metadataSearchService.createIndex(index)
+            var response = metadataSearchService.getAllIndices()
             var expected = MetadataIndex(index, 5, 2, 0)
             assertThat(response.indices).contains(expected)
 
-            elasticSearch.updateIndexNumberOfReplicas(index, 9)
+            metadataSearchService.updateIndexNumberOfReplicas(index, 9)
 
-            response = elasticSearch.getAllIndices()
+            response = metadataSearchService.getAllIndices()
             expected = MetadataIndex(index, 5, 9, 0)
             assertThat(response.indices).contains(expected)
         } finally {
-            elasticSearch.deleteIndex(index)
+            metadataSearchService.deleteIndex(index)
         }
     }
 
@@ -94,29 +93,29 @@ class TestElasticSearch {
         val fileName = "test_file"
         val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
         try {
-            elasticSearch.indexDocument(index, bucket, fileName, metadata)
+            metadataSearchService.indexDocument(index, bucket, fileName, metadata)
 
             //we need to wait for the new document to be available
             TimeUnit.SECONDS.sleep(5)
 
-            val response = elasticSearch.getAllIndices()
+            val response = metadataSearchService.getAllIndices()
             val expected = MetadataIndex(index, 5, 2, 1)
             assertThat(response.indices).contains(expected)
         } finally {
-            elasticSearch.deleteIndex(index)
+            metadataSearchService.deleteIndex(index)
         }
     }
 
     @Test
     fun testDeleteIndex() {
         val index = "test_delete_index"
-        elasticSearch.createIndex(index)
-        var response = elasticSearch.getAllIndices()
+        metadataSearchService.createIndex(index)
+        var response = metadataSearchService.getAllIndices()
         var expected = MetadataIndex(index, 5, 2, 0)
         assertThat(response.indices).contains(expected)
 
-        elasticSearch.deleteIndex(index)
-        response = elasticSearch.getAllIndices()
+        metadataSearchService.deleteIndex(index)
+        response = metadataSearchService.getAllIndices()
         expected = MetadataIndex(index, 5, 2, 0)
         assertThat(response.indices).doesNotContain(expected)
     }
@@ -129,21 +128,21 @@ class TestElasticSearch {
         val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
 
         try {
-            elasticSearch.indexDocument(index, bucket, fileName, metadata)
+            metadataSearchService.indexDocument(index, bucket, fileName, metadata)
             TimeUnit.SECONDS.sleep(5)
 
-            var response = elasticSearch.getAllIndices()
+            var response = metadataSearchService.getAllIndices()
             var expected = MetadataIndex(index, 5, 2, 1)
             assertThat(response.indices).contains(expected)
 
-            elasticSearch.deleteDocument(index, bucket, fileName)
+            metadataSearchService.deleteDocument(index, bucket, fileName)
             TimeUnit.SECONDS.sleep(5)
 
-            response = elasticSearch.getAllIndices()
+            response = metadataSearchService.getAllIndices()
             expected = MetadataIndex(index, 5, 2, 0)
             assertThat(response.indices).contains(expected)
         } finally {
-            elasticSearch.deleteIndex(index)
+            metadataSearchService.deleteIndex(index)
         }
     }
 
@@ -157,26 +156,26 @@ class TestElasticSearch {
         val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
 
         try {
-            elasticSearch.indexDocument(index1, bucket1, fileName, metadata)
-            elasticSearch.indexDocument(index1, bucket2, fileName, metadata)
-            elasticSearch.indexDocument(index2, bucket1, fileName, metadata)
+            metadataSearchService.indexDocument(index1, bucket1, fileName, metadata)
+            metadataSearchService.indexDocument(index1, bucket2, fileName, metadata)
+            metadataSearchService.indexDocument(index2, bucket1, fileName, metadata)
 
             TimeUnit.SECONDS.sleep(5)
 
-            var response = elasticSearch.searchById(index1, bucket1, fileName)
+            var response = metadataSearchService.searchById(index1, bucket1, fileName)
             assertThat(response.hits.numberOfHits).isEqualTo(1)
 
-            response = elasticSearch.searchById(index1, bucket2, fileName)
+            response = metadataSearchService.searchById(index1, bucket2, fileName)
             assertThat(response.hits.numberOfHits).isEqualTo(1)
 
-            response = elasticSearch.searchById(index1,fileName)
+            response = metadataSearchService.searchById(index1,fileName)
             assertThat(response.hits.numberOfHits).isEqualTo(2)
 
-            response = elasticSearch.searchById(fileName)
+            response = metadataSearchService.searchById(fileName)
             assertThat(response.hits.numberOfHits).isEqualTo(3)
         } finally {
-            elasticSearch.deleteIndex(index1)
-            elasticSearch.deleteIndex(index2)
+            metadataSearchService.deleteIndex(index1)
+            metadataSearchService.deleteIndex(index2)
         }
     }
 
@@ -190,26 +189,26 @@ class TestElasticSearch {
         val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
 
         try {
-            elasticSearch.indexDocument(index1, bucket1, fileName, metadata)
-            elasticSearch.indexDocument(index1, bucket2, fileName, metadata)
-            elasticSearch.indexDocument(index2, bucket1, fileName, metadata)
+            metadataSearchService.indexDocument(index1, bucket1, fileName, metadata)
+            metadataSearchService.indexDocument(index1, bucket2, fileName, metadata)
+            metadataSearchService.indexDocument(index2, bucket1, fileName, metadata)
 
             TimeUnit.SECONDS.sleep(5)
 
-            var response = elasticSearch.searchByMetadata(index1, bucket1, "m1", "v1")
+            var response = metadataSearchService.searchByMetadata(index1, bucket1, "m1", "v1")
             assertThat(response.hits.numberOfHits).isEqualTo(1)
 
-            response = elasticSearch.searchByMetadata(index1, bucket2, "m1", "v1")
+            response = metadataSearchService.searchByMetadata(index1, bucket2, "m1", "v1")
             assertThat(response.hits.numberOfHits).isEqualTo(1)
 
-            response = elasticSearch.searchByMetadata(index1, "m1", "v1")
+            response = metadataSearchService.searchByMetadata(index1, "m1", "v1")
             assertThat(response.hits.numberOfHits).isEqualTo(2)
 
-            response = elasticSearch.searchByMetadata("m1", "v1")
+            response = metadataSearchService.searchByMetadata("m1", "v1")
             assertThat(response.hits.numberOfHits).isEqualTo(3)
         } finally {
-            elasticSearch.deleteIndex(index1)
-            elasticSearch.deleteIndex(index2)
+            metadataSearchService.deleteIndex(index1)
+            metadataSearchService.deleteIndex(index2)
         }
     }
 
@@ -223,43 +222,43 @@ class TestElasticSearch {
         val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
 
         try {
-            elasticSearch.indexDocument(index1, bucket1, fileName, metadata)
-            elasticSearch.indexDocument(index1, bucket2, fileName, metadata)
-            elasticSearch.indexDocument(index2, bucket1, fileName, metadata)
+            metadataSearchService.indexDocument(index1, bucket1, fileName, metadata)
+            metadataSearchService.indexDocument(index1, bucket2, fileName, metadata)
+            metadataSearchService.indexDocument(index2, bucket1, fileName, metadata)
 
             TimeUnit.SECONDS.sleep(5)
 
-            var response = elasticSearch.searchByMatchAll(index1, bucket1)
+            var response = metadataSearchService.searchByMatchAll(index1, bucket1)
 
             assertThat(response.hits.numberOfHits).isEqualTo(1)
 
             var expected = MetadataSearchHitsNode(index1, bucket1, fileName, 1.0, metadata)
             assertThat(response.hits.hits).containsOnly(expected)
 
-            response = elasticSearch.searchByMatchAll(index1, bucket2)
+            response = metadataSearchService.searchByMatchAll(index1, bucket2)
             assertThat(response.hits.numberOfHits).isEqualTo(1)
 
             expected = MetadataSearchHitsNode(index1, bucket2, fileName, 1.0, metadata)
             assertThat(response.hits.hits).containsOnly(expected)
 
-            response = elasticSearch.searchByMatchAll(index1)
+            response = metadataSearchService.searchByMatchAll(index1)
             assertThat(response.hits.numberOfHits).isEqualTo(2)
 
             val expected1 = MetadataSearchHitsNode(index1, bucket1, fileName, 1.0, metadata)
             val expected2 = MetadataSearchHitsNode(index1, bucket2, fileName, 1.0, metadata)
             assertThat(response.hits.hits).contains(expected1, expected2)
 
-            response = elasticSearch.searchByMatchAll(index2)
+            response = metadataSearchService.searchByMatchAll(index2)
             assertThat(response.hits.numberOfHits).isEqualTo(1)
 
             expected = MetadataSearchHitsNode(index2, bucket1, fileName, 1.0, metadata)
             assertThat(response.hits.hits).containsOnly(expected)
 
-            response = elasticSearch.searchByMatchAll()
+            response = metadataSearchService.searchByMatchAll()
             assertThat(response.hits.numberOfHits).isGreaterThanOrEqualTo(3) //could be more than 3 if there was data before the test
         } finally {
-            elasticSearch.deleteIndex(index1)
-            elasticSearch.deleteIndex(index2)
+            metadataSearchService.deleteIndex(index1)
+            metadataSearchService.deleteIndex(index2)
         }
     }
 }
