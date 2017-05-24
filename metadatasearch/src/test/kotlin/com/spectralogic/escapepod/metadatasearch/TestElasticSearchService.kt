@@ -6,6 +6,7 @@ import com.spectralogic.escapepod.api.MetadataSearchHitsNode
 import com.spectralogic.escapepod.api.MetadataSearchService
 import org.apache.http.HttpHost
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.elasticsearch.client.RestClient
 import org.junit.AfterClass
 import org.junit.BeforeClass
@@ -15,7 +16,7 @@ import java.util.concurrent.TimeUnit
 class TestElasticSearchService {
 
     companion object {
-//        private val LOG = LoggerFactory.getLogger(TestElasticSearchService::class.java)
+        //        private val LOG = LoggerFactory.getLogger(TestElasticSearchService::class.java)
         lateinit var metadataSearchService: MetadataSearchService
 
         @BeforeClass @JvmStatic
@@ -34,8 +35,21 @@ class TestElasticSearchService {
 
     @Test
     fun testHealth() {
-        val response = metadataSearchService.health()
-        assertThat(response.status).isEqualTo("green")
+        try {
+            val single = metadataSearchService.health()
+            val expected: String = "green"
+
+            val MetadataSearchHealthResponse = single.filter {
+                health ->
+                health.status == expected
+            }.blockingGet()
+
+            if (MetadataSearchHealthResponse == null) {
+                fail("Expected cluster status to be $expected")
+            }
+        } catch (t: Throwable) {
+            fail(t.toString())
+        }
     }
 
 
@@ -45,9 +59,12 @@ class TestElasticSearchService {
         try {
             metadataSearchService.createIndex(index)
 
-            val response = metadataSearchService.getAllIndices()
+            val observable = metadataSearchService.getAllIndices()
             val expected = MetadataIndex(index, 5, 2, 0)
-            assertThat(response.indices).contains(expected)
+
+            assertThat(observable.contains(expected).blockingGet()).isTrue()
+        } catch (t: Throwable) {
+            fail(t.toString())
         } finally {
             metadataSearchService.deleteIndex(index)
         }
@@ -59,9 +76,12 @@ class TestElasticSearchService {
         try {
             metadataSearchService.createIndex(index, 8, 7)
 
-            val response = metadataSearchService.getAllIndices()
+            val observable = metadataSearchService.getAllIndices()
             val expected = MetadataIndex(index, 8, 7, 0)
-            assertThat(response.indices).contains(expected)
+
+            assertThat(observable.contains(expected).blockingGet()).isTrue()
+        } catch (t: Throwable) {
+            fail(t.toString())
         } finally {
             metadataSearchService.deleteIndex(index)
         }
@@ -72,15 +92,17 @@ class TestElasticSearchService {
         val index = "test_update_index_number_of_replicas"
         try {
             metadataSearchService.createIndex(index)
-            var response = metadataSearchService.getAllIndices()
+            var observable = metadataSearchService.getAllIndices()
             var expected = MetadataIndex(index, 5, 2, 0)
-            assertThat(response.indices).contains(expected)
+            assertThat(observable.contains(expected).blockingGet()).isTrue()
 
             metadataSearchService.updateIndexNumberOfReplicas(index, 9)
 
-            response = metadataSearchService.getAllIndices()
+            observable = metadataSearchService.getAllIndices()
             expected = MetadataIndex(index, 5, 9, 0)
-            assertThat(response.indices).contains(expected)
+            assertThat(observable.contains(expected).blockingGet()).isTrue()
+        } catch (t: Throwable) {
+            fail(t.toString())
         } finally {
             metadataSearchService.deleteIndex(index)
         }
@@ -98,9 +120,11 @@ class TestElasticSearchService {
             //we need to wait for the new document to be available
             TimeUnit.SECONDS.sleep(5)
 
-            val response = metadataSearchService.getAllIndices()
+            val observable = metadataSearchService.getAllIndices()
             val expected = MetadataIndex(index, 5, 2, 1)
-            assertThat(response.indices).contains(expected)
+            assertThat(observable.contains(expected).blockingGet()).isTrue()
+        } catch (t: Throwable) {
+            fail(t.toString())
         } finally {
             metadataSearchService.deleteIndex(index)
         }
@@ -108,16 +132,20 @@ class TestElasticSearchService {
 
     @Test
     fun testDeleteIndex() {
-        val index = "test_delete_index"
-        metadataSearchService.createIndex(index)
-        var response = metadataSearchService.getAllIndices()
-        var expected = MetadataIndex(index, 5, 2, 0)
-        assertThat(response.indices).contains(expected)
+        try {
+            val index = "test_delete_index"
+            metadataSearchService.createIndex(index)
+            var observable = metadataSearchService.getAllIndices()
+            var expected = MetadataIndex(index, 5, 2, 0)
+            assertThat(observable.contains(expected).blockingGet()).isTrue()
 
-        metadataSearchService.deleteIndex(index)
-        response = metadataSearchService.getAllIndices()
-        expected = MetadataIndex(index, 5, 2, 0)
-        assertThat(response.indices).doesNotContain(expected)
+            metadataSearchService.deleteIndex(index)
+            observable = metadataSearchService.getAllIndices()
+            expected = MetadataIndex(index, 5, 2, 0)
+            assertThat(observable.contains(expected).blockingGet()).isFalse()
+        } catch (t: Throwable) {
+            fail(t.toString())
+        }
     }
 
     @Test
@@ -131,16 +159,18 @@ class TestElasticSearchService {
             metadataSearchService.indexDocument(index, bucket, fileName, metadata)
             TimeUnit.SECONDS.sleep(5)
 
-            var response = metadataSearchService.getAllIndices()
+            var observable = metadataSearchService.getAllIndices()
             var expected = MetadataIndex(index, 5, 2, 1)
-            assertThat(response.indices).contains(expected)
+            assertThat(observable.contains(expected).blockingGet()).isTrue()
 
             metadataSearchService.deleteDocument(index, bucket, fileName)
             TimeUnit.SECONDS.sleep(5)
 
-            response = metadataSearchService.getAllIndices()
+            observable = metadataSearchService.getAllIndices()
             expected = MetadataIndex(index, 5, 2, 0)
-            assertThat(response.indices).contains(expected)
+            assertThat(observable.contains(expected).blockingGet()).isTrue()
+        } catch (t: Throwable) {
+            fail(t.toString())
         } finally {
             metadataSearchService.deleteIndex(index)
         }
@@ -168,7 +198,7 @@ class TestElasticSearchService {
             response = metadataSearchService.searchById(index1, bucket2, fileName)
             assertThat(response.hits.numberOfHits).isEqualTo(1)
 
-            response = metadataSearchService.searchById(index1,fileName)
+            response = metadataSearchService.searchById(index1, fileName)
             assertThat(response.hits.numberOfHits).isEqualTo(2)
 
             response = metadataSearchService.searchById(fileName)

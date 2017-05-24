@@ -6,6 +6,8 @@ import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchIndicesResp
 import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchResponse
 import com.spectralogic.escapepod.util.JsonMapping
 import com.spectralogic.escapepod.util.ReadFileFromResources
+import io.reactivex.Observable
+import io.reactivex.Single
 import org.apache.http.HttpHost
 import org.apache.http.entity.ContentType
 import org.apache.http.nio.entity.NStringEntity
@@ -25,25 +27,27 @@ class ElasticSearchService : MetadataSearchService {
         this.restClient = restClient
     }
 
-    override fun health(): MetadataSearchHealthResponse {
-        try {
-            val response = restClient.performRequest(
-                    "GET",
-                    "/_cluster/health",
-                    Collections.singletonMap("pretty", "true"))
+    override fun health(): Single<MetadataSearchHealthResponse> {
+        return Single.create { emitter ->
+            try {
+                val response = restClient.performRequest(
+                        "GET",
+                        "/_cluster/health",
+                        Collections.singletonMap("pretty", "true"))
 
-            if (response.statusLine.statusCode > 300) {
-                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+                if (response.statusLine.statusCode > 300) {
+                    throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+                }
+
+                val elasticSearchHealthResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                        ElasticSearchHealthResponse::class.java)
+                emitter.onSuccess(MetadataSearchHealthResponse(elasticSearchHealthResponse.clusterName,
+                elasticSearchHealthResponse.status))
+            } catch (ex: ResponseException) {
+                emitter.onError(MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex))
+            } catch (ex: Exception) {
+                emitter.onError(ex)
             }
-
-            val elasticSearchHealthResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                    ElasticSearchHealthResponse::class.java)
-
-            return MetadataSearchHealthResponse(elasticSearchHealthResponse.clusterName, elasticSearchHealthResponse.status)
-        } catch (ex: ResponseException) {
-            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
-        } catch (ex: Exception) {
-            throw MetadataException(ex)
         }
     }
 
@@ -87,7 +91,7 @@ class ElasticSearchService : MetadataSearchService {
         }
     }
 
-    override fun getAllIndices(): MetadataSearchIndicesResponse {
+    override fun getAllIndices(): Observable<MetadataIndex> {
         try {
             val response = restClient.performRequest(
                     "GET",
@@ -104,12 +108,13 @@ class ElasticSearchService : MetadataSearchService {
                             ElasticSearchIndicesResponse::class.java)
 
 
-            return MetadataSearchIndicesResponse(
-                    elasticSearchIndicesResponse.indices.map {
-                        (indexName, primaries, replications, numberOfDocuments) ->
-                        MetadataIndex(indexName, primaries, replications, numberOfDocuments)
-                    }
-            )
+            return Observable.create { emitter ->
+                elasticSearchIndicesResponse.indices.map {
+                    (indexName, primaries, replications, numberOfDocuments) ->
+                    emitter.onNext(MetadataIndex(indexName, primaries, replications, numberOfDocuments))
+                }
+                emitter.onComplete()
+            }
         } catch (ex: ResponseException) {
             throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
         } catch (ex: Exception) {

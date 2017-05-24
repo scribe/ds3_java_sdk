@@ -1,6 +1,8 @@
 package com.spectralogic.escapepod.api
 
 import io.reactivex.Completable
+import io.reactivex.Observable
+import io.reactivex.Single
 
 interface MetadataSearchServiceProvider : ServiceProvider<MetadataSearchService> {
     fun createNewMetadataSearchCluster(): Completable
@@ -15,7 +17,7 @@ interface MetadataSearchService {
      * Query the health of the cluster
      * @return
      */
-    fun health(): MetadataSearchHealthResponse
+    fun health(): Single<MetadataSearchHealthResponse>
 
     /***
      * Create an index in the underline search provider with a default of 5 shards and 2 replicas
@@ -36,7 +38,7 @@ interface MetadataSearchService {
     /***
      * Get all the indices in the system
      */
-    fun getAllIndices(): MetadataSearchIndicesResponse
+    fun getAllIndices(): Observable<MetadataIndex>
 
     /***
      * Delete the given index
@@ -149,8 +151,6 @@ interface MetadataSearchService {
 data class MetadataSearchHealthResponse(val clusterName: String, val status: String)
 
 data class MetadataIndex(val indexName: String, val primaries: Int, val replications: Int, val numberOfDocuments: Long)
-
-data class MetadataSearchIndicesResponse(val indices: List<MetadataIndex>)
 
 data class MetadataSearchResponse(val took: Int, val hits: MetadataSearchHits)
 
