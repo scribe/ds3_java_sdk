@@ -92,33 +92,35 @@ class ElasticSearchService : MetadataSearchService {
     }
 
     override fun getAllIndices(): Observable<MetadataIndex> {
-        try {
-            val response = restClient.performRequest(
-                    "GET",
-                    "/_cat/indices",
-                    Collections.singletonMap("format", "json")
-            )
+        return Observable.create { emitter ->
+            try {
+                val response = restClient.performRequest(
+                        "GET",
+                        "/_cat/indices",
+                        Collections.singletonMap("format", "json")
+                )
 
-            if (response.statusLine.statusCode > 300) {
-                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
-            }
+                if (response.statusLine.statusCode > 300) {
+                    throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+                }
 
-            val elasticSearchIndicesResponse =
-                    JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                            ElasticSearchIndicesResponse::class.java)
+                val elasticSearchIndicesResponse =
+                        JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                                ElasticSearchIndicesResponse::class.java)
 
 
-            return Observable.create { emitter ->
+
                 elasticSearchIndicesResponse.indices.map {
                     (indexName, primaries, replications, numberOfDocuments) ->
                     emitter.onNext(MetadataIndex(indexName, primaries, replications, numberOfDocuments))
                 }
                 emitter.onComplete()
+            } catch (ex: ResponseException) {
+                emitter.onError(MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine
+                        .reasonPhrase, ex))
+            } catch (ex: Exception) {
+                emitter.onError(MetadataException(ex))
             }
-        } catch (ex: ResponseException) {
-            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
-        } catch (ex: Exception) {
-            throw MetadataException(ex)
         }
     }
 
@@ -195,128 +197,134 @@ class ElasticSearchService : MetadataSearchService {
         }
     }
 
-    override fun searchById(index: String, bucket: String, id: String): MetadataSearchResponse {
+    override fun searchById(index: String, bucket: String, id: String): Observable<MetadataSearchHitsNode> {
         return searchByIdHelper("/$index/$bucket/_search", id)
     }
 
-    override fun searchById(index: String, id: String): MetadataSearchResponse {
+    override fun searchById(index: String, id: String): Observable<MetadataSearchHitsNode> {
         return searchByIdHelper("/$index/_search", id)
     }
 
-    override fun searchById(id: String): MetadataSearchResponse {
+    override fun searchById(id: String): Observable<MetadataSearchHitsNode> {
         return searchByIdHelper("/_search", id)
     }
 
-    private fun searchByIdHelper(endpoint: String, id: String): MetadataSearchResponse {
-        try {
-            val response = restClient.performRequest(
-                    "GET",
-                    endpoint,
-                    Collections.singletonMap("pretty", "true"),
-                    NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/search/searchById.json"), id),
-                            ContentType.APPLICATION_JSON)
-            )
+    private fun searchByIdHelper(endpoint: String, id: String): Observable<MetadataSearchHitsNode> {
+        return Observable.create { emitter ->
+            try {
+                val response = restClient.performRequest(
+                        "GET",
+                        endpoint,
+                        Collections.singletonMap("pretty", "true"),
+                        NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/search/searchById.json"), id),
+                                ContentType.APPLICATION_JSON)
+                )
 
-            if (response.statusLine.statusCode > 300) {
-                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+                if (response.statusLine.statusCode > 300) {
+                    throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+                }
+
+                val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                        ElasticSearchResponse::class.java)
+
+                elasticSearchResponse.hits.hits.map {
+                    (index, type, id, score, source) ->
+                    emitter.onNext(MetadataSearchHitsNode(index, type, id, score, source))
+                }
+                emitter.onComplete()
+            } catch (ex: ResponseException) {
+                emitter.onError(MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase,
+                ex))
+            } catch (ex: Exception) {
+                emitter.onError(MetadataException(ex))
             }
-
-            val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                    ElasticSearchResponse::class.java)
-
-            return MetadataSearchResponse(elasticSearchResponse.took,
-                    MetadataSearchHits(elasticSearchResponse.hits.numberOfHits, elasticSearchResponse.hits.hits.map {
-                        (index, type, id, score, source) ->
-                        MetadataSearchHitsNode(index, type, id, score, source)
-                    }))
-        } catch (ex: ResponseException) {
-            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
-        } catch (ex: Exception) {
-            throw MetadataException(ex)
         }
     }
 
-    override fun searchByMetadata(index: String, bucket: String, key: String, value: String): MetadataSearchResponse {
+    override fun searchByMetadata(index: String, bucket: String, key: String, value: String): Observable<MetadataSearchHitsNode> {
         return searchByMetadataHelper("/$index/$bucket/_search", key, value)
     }
 
-    override fun searchByMetadata(index: String, key: String, value: String): MetadataSearchResponse {
+    override fun searchByMetadata(index: String, key: String, value: String): Observable<MetadataSearchHitsNode> {
         return searchByMetadataHelper("/$index/_search", key, value)
     }
 
-    override fun searchByMetadata(key: String, value: String): MetadataSearchResponse {
+    override fun searchByMetadata(key: String, value: String): Observable<MetadataSearchHitsNode> {
         return searchByMetadataHelper("/_search", key, value)
     }
 
-    private fun searchByMetadataHelper(endpoint: String, key: String, value: String): MetadataSearchResponse {
-        try {
-            val response = restClient.performRequest(
-                    "GET",
-                    endpoint,
-                    Collections.singletonMap("pretty", "true"),
-                    NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/search/searchByMetadata.json"),
-                            key, value), ContentType.APPLICATION_JSON)
-            )
+    private fun searchByMetadataHelper(endpoint: String, key: String, value: String): Observable<MetadataSearchHitsNode> {
+        return Observable.create { emitter ->
+            try {
+                val response = restClient.performRequest(
+                        "GET",
+                        endpoint,
+                        Collections.singletonMap("pretty", "true"),
+                        NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/search/searchByMetadata.json"),
+                                key, value), ContentType.APPLICATION_JSON)
+                )
 
-            if (response.statusLine.statusCode > 300) {
-                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+                if (response.statusLine.statusCode > 300) {
+                    throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+                }
+
+                val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                        ElasticSearchResponse::class.java)
+
+                elasticSearchResponse.hits.hits.map {
+                    (index, type, id, score, source) ->
+                    emitter.onNext(MetadataSearchHitsNode(index, type, id, score, source))
+                }
+                emitter.onComplete()
+            } catch (ex: ResponseException) {
+                emitter.onError(MetadataException(ex.response.statusLine.statusCode,
+                        ex.response.statusLine.reasonPhrase, ex))
+            } catch (ex: Exception) {
+                emitter.onError(MetadataException(ex))
             }
-
-            val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                    ElasticSearchResponse::class.java)
-
-            return MetadataSearchResponse(elasticSearchResponse.took,
-                    MetadataSearchHits(elasticSearchResponse.hits.numberOfHits, elasticSearchResponse.hits.hits.map {
-                        (index, type, id, score, source) ->
-                        MetadataSearchHitsNode(index, type, id, score, source)
-                    }))
-        } catch (ex: ResponseException) {
-            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
-        } catch (ex: Exception) {
-            throw MetadataException(ex)
         }
     }
 
-    override fun searchByMatchAll(index: String, bucket: String): MetadataSearchResponse {
+    override fun searchByMatchAll(index: String, bucket: String): Observable<MetadataSearchHitsNode> {
         return searchByMatchAllHelper("/$index/$bucket/_search")
     }
 
-    override fun searchByMatchAll(index: String): MetadataSearchResponse {
+    override fun searchByMatchAll(index: String): Observable<MetadataSearchHitsNode> {
         return searchByMatchAllHelper("/$index/_search")
     }
 
-    override fun searchByMatchAll(): MetadataSearchResponse {
+    override fun searchByMatchAll(): Observable<MetadataSearchHitsNode> {
         return searchByMatchAllHelper("/_search")
     }
 
-    private fun searchByMatchAllHelper(endpoint: String): MetadataSearchResponse {
-        try {
-            val response = restClient.performRequest(
-                    "GET",
-                    endpoint,
-                    Collections.singletonMap("pretty", "true"),
-                    NStringEntity(ReadFileFromResources.readFile("elasticsearch/search/searchByMatchAll.json"), ContentType.APPLICATION_JSON)
-            )
+    private fun searchByMatchAllHelper(endpoint: String): Observable<MetadataSearchHitsNode> {
+        return Observable.create { emitter ->
+            try {
+                val response = restClient.performRequest(
+                        "GET",
+                        endpoint,
+                        Collections.singletonMap("pretty", "true"),
+                        NStringEntity(ReadFileFromResources.readFile("elasticsearch/search/searchByMatchAll.json"), ContentType.APPLICATION_JSON)
+                )
 
-            if (response.statusLine.statusCode > 300) {
-                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+                if (response.statusLine.statusCode > 300) {
+                    throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+                }
+
+                val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                        ElasticSearchResponse::class.java)
+
+                elasticSearchResponse.hits.hits.map {
+                    (index, type, id, score, source) ->
+                    emitter.onNext(MetadataSearchHitsNode(index, type, id, score, source))
+                }
+                emitter.onComplete()
+            } catch (ex: ResponseException) {
+                emitter.onError(MetadataException(ex.response.statusLine.statusCode,
+                        ex.response.statusLine.reasonPhrase, ex))
+            } catch (ex: Exception) {
+                emitter.onError(MetadataException(ex))
             }
-
-            val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                    ElasticSearchResponse::class.java)
-
-            val metadataSearchHit = MetadataSearchHits(
-                    elasticSearchResponse.hits.numberOfHits, elasticSearchResponse.hits.hits.map {
-                (index, type, id, score, source) ->
-                MetadataSearchHitsNode(index, type, id, score, source)
-            }
-            )
-
-            return MetadataSearchResponse(elasticSearchResponse.took, metadataSearchHit)
-        } catch (ex: ResponseException) {
-            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
-        } catch (ex: Exception) {
-            throw MetadataException(ex)
         }
     }
 

@@ -192,17 +192,19 @@ class TestElasticSearchService {
 
             TimeUnit.SECONDS.sleep(5)
 
-            var response = metadataSearchService.searchById(index1, bucket1, fileName)
-            assertThat(response.hits.numberOfHits).isEqualTo(1)
+            var observable = metadataSearchService.searchById(index1, bucket1, fileName)
+            assertThat(observable.count().blockingGet()).isEqualTo(1)
 
-            response = metadataSearchService.searchById(index1, bucket2, fileName)
-            assertThat(response.hits.numberOfHits).isEqualTo(1)
+            observable = metadataSearchService.searchById(index1, bucket2, fileName)
+            assertThat(observable.count().blockingGet()).isEqualTo(1)
 
-            response = metadataSearchService.searchById(index1, fileName)
-            assertThat(response.hits.numberOfHits).isEqualTo(2)
+            observable = metadataSearchService.searchById(index1, fileName)
+            assertThat(observable.count().blockingGet()).isEqualTo(2)
 
-            response = metadataSearchService.searchById(fileName)
-            assertThat(response.hits.numberOfHits).isEqualTo(3)
+            observable = metadataSearchService.searchById(fileName)
+            assertThat(observable.count().blockingGet()).isEqualTo(3)
+        } catch (t: Throwable) {
+            fail(t.toString())
         } finally {
             metadataSearchService.deleteIndex(index1)
             metadataSearchService.deleteIndex(index2)
@@ -225,17 +227,19 @@ class TestElasticSearchService {
 
             TimeUnit.SECONDS.sleep(5)
 
-            var response = metadataSearchService.searchByMetadata(index1, bucket1, "m1", "v1")
-            assertThat(response.hits.numberOfHits).isEqualTo(1)
+            var observable = metadataSearchService.searchByMetadata(index1, bucket1, "m1", "v1")
+            assertThat(observable.count().blockingGet()).isEqualTo(1)
 
-            response = metadataSearchService.searchByMetadata(index1, bucket2, "m1", "v1")
-            assertThat(response.hits.numberOfHits).isEqualTo(1)
+            observable = metadataSearchService.searchByMetadata(index1, bucket2, "m1", "v1")
+            assertThat(observable.count().blockingGet()).isEqualTo(1)
 
-            response = metadataSearchService.searchByMetadata(index1, "m1", "v1")
-            assertThat(response.hits.numberOfHits).isEqualTo(2)
+            observable = metadataSearchService.searchByMetadata(index1, "m1", "v1")
+            assertThat(observable.count().blockingGet()).isEqualTo(2)
 
-            response = metadataSearchService.searchByMetadata("m1", "v1")
-            assertThat(response.hits.numberOfHits).isEqualTo(3)
+            observable = metadataSearchService.searchByMetadata("m1", "v1")
+            assertThat(observable.count().blockingGet()).isEqualTo(3)
+        } catch (t: Throwable) {
+            fail(t.toString())
         } finally {
             metadataSearchService.deleteIndex(index1)
             metadataSearchService.deleteIndex(index2)
@@ -258,34 +262,37 @@ class TestElasticSearchService {
 
             TimeUnit.SECONDS.sleep(5)
 
-            var response = metadataSearchService.searchByMatchAll(index1, bucket1)
+            var observable = metadataSearchService.searchByMatchAll(index1, bucket1)
 
-            assertThat(response.hits.numberOfHits).isEqualTo(1)
+            assertThat(observable.count().blockingGet()).isEqualTo(1)
 
             var expected = MetadataSearchHitsNode(index1, bucket1, fileName, 1.0, metadata)
-            assertThat(response.hits.hits).containsOnly(expected)
+            assertThat(observable.contains(expected).blockingGet()).isTrue()
 
-            response = metadataSearchService.searchByMatchAll(index1, bucket2)
-            assertThat(response.hits.numberOfHits).isEqualTo(1)
+            observable = metadataSearchService.searchByMatchAll(index1, bucket2)
+            assertThat(observable.count().blockingGet()).isEqualTo(1)
 
             expected = MetadataSearchHitsNode(index1, bucket2, fileName, 1.0, metadata)
-            assertThat(response.hits.hits).containsOnly(expected)
+            assertThat(observable.contains(expected).blockingGet()).isTrue()
 
-            response = metadataSearchService.searchByMatchAll(index1)
-            assertThat(response.hits.numberOfHits).isEqualTo(2)
+            observable = metadataSearchService.searchByMatchAll(index1)
+            assertThat(observable.count().blockingGet()).isEqualTo(2)
 
             val expected1 = MetadataSearchHitsNode(index1, bucket1, fileName, 1.0, metadata)
             val expected2 = MetadataSearchHitsNode(index1, bucket2, fileName, 1.0, metadata)
-            assertThat(response.hits.hits).contains(expected1, expected2)
+            assertThat(observable.contains(expected1).blockingGet()).isTrue()
+            assertThat(observable.contains(expected2).blockingGet()).isTrue()
 
-            response = metadataSearchService.searchByMatchAll(index2)
-            assertThat(response.hits.numberOfHits).isEqualTo(1)
+            observable = metadataSearchService.searchByMatchAll(index2)
+            assertThat(observable.count().blockingGet()).isEqualTo(1)
 
             expected = MetadataSearchHitsNode(index2, bucket1, fileName, 1.0, metadata)
-            assertThat(response.hits.hits).containsOnly(expected)
+            assertThat(observable.contains(expected).blockingGet()).isTrue()
 
-            response = metadataSearchService.searchByMatchAll()
-            assertThat(response.hits.numberOfHits).isGreaterThanOrEqualTo(3) //could be more than 3 if there was data before the test
+            observable = metadataSearchService.searchByMatchAll()
+            assertThat(observable.count().blockingGet()).isGreaterThanOrEqualTo(3) //could be more than 3 if there was data before the test
+        } catch (t: Throwable) {
+            fail(t.toString())
         } finally {
             metadataSearchService.deleteIndex(index1)
             metadataSearchService.deleteIndex(index2)

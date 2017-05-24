@@ -4,7 +4,7 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 
-interface MetadataSearchServiceProvider : ServiceProvider<MetadataSearchService> {
+interface MetadataSearchServiceProvider : ServiceProvider<MetadataSearchService>{
     fun createNewMetadataSearchCluster(): Completable
     fun joinMetadataSearchCluster(): Completable
     fun metadataSearchNodeJoinedEvent(): Completable
@@ -82,7 +82,7 @@ interface MetadataSearchService {
      * @param id
      * @return
      */
-    fun searchById(index: String, bucket: String, id: String): MetadataSearchResponse
+    fun searchById(index: String, bucket: String, id: String): Observable<MetadataSearchHitsNode>
 
     /***
      * Search by id in all the buckets
@@ -90,13 +90,13 @@ interface MetadataSearchService {
      * @param id
      * @return
      */
-    fun searchById(index: String, id: String): MetadataSearchResponse
+    fun searchById(index: String, id: String): Observable<MetadataSearchHitsNode>
 
     /***
      * Search by id in all the system
      * @param id
      */
-    fun searchById(id: String): MetadataSearchResponse
+    fun searchById(id: String): Observable<MetadataSearchHitsNode>
 
     /***
      * Search by metadata in a bucket
@@ -106,7 +106,7 @@ interface MetadataSearchService {
      * @param value
      * @return
      */
-    fun searchByMetadata(index: String, bucket: String, key: String, value: String): MetadataSearchResponse
+    fun searchByMetadata(index: String, bucket: String, key: String, value: String): Observable<MetadataSearchHitsNode>
 
     /***
      * Search by metadata in all the buckets
@@ -115,32 +115,32 @@ interface MetadataSearchService {
      * @param value
      * @return
      */
-    fun searchByMetadata(index: String, key: String, value: String):  MetadataSearchResponse
+    fun searchByMetadata(index: String, key: String, value: String):  Observable<MetadataSearchHitsNode>
 
     /***
      * Search by metadata in all the system
      * @param key
      * @param value
      */
-    fun searchByMetadata(key: String, value: String): MetadataSearchResponse
+    fun searchByMetadata(key: String, value: String): Observable<MetadataSearchHitsNode>
 
     /***
      * Return all the indexed documents in a bucket
      * @param index
      * @param bucket
      */
-    fun searchByMatchAll(index: String, bucket: String): MetadataSearchResponse
+    fun searchByMatchAll(index: String, bucket: String): Observable<MetadataSearchHitsNode>
 
     /***
      * Return all the indexed documents in all the buckets
      * @param index
      */
-    fun searchByMatchAll(index: String): MetadataSearchResponse
+    fun searchByMatchAll(index: String): Observable<MetadataSearchHitsNode>
 
     /***
      * Return all the indexed documents in all the system
      */
-    fun searchByMatchAll(): MetadataSearchResponse
+    fun searchByMatchAll(): Observable<MetadataSearchHitsNode>
 
     /***
      * Close the connection to the underline search provider
