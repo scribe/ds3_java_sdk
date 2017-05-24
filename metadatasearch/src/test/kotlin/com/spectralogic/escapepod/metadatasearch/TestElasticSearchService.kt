@@ -47,8 +47,8 @@ class TestElasticSearchService {
             if (MetadataSearchHealthResponse == null) {
                 fail("Expected cluster status to be $expected")
             }
-        } catch (t: Throwable) {
-            fail(t.toString())
+        } catch (e: Exception) {
+            fail(e.toString())
         }
     }
 
@@ -57,16 +57,16 @@ class TestElasticSearchService {
     fun testCreateIndexWithDefaultValues() {
         val index = "test_create_index_with_default_values"
         try {
-            metadataSearchService.createIndex(index)
+            metadataSearchService.createIndex(index).subscribe()
 
             val observable = metadataSearchService.getAllIndices()
             val expected = MetadataIndex(index, 5, 2, 0)
 
             assertThat(observable.contains(expected).blockingGet()).isTrue()
-        } catch (t: Throwable) {
-            fail(t.toString())
+        } catch (e: Exception) {
+            fail(e.toString())
         } finally {
-            metadataSearchService.deleteIndex(index)
+            metadataSearchService.deleteIndex(index).subscribe()
         }
     }
 
@@ -74,16 +74,16 @@ class TestElasticSearchService {
     fun testCreateIndexWithValues() {
         val index = "test_create_index_with_values"
         try {
-            metadataSearchService.createIndex(index, 8, 7)
+            metadataSearchService.createIndex(index, 8, 7).subscribe()
 
             val observable = metadataSearchService.getAllIndices()
             val expected = MetadataIndex(index, 8, 7, 0)
 
             assertThat(observable.contains(expected).blockingGet()).isTrue()
-        } catch (t: Throwable) {
-            fail(t.toString())
+        } catch (e: Exception) {
+            fail(e.toString())
         } finally {
-            metadataSearchService.deleteIndex(index)
+            metadataSearchService.deleteIndex(index).subscribe()
         }
     }
 
@@ -91,20 +91,20 @@ class TestElasticSearchService {
     fun testUpdateIndexNumberOfReplicas() {
         val index = "test_update_index_number_of_replicas"
         try {
-            metadataSearchService.createIndex(index)
+            metadataSearchService.createIndex(index).subscribe()
             var observable = metadataSearchService.getAllIndices()
             var expected = MetadataIndex(index, 5, 2, 0)
             assertThat(observable.contains(expected).blockingGet()).isTrue()
 
-            metadataSearchService.updateIndexNumberOfReplicas(index, 9)
+            metadataSearchService.updateIndexNumberOfReplicas(index, 9).subscribe()
 
             observable = metadataSearchService.getAllIndices()
             expected = MetadataIndex(index, 5, 9, 0)
             assertThat(observable.contains(expected).blockingGet()).isTrue()
-        } catch (t: Throwable) {
-            fail(t.toString())
+        } catch (e: Exception) {
+            fail(e.toString())
         } finally {
-            metadataSearchService.deleteIndex(index)
+            metadataSearchService.deleteIndex(index).subscribe()
         }
     }
 
@@ -115,18 +115,18 @@ class TestElasticSearchService {
         val fileName = "test_file"
         val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
         try {
-            metadataSearchService.indexDocument(index, bucket, fileName, metadata)
+            metadataSearchService.indexDocument(index, bucket, fileName, metadata).subscribe()
 
             //we need to wait for the new document to be available
             TimeUnit.SECONDS.sleep(5)
 
             val observable = metadataSearchService.getAllIndices()
-            val expected = MetadataIndex(index, 5, 2, 1)
+            val expected = MetadataIndex(index, 5, 1, 1)
             assertThat(observable.contains(expected).blockingGet()).isTrue()
-        } catch (t: Throwable) {
-            fail(t.toString())
+        } catch (e: Exception) {
+            fail(e.toString())
         } finally {
-            metadataSearchService.deleteIndex(index)
+            metadataSearchService.deleteIndex(index).subscribe()
         }
     }
 
@@ -134,17 +134,17 @@ class TestElasticSearchService {
     fun testDeleteIndex() {
         try {
             val index = "test_delete_index"
-            metadataSearchService.createIndex(index)
+            metadataSearchService.createIndex(index).subscribe()
             var observable = metadataSearchService.getAllIndices()
             var expected = MetadataIndex(index, 5, 2, 0)
             assertThat(observable.contains(expected).blockingGet()).isTrue()
 
-            metadataSearchService.deleteIndex(index)
+            metadataSearchService.deleteIndex(index).subscribe()
             observable = metadataSearchService.getAllIndices()
             expected = MetadataIndex(index, 5, 2, 0)
             assertThat(observable.contains(expected).blockingGet()).isFalse()
-        } catch (t: Throwable) {
-            fail(t.toString())
+        } catch (e: Exception) {
+            fail(e.toString())
         }
     }
 
@@ -156,23 +156,23 @@ class TestElasticSearchService {
         val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
 
         try {
-            metadataSearchService.indexDocument(index, bucket, fileName, metadata)
+            metadataSearchService.indexDocument(index, bucket, fileName, metadata).subscribe()
             TimeUnit.SECONDS.sleep(5)
 
             var observable = metadataSearchService.getAllIndices()
-            var expected = MetadataIndex(index, 5, 2, 1)
+            var expected = MetadataIndex(index, 5, 1, 1)
             assertThat(observable.contains(expected).blockingGet()).isTrue()
 
-            metadataSearchService.deleteDocument(index, bucket, fileName)
+            metadataSearchService.deleteDocument(index, bucket, fileName).subscribe()
             TimeUnit.SECONDS.sleep(5)
 
             observable = metadataSearchService.getAllIndices()
-            expected = MetadataIndex(index, 5, 2, 0)
+            expected = MetadataIndex(index, 5, 1, 0)
             assertThat(observable.contains(expected).blockingGet()).isTrue()
-        } catch (t: Throwable) {
-            fail(t.toString())
+        } catch (e: Exception) {
+            fail(e.toString())
         } finally {
-            metadataSearchService.deleteIndex(index)
+            metadataSearchService.deleteIndex(index).subscribe()
         }
     }
 
@@ -186,9 +186,9 @@ class TestElasticSearchService {
         val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
 
         try {
-            metadataSearchService.indexDocument(index1, bucket1, fileName, metadata)
-            metadataSearchService.indexDocument(index1, bucket2, fileName, metadata)
-            metadataSearchService.indexDocument(index2, bucket1, fileName, metadata)
+            metadataSearchService.indexDocument(index1, bucket1, fileName, metadata).subscribe()
+            metadataSearchService.indexDocument(index1, bucket2, fileName, metadata).subscribe()
+            metadataSearchService.indexDocument(index2, bucket1, fileName, metadata).subscribe()
 
             TimeUnit.SECONDS.sleep(5)
 
@@ -203,11 +203,11 @@ class TestElasticSearchService {
 
             observable = metadataSearchService.searchById(fileName)
             assertThat(observable.count().blockingGet()).isEqualTo(3)
-        } catch (t: Throwable) {
-            fail(t.toString())
+        } catch (e: Exception) {
+            fail(e.toString())
         } finally {
-            metadataSearchService.deleteIndex(index1)
-            metadataSearchService.deleteIndex(index2)
+            metadataSearchService.deleteIndex(index1).subscribe()
+            metadataSearchService.deleteIndex(index2).subscribe()
         }
     }
 
@@ -221,9 +221,9 @@ class TestElasticSearchService {
         val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
 
         try {
-            metadataSearchService.indexDocument(index1, bucket1, fileName, metadata)
-            metadataSearchService.indexDocument(index1, bucket2, fileName, metadata)
-            metadataSearchService.indexDocument(index2, bucket1, fileName, metadata)
+            metadataSearchService.indexDocument(index1, bucket1, fileName, metadata).subscribe()
+            metadataSearchService.indexDocument(index1, bucket2, fileName, metadata).subscribe()
+            metadataSearchService.indexDocument(index2, bucket1, fileName, metadata).subscribe()
 
             TimeUnit.SECONDS.sleep(5)
 
@@ -238,11 +238,11 @@ class TestElasticSearchService {
 
             observable = metadataSearchService.searchByMetadata("m1", "v1")
             assertThat(observable.count().blockingGet()).isEqualTo(3)
-        } catch (t: Throwable) {
-            fail(t.toString())
+        } catch (e: Exception) {
+            fail(e.toString())
         } finally {
-            metadataSearchService.deleteIndex(index1)
-            metadataSearchService.deleteIndex(index2)
+            metadataSearchService.deleteIndex(index1).subscribe()
+            metadataSearchService.deleteIndex(index2).subscribe()
         }
     }
 
@@ -256,14 +256,13 @@ class TestElasticSearchService {
         val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
 
         try {
-            metadataSearchService.indexDocument(index1, bucket1, fileName, metadata)
-            metadataSearchService.indexDocument(index1, bucket2, fileName, metadata)
-            metadataSearchService.indexDocument(index2, bucket1, fileName, metadata)
+            metadataSearchService.indexDocument(index1, bucket1, fileName, metadata).subscribe()
+            metadataSearchService.indexDocument(index1, bucket2, fileName, metadata).subscribe()
+            metadataSearchService.indexDocument(index2, bucket1, fileName, metadata).subscribe()
 
             TimeUnit.SECONDS.sleep(5)
 
             var observable = metadataSearchService.searchByMatchAll(index1, bucket1)
-
             assertThat(observable.count().blockingGet()).isEqualTo(1)
 
             var expected = MetadataSearchHitsNode(index1, bucket1, fileName, 1.0, metadata)
@@ -291,11 +290,11 @@ class TestElasticSearchService {
 
             observable = metadataSearchService.searchByMatchAll()
             assertThat(observable.count().blockingGet()).isGreaterThanOrEqualTo(3) //could be more than 3 if there was data before the test
-        } catch (t: Throwable) {
-            fail(t.toString())
+        } catch (e: Exception) {
+            fail(e.toString())
         } finally {
-            metadataSearchService.deleteIndex(index1)
-            metadataSearchService.deleteIndex(index2)
+            metadataSearchService.deleteIndex(index1).subscribe()
+            metadataSearchService.deleteIndex(index2).subscribe()
         }
     }
 }

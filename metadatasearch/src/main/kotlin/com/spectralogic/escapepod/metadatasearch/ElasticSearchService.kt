@@ -6,6 +6,7 @@ import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchIndicesResp
 import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchResponse
 import com.spectralogic.escapepod.util.JsonMapping
 import com.spectralogic.escapepod.util.ReadFileFromResources
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import org.apache.http.HttpHost
@@ -51,43 +52,51 @@ class ElasticSearchService : MetadataSearchService {
         }
     }
 
-    override fun createIndex(index: String, numberOfShard: Int, numberOfReplicas: Int) {
-        try {
-            val response = restClient.performRequest(
-                    "PUT",
-                    index,
-                    Collections.singletonMap("pretty", "true"),
-                    NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/index/createIndex.json"),
-                            numberOfShard, numberOfReplicas), ContentType.APPLICATION_JSON)
-            )
+    override fun createIndex(index: String, numberOfShard: Int, numberOfReplicas: Int): Completable {
+        return Completable.create { emitter ->
+            try {
+                val response = restClient.performRequest(
+                        "PUT",
+                        index,
+                        Collections.singletonMap("pretty", "true"),
+                        NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/index/createIndex.json"),
+                                numberOfShard, numberOfReplicas), ContentType.APPLICATION_JSON)
+                )
 
-            if (response.statusLine.statusCode > 300) {
-                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+                if (response.statusLine.statusCode > 300) {
+                    emitter.onError(MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase))
+                }
+                emitter.onComplete()
+            } catch (ex: ResponseException) {
+                emitter.onError(MetadataException(ex.response.statusLine.statusCode,
+                        ex.response.statusLine.reasonPhrase, ex))
+            } catch (ex: Exception) {
+                emitter.onError(MetadataException(ex))
             }
-        } catch (ex: ResponseException) {
-            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
-        } catch (ex: Exception) {
-            throw MetadataException(ex)
         }
     }
 
-    override fun updateIndexNumberOfReplicas(index: String, numberOfReplicas: Int) {
-        try {
-            val response = restClient.performRequest(
-                    "PUT",
-                    "/$index/_settings",
-                    Collections.singletonMap("pretty", "true"),
-                    NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/index/updateIndexNumberOfReplicas.json"),
-                            numberOfReplicas), ContentType.APPLICATION_JSON)
-            )
+    override fun updateIndexNumberOfReplicas(index: String, numberOfReplicas: Int): Completable {
+        return Completable.create { emitter ->
+            try {
+                val response = restClient.performRequest(
+                        "PUT",
+                        "/$index/_settings",
+                        Collections.singletonMap("pretty", "true"),
+                        NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/index/updateIndexNumberOfReplicas.json"),
+                                numberOfReplicas), ContentType.APPLICATION_JSON)
+                )
 
-            if (response.statusLine.statusCode > 300) {
-                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+                if (response.statusLine.statusCode > 300) {
+                    emitter.onError(MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase))
+                }
+                emitter.onComplete()
+            } catch (ex: ResponseException) {
+                emitter.onError(MetadataException(ex.response.statusLine.statusCode,
+                        ex.response.statusLine.reasonPhrase, ex))
+            } catch (ex: Exception) {
+                emitter.onError(MetadataException(ex))
             }
-        } catch (ex: ResponseException) {
-            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
-        } catch (ex: Exception) {
-            throw MetadataException(ex)
         }
     }
 
@@ -137,63 +146,71 @@ class ElasticSearchService : MetadataSearchService {
         }
     }
 
-    override fun indexDocument(index: String, bucket: String, id: String, metadata: Map<String, String>) {
-        indexDocumentHelper(index, bucket, id, metadata, "PUT")
+    override fun indexDocument(index: String, bucket: String, id: String, metadata: Map<String, String>): Completable {
+        return indexDocumentHelper(index, bucket, id, metadata, "PUT")
     }
 
-    override fun updateIndexedDocument(index: String, bucket: String, id: String, metadata: Map<String, String>) {
-        indexDocumentHelper(index, bucket, id, metadata, "POST")
+    override fun updateIndexedDocument(index: String, bucket: String, id: String, metadata: Map<String, String>): Completable {
+        return indexDocumentHelper(index, bucket, id, metadata, "POST")
     }
 
     private fun indexDocumentHelper(index: String, bucket: String, id: String, metadata: Map<String, String>,
-                                    method: String) {
-        ensureIndexExists(index)
+                                    method: String): Completable {
+        return Completable.create { emitter ->
+            ensureIndexExists(index)
 
-        val metadataString = getMetadataString(metadata)
+            val metadataString = getMetadataString(metadata)
 
-        val entity = NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/index/indexFile.json"), metadataString),
-                ContentType.APPLICATION_JSON)
+            val entity = NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/index/indexFile.json"), metadataString),
+                    ContentType.APPLICATION_JSON)
 
-        try {
-            val response = restClient.performRequest(
-                    method,
-                    "/$index/$bucket/$id",
-                    Collections.singletonMap("pretty", "true"),
-                    entity)
+            try {
+                val response = restClient.performRequest(
+                        method,
+                        "/$index/$bucket/$id",
+                        Collections.singletonMap("pretty", "true"),
+                        entity)
 
-            if (response.statusLine.statusCode > 300) {
-                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+                if (response.statusLine.statusCode > 300) {
+                    emitter.onError(MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase))
+                }
+                emitter.onComplete()
+            } catch (ex: ResponseException) {
+                emitter.onError(MetadataException(ex.response.statusLine.statusCode,
+                        ex.response.statusLine.reasonPhrase, ex))
+            } catch (ex: Exception) {
+                emitter.onError(MetadataException(ex))
             }
-        } catch (ex: ResponseException) {
-            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
-        } catch (ex: Exception) {
-            throw MetadataException(ex)
         }
     }
 
-    override fun deleteDocument(index: String, bucket: String, id: String) {
-        deleteHelper("/$index/$bucket/$id")
+    override fun deleteDocument(index: String, bucket: String, id: String): Completable {
+        return deleteHelper("/$index/$bucket/$id")
     }
 
-    override fun deleteIndex(index: String) {
-        deleteHelper("/$index")
+    override fun deleteIndex(index: String): Completable {
+        return deleteHelper("/$index")
     }
 
-    private fun deleteHelper(endpoint: String) {
-        try {
-            val response = restClient.performRequest(
-                    "DELETE",
-                    endpoint,
-                    Collections.singletonMap("pretty", "true")
-            )
+    private fun deleteHelper(endpoint: String): Completable {
+        return Completable.create { emitter ->
+            try {
+                val response = restClient.performRequest(
+                        "DELETE",
+                        endpoint,
+                        Collections.singletonMap("pretty", "true")
+                )
 
-            if (response.statusLine.statusCode > 300) {
-                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+                if (response.statusLine.statusCode > 300) {
+                    emitter.onError(MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase))
+                }
+                emitter.onComplete()
+            } catch (ex: ResponseException) {
+                emitter.onError(MetadataException(ex.response.statusLine.statusCode,
+                        ex.response.statusLine.reasonPhrase, ex))
+            } catch (ex: Exception) {
+                emitter.onError(MetadataException(ex))
             }
-        } catch (ex: ResponseException) {
-            throw MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex)
-        } catch (ex: Exception) {
-            throw MetadataException(ex)
         }
     }
 
@@ -336,7 +353,14 @@ class ElasticSearchService : MetadataSearchService {
                 .joinToString(", ")
     }
 
-    override fun closeConnection() {
-        restClient.close()
+    override fun closeConnection(): Completable {
+        return Completable.create { emitter ->
+            try {
+                restClient.close()
+                emitter.onComplete()
+            } catch (ex: Exception) {
+                emitter.onError(ex)
+            }
+        }
     }
 }

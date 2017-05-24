@@ -25,7 +25,7 @@ interface MetadataSearchService {
      * @param numberOfReplicas
      * @return
      */
-    fun createIndex(index: String, numberOfShard: Int = 5, numberOfReplicas: Int = 2)
+    fun createIndex(index: String, numberOfShard: Int = 5, numberOfReplicas: Int = 2): Completable
 
     /***
      * Update the number of replicas for the given index
@@ -33,7 +33,7 @@ interface MetadataSearchService {
      * @param numberOfReplicas
      * @return
      */
-    fun updateIndexNumberOfReplicas(index: String, numberOfReplicas: Int)
+    fun updateIndexNumberOfReplicas(index: String, numberOfReplicas: Int): Completable
 
     /***
      * Get all the indices in the system
@@ -45,7 +45,7 @@ interface MetadataSearchService {
      * @param index
      * @return
      */
-    fun deleteIndex(index: String)
+    fun deleteIndex(index: String): Completable
 
     /***
      * Delete a document from a bucket
@@ -53,7 +53,7 @@ interface MetadataSearchService {
      * @param bucket
      * @param id
      */
-    fun deleteDocument(index: String, bucket: String, id: String)
+    fun deleteDocument(index: String, bucket: String, id: String): Completable
 
     /***
      * Index a document
@@ -63,7 +63,7 @@ interface MetadataSearchService {
      * @param metadata
      * @return
      */
-    fun indexDocument(index: String, bucket: String, id: String, metadata: Map<String, String>)
+    fun indexDocument(index: String, bucket: String, id: String, metadata: Map<String, String>): Completable
 
     /***
      * Update an index document
@@ -73,7 +73,7 @@ interface MetadataSearchService {
      * @param metadata
      * @return
      */
-    fun updateIndexedDocument(index: String, bucket: String, id: String, metadata: Map<String, String>)
+    fun updateIndexedDocument(index: String, bucket: String, id: String, metadata: Map<String, String>): Completable
 
     /***
      * Search by id in a bucket
@@ -145,7 +145,7 @@ interface MetadataSearchService {
     /***
      * Close the connection to the underline search provider
      */
-    fun closeConnection()
+    fun closeConnection(): Completable
 }
 
 data class MetadataSearchHealthResponse(val clusterName: String, val status: String)
