@@ -4,16 +4,10 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class ElasticSearchResponse @JsonCreator constructor(
-        @JsonProperty("took")
-        val took: Int,
-
         @JsonProperty("hits")
         val hits: ElasticSearchHits)
 
 data class ElasticSearchHits @JsonCreator constructor(
-        @JsonProperty("total")
-        val numberOfHits: Long,
-
         @JsonProperty("hits")
         val hits: List<ElasticSearchHitsNode>)
 
