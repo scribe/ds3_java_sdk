@@ -8,11 +8,13 @@ import com.spectralogic.escapepod.util.JsonMapping
 import com.spectralogic.escapepod.util.ReadFileFromResources
 import io.reactivex.Completable
 import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
 import io.reactivex.Single
 import org.apache.http.HttpHost
 import org.apache.http.entity.ContentType
 import org.apache.http.nio.entity.NStringEntity
 import org.apache.http.util.EntityUtils
+import org.elasticsearch.client.Response
 import org.elasticsearch.client.ResponseException
 import org.elasticsearch.client.RestClient
 import java.util.*
@@ -233,25 +235,14 @@ class ElasticSearchService : MetadataSearchService {
                         "GET",
                         endpoint,
                         Collections.singletonMap("pretty", "true"),
-                        NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/search/searchById.json"), id),
-                                ContentType.APPLICATION_JSON)
+                        NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/search/searchById.json"),
+                                id), ContentType.APPLICATION_JSON)
                 )
 
-                if (response.statusLine.statusCode > 300) {
-                    throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
-                }
-
-                val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                        ElasticSearchResponse::class.java)
-
-                elasticSearchResponse.hits.hits.map {
-                    (index, type, id, score, source) ->
-                    emitter.onNext(MetadataSearchHitsNode(index, type, id, score, source))
-                }
-                emitter.onComplete()
+                searchHelper(response, emitter)
             } catch (ex: ResponseException) {
-                emitter.onError(MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase,
-                ex))
+                emitter.onError(MetadataException(ex.response.statusLine.statusCode,
+                        ex.response.statusLine.reasonPhrase, ex))
             } catch (ex: Exception) {
                 emitter.onError(MetadataException(ex))
             }
@@ -281,18 +272,7 @@ class ElasticSearchService : MetadataSearchService {
                                 key, value), ContentType.APPLICATION_JSON)
                 )
 
-                if (response.statusLine.statusCode > 300) {
-                    throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
-                }
-
-                val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                        ElasticSearchResponse::class.java)
-
-                elasticSearchResponse.hits.hits.map {
-                    (index, type, id, score, source) ->
-                    emitter.onNext(MetadataSearchHitsNode(index, type, id, score, source))
-                }
-                emitter.onComplete()
+                searchHelper(response, emitter)
             } catch (ex: ResponseException) {
                 emitter.onError(MetadataException(ex.response.statusLine.statusCode,
                         ex.response.statusLine.reasonPhrase, ex))
@@ -324,18 +304,7 @@ class ElasticSearchService : MetadataSearchService {
                         NStringEntity(ReadFileFromResources.readFile("elasticsearch/search/searchByMatchAll.json"), ContentType.APPLICATION_JSON)
                 )
 
-                if (response.statusLine.statusCode > 300) {
-                    throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
-                }
-
-                val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                        ElasticSearchResponse::class.java)
-
-                elasticSearchResponse.hits.hits.map {
-                    (index, type, id, score, source) ->
-                    emitter.onNext(MetadataSearchHitsNode(index, type, id, score, source))
-                }
-                emitter.onComplete()
+                searchHelper(response, emitter)
             } catch (ex: ResponseException) {
                 emitter.onError(MetadataException(ex.response.statusLine.statusCode,
                         ex.response.statusLine.reasonPhrase, ex))
@@ -343,6 +312,21 @@ class ElasticSearchService : MetadataSearchService {
                 emitter.onError(MetadataException(ex))
             }
         }
+    }
+
+    private fun searchHelper(response: Response, emitter: ObservableEmitter<MetadataSearchHitsNode>) {
+        if (response.statusLine.statusCode > 300) {
+            throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+        }
+
+        val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                ElasticSearchResponse::class.java)
+
+        elasticSearchResponse.hits.hits.map {
+            (index, type, id, score, source) ->
+            emitter.onNext(MetadataSearchHitsNode(index, type, id, score, source))
+        }
+        emitter.onComplete()
     }
 
     private fun getMetadataString(metadata: Map<String, String>): String {
