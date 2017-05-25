@@ -56,36 +56,40 @@ internal class ElasticSearchServiceProvider
     }
 
     override fun clusterHandler(event: ClusterEvent) {
-        if (event is ClusterCreatedEvent) {
-            LOG.info("ClusterCreatedEvent -> Create ElasticSearch cluster")
-            createNewMetadataSearchCluster()
-                    .doOnError { t ->
-                        LOG.error("Failed to create ElasticSearch node", t)
-                    }.subscribe()
-        } else if (event is ClusterJoinedEvent) {
-            LOG.info("ClusterJoinedEvent -> Attempting to join existing ElasticSearch cluster")
-            joinMetadataSearchCluster()
-                    .doOnError { t ->
-                        LOG.error("Failed to join existing ElasticSearch cluster", t)
-                    }.subscribe()
-        } else if (event is ClusterNodeJoinedEvent) {
-            LOG.info("ClusterNodeJoinedEvent -> New ElasticSearch Node joined the cluster")
-            metadataSearchNodeJoinedEvent()
-                    .doOnError { t ->
-                        LOG.error("Failed to join the new node to the ElasticSearch cluster", t)
-                    }.subscribe()
-
-        } else if (event is ClusterLeftEvent) {
-            LOG.info("ClusterLeftEvent -> shutdown the elasticSearch node")
-            shutdown().subscribe()
-        } else if (event is ClusterStartupEvent) {
-            LOG.info("ClusterStartupEvent -> startup the elasticSearch node after restart")
-            joinMetadataSearchCluster()
-                    .doOnError { t ->
-                        LOG.error("Failed to join existing ElasticSearch cluster after restart", t)
-                    }.subscribe()
-        } else {
-            LOG.error("Got an unhandled event: $event")
+        when (event) {
+            is ClusterCreatedEvent -> {
+                LOG.info("ClusterCreatedEvent -> Create ElasticSearch cluster")
+                createNewMetadataSearchCluster()
+                        .doOnError { t ->
+                            LOG.error("Failed to create ElasticSearch node", t)
+                        }.subscribe()
+            }
+            is ClusterJoinedEvent -> {
+                LOG.info("ClusterJoinedEvent -> Attempting to join existing ElasticSearch cluster")
+                joinMetadataSearchCluster()
+                        .doOnError { t ->
+                            LOG.error("Failed to join existing ElasticSearch cluster", t)
+                        }.subscribe()
+            }
+            is ClusterNodeJoinedEvent -> {
+                LOG.info("ClusterNodeJoinedEvent -> New ElasticSearch Node joined the cluster")
+                metadataSearchNodeJoinedEvent()
+                        .doOnError { t ->
+                            LOG.error("Failed to join the new node to the ElasticSearch cluster", t)
+                        }.subscribe()
+            }
+            is ClusterLeftEvent -> {
+                LOG.info("ClusterLeftEvent -> shutdown the elasticSearch node")
+                shutdown().subscribe()
+            }
+            is ClusterStartupEvent -> {
+                LOG.info("ClusterStartupEvent -> startup the elasticSearch node after restart")
+                joinMetadataSearchCluster()
+                        .doOnError { t ->
+                            LOG.error("Failed to join existing ElasticSearch cluster after restart", t)
+                        }.subscribe()
+            }
+            else -> LOG.error("Got an unhandled event: $event")
         }
     }
 
