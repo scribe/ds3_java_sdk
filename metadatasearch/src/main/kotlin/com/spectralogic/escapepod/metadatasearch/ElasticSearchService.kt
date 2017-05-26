@@ -6,10 +6,8 @@ import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchIndicesResp
 import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchResponse
 import com.spectralogic.escapepod.util.JsonMapping
 import com.spectralogic.escapepod.util.ReadFileFromResources
-import io.reactivex.Completable
+import io.reactivex.*
 import io.reactivex.Observable
-import io.reactivex.ObservableEmitter
-import io.reactivex.Single
 import org.apache.http.HttpHost
 import org.apache.http.entity.ContentType
 import org.apache.http.nio.entity.NStringEntity
@@ -30,53 +28,81 @@ class ElasticSearchService : MetadataSearchService {
         this.restClient = restClient
     }
 
-    override fun health(): Single<MetadataSearchHealthResponse> {
+    private fun <T> createSingle(body: (SingleEmitter<T>) -> Unit): Single<T> {
         return Single.create { emitter ->
             try {
-                val response = restClient.performRequest(
-                        "GET",
-                        "/_cluster/health",
-                        Collections.singletonMap("pretty", "true"))
-
-                if (response.statusLine.statusCode > 300) {
-                    throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
-                }
-
-                val elasticSearchHealthResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                        ElasticSearchHealthResponse::class.java)
-                emitter.onSuccess(MetadataSearchHealthResponse(elasticSearchHealthResponse.clusterName,
-                elasticSearchHealthResponse.status))
+                body.invoke(emitter)
             } catch (ex: ResponseException) {
-                emitter.onError(MetadataException(ex.response.statusLine.statusCode, ex.response.statusLine.reasonPhrase, ex))
+                emitter.onError(MetadataException(ex.response.statusLine.statusCode,
+                        ex.response.statusLine.reasonPhrase, ex))
             } catch (ex: Exception) {
                 emitter.onError(ex)
             }
         }
     }
 
-    override fun createIndex(index: String, numberOfShard: Int, numberOfReplicas: Int): Completable {
+    private fun createCompletable(body: (CompletableEmitter) -> Unit): Completable {
         return Completable.create { emitter ->
             try {
-                val response = restClient.performRequest(
-                        "PUT",
-                        index,
-                        Collections.singletonMap("pretty", "true"),
-                        NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/index/createIndex.json"),
-                                numberOfShard, numberOfReplicas), ContentType.APPLICATION_JSON)
-                )
-
-                if (response.statusLine.statusCode > 300) {
-                    emitter.onError(MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase))
-                }
-                emitter.onComplete()
+                body.invoke(emitter)
             } catch (ex: ResponseException) {
                 emitter.onError(MetadataException(ex.response.statusLine.statusCode,
                         ex.response.statusLine.reasonPhrase, ex))
             } catch (ex: Exception) {
-                emitter.onError(MetadataException(ex))
+                emitter.onError(ex)
             }
         }
     }
+
+    private fun <T> createObservable(body: (ObservableEmitter<T>) -> Unit): Observable<T> {
+        return Observable.create { emitter ->
+            try {
+                body.invoke(emitter)
+            } catch (ex: ResponseException) {
+                emitter.onError(MetadataException(ex.response.statusLine.statusCode,
+                        ex.response.statusLine.reasonPhrase, ex))
+            } catch (ex: Exception) {
+                emitter.onError(ex)
+            }
+        }
+    }
+
+    override fun health(): Single<MetadataSearchHealthResponse> {
+        return createSingle { emitter ->
+            val response = restClient.performRequest(
+                    "GET",
+                    "/_cluster/health",
+                    Collections.singletonMap("pretty", "true"))
+
+            if (response.statusLine.statusCode > 300) {
+                throw MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase)
+            }
+
+            val elasticSearchHealthResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
+                    ElasticSearchHealthResponse::class.java)
+
+            emitter.onSuccess(MetadataSearchHealthResponse(elasticSearchHealthResponse.clusterName,
+                    elasticSearchHealthResponse.status))
+        }
+    }
+
+    override fun createIndex(index: String, numberOfShard: Int, numberOfReplicas: Int): Completable {
+        return createCompletable { emitter ->
+            val response = restClient.performRequest(
+                    "PUT",
+                    index,
+                    Collections.singletonMap("pretty", "true"),
+                    NStringEntity(String.format(ReadFileFromResources.readFile("elasticsearch/index/createIndex.json"),
+                            numberOfShard, numberOfReplicas), ContentType.APPLICATION_JSON)
+            )
+
+            if (response.statusLine.statusCode > 300) {
+                emitter.onError(MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase))
+            }
+            emitter.onComplete()
+        }
+    }
+
 
     override fun updateIndexNumberOfReplicas(index: String, numberOfReplicas: Int): Completable {
         return Completable.create { emitter ->
