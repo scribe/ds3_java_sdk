@@ -2,6 +2,7 @@ package com.spectralogic.escapepod.metadatasearch
 
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
+import com.spectralogic.escapepod.api.MetadataSearchServiceConfigFile
 import com.spectralogic.escapepod.api.MetadataSearchServiceProvider
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -11,6 +12,7 @@ import javax.inject.Singleton
 internal class ElasticSearchGuiceModule : AbstractModule() {
     override fun configure() {
         bind(MetadataSearchServiceProvider::class.java).to(ElasticSearchServiceProvider::class.java).`in`(Singleton::class.java)
+        bind(MetadataSearchServiceConfigFile::class.java).to(ElasticSearchConfigFile::class.java).`in`(Singleton::class.java)
         bind(MetadataSearchModuleLoader::class.java)
     }
 

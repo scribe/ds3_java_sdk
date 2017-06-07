@@ -3,7 +3,7 @@ package com.spectralogic.escapepod.metadatasearch
 import com.google.common.collect.ImmutableMap
 import com.spectralogic.escapepod.api.MetadataIndex
 import com.spectralogic.escapepod.api.MetadataSearchHitsNode
-import com.spectralogic.escapepod.api.MetadataSearchService
+import com.spectralogic.escapepod.metadatasearch.api.ElasticSearchMetadataService
 import org.apache.http.HttpHost
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -17,7 +17,7 @@ class TestElasticSearchService {
 
     companion object {
         //        private val LOG = LoggerFactory.getLogger(TestElasticSearchService::class.java)
-        lateinit var metadataSearchService: MetadataSearchService
+        lateinit internal var metadataSearchService: ElasticSearchMetadataService
 
         @BeforeClass @JvmStatic
         fun beforeClass() {
@@ -35,20 +35,16 @@ class TestElasticSearchService {
 
     @Test
     fun testHealth() {
-        try {
-            val single = metadataSearchService.health()
-            val expected: String = "green"
+        val single = metadataSearchService.health()
+        val expected: String = "green"
 
-            val MetadataSearchHealthResponse = single.filter {
-                health ->
-                health.status == expected
-            }.blockingGet()
+        val MetadataSearchHealthResponse = single.filter {
+            health ->
+            health.status == expected
+        }.blockingGet()
 
-            if (MetadataSearchHealthResponse == null) {
-                fail("Expected cluster status to be $expected")
-            }
-        } catch (e: Exception) {
-            fail(e.toString())
+        if (MetadataSearchHealthResponse == null) {
+            fail("Expected cluster status to be $expected")
         }
     }
 
@@ -63,8 +59,6 @@ class TestElasticSearchService {
             val expected = MetadataIndex(index, 5, 2, 0)
 
             assertThat(observable.contains(expected).blockingGet()).isTrue()
-        } catch (e: Exception) {
-            fail(e.toString())
         } finally {
             metadataSearchService.deleteIndex(index).subscribe()
         }
@@ -80,8 +74,6 @@ class TestElasticSearchService {
             val expected = MetadataIndex(index, 8, 7, 0)
 
             assertThat(observable.contains(expected).blockingGet()).isTrue()
-        } catch (e: Exception) {
-            fail(e.toString())
         } finally {
             metadataSearchService.deleteIndex(index).subscribe()
         }
@@ -101,8 +93,6 @@ class TestElasticSearchService {
             observable = metadataSearchService.getAllIndices()
             expected = MetadataIndex(index, 5, 9, 0)
             assertThat(observable.contains(expected).blockingGet()).isTrue()
-        } catch (e: Exception) {
-            fail(e.toString())
         } finally {
             metadataSearchService.deleteIndex(index).subscribe()
         }
@@ -123,8 +113,6 @@ class TestElasticSearchService {
             val observable = metadataSearchService.getAllIndices()
             val expected = MetadataIndex(index, 5, 1, 1)
             assertThat(observable.contains(expected).blockingGet()).isTrue()
-        } catch (e: Exception) {
-            fail(e.toString())
         } finally {
             metadataSearchService.deleteIndex(index).subscribe()
         }
@@ -132,20 +120,16 @@ class TestElasticSearchService {
 
     @Test
     fun testDeleteIndex() {
-        try {
-            val index = "test_delete_index"
-            metadataSearchService.createIndex(index).subscribe()
-            var observable = metadataSearchService.getAllIndices()
-            var expected = MetadataIndex(index, 5, 2, 0)
-            assertThat(observable.contains(expected).blockingGet()).isTrue()
+        val index = "test_delete_index"
+        metadataSearchService.createIndex(index).subscribe()
+        var observable = metadataSearchService.getAllIndices()
+        var expected = MetadataIndex(index, 5, 2, 0)
+        assertThat(observable.contains(expected).blockingGet()).isTrue()
 
-            metadataSearchService.deleteIndex(index).subscribe()
-            observable = metadataSearchService.getAllIndices()
-            expected = MetadataIndex(index, 5, 2, 0)
-            assertThat(observable.contains(expected).blockingGet()).isFalse()
-        } catch (e: Exception) {
-            fail(e.toString())
-        }
+        metadataSearchService.deleteIndex(index).subscribe()
+        observable = metadataSearchService.getAllIndices()
+        expected = MetadataIndex(index, 5, 2, 0)
+        assertThat(observable.contains(expected).blockingGet()).isFalse()
     }
 
     @Test
@@ -169,8 +153,6 @@ class TestElasticSearchService {
             observable = metadataSearchService.getAllIndices()
             expected = MetadataIndex(index, 5, 1, 0)
             assertThat(observable.contains(expected).blockingGet()).isTrue()
-        } catch (e: Exception) {
-            fail(e.toString())
         } finally {
             metadataSearchService.deleteIndex(index).subscribe()
         }
@@ -203,8 +185,6 @@ class TestElasticSearchService {
 
             observable = metadataSearchService.searchById(fileName)
             assertThat(observable.count().blockingGet()).isEqualTo(3)
-        } catch (e: Exception) {
-            fail(e.toString())
         } finally {
             metadataSearchService.deleteIndex(index1).subscribe()
             metadataSearchService.deleteIndex(index2).subscribe()
@@ -238,8 +218,6 @@ class TestElasticSearchService {
 
             observable = metadataSearchService.searchByMetadata("m1", "v1")
             assertThat(observable.count().blockingGet()).isEqualTo(3)
-        } catch (e: Exception) {
-            fail(e.toString())
         } finally {
             metadataSearchService.deleteIndex(index1).subscribe()
             metadataSearchService.deleteIndex(index2).subscribe()
@@ -290,8 +268,6 @@ class TestElasticSearchService {
 
             observable = metadataSearchService.searchByMatchAll()
             assertThat(observable.count().blockingGet()).isGreaterThanOrEqualTo(3) //could be more than 3 if there was data before the test
-        } catch (e: Exception) {
-            fail(e.toString())
         } finally {
             metadataSearchService.deleteIndex(index1).subscribe()
             metadataSearchService.deleteIndex(index2).subscribe()

@@ -12,6 +12,10 @@ interface MetadataSearchServiceProvider : ServiceProvider<MetadataSearchService>
     fun clusterHandler(event: ClusterEvent)
 }
 
+interface MetadataSearchServiceConfigFile {
+    fun createConfigFile()
+}
+
 interface MetadataSearchService {
     /***
      * Query the health of the cluster
@@ -141,11 +145,6 @@ interface MetadataSearchService {
      * Return all the indexed documents in all the system
      */
     fun searchByMatchAll(): Observable<MetadataSearchHitsNode>
-
-    /***
-     * Close the connection to the underline search provider
-     */
-    fun closeConnection(): Completable
 }
 
 data class MetadataSearchHealthResponse(val clusterName: String, val status: String)
