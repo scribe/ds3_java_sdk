@@ -20,13 +20,14 @@ internal class ElasticSearchServiceProvider
         @Named("elasticSearchPort") private val elasticSearchPort: Int,
         @Named("elasticSearchBinDir") private val elasticSearchBinDir: Path) : MetadataSearchServiceProvider {
 
-    private companion object {
+    companion object {
         private val LOG = LoggerFactory.getLogger(ElasticSearchServiceProvider::class.java)
-        private val ELASTICSEARCH_CLUSTER_ENDPOINT = "elasticSearchClusterEndpoint"
         private val IS_WINDOWS = System.getProperty("os.name").toLowerCase().indexOf("windows") > -1
         private val ELASTIC_SEARCH_EXE = if (IS_WINDOWS) "elasticsearch.bat" else "elasticsearch"
         private val KILL = if (IS_WINDOWS) "taskkill /F /PID " else "kill -9 "
         private val SLASH = if (IS_WINDOWS) "\\" else "/"
+
+        val ELASTICSEARCH_CLUSTER_ENDPOINT = "elasticSearchClusterEndpoint"
     }
 
     private lateinit var elasticSearchProcess: Process

@@ -20,7 +20,6 @@ internal class ElasticSearchConfigFile
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(ElasticSearchConfigFile::class.java)
-        private val ELASTICSEARCH_CLUSTER_ENDPOINT = "elasticSearchClusterEndpoint"
     }
 
     override fun createConfigFile() {
@@ -48,9 +47,10 @@ internal class ElasticSearchConfigFile
             fileWriter.write("discovery.zen.ping.unicast.hosts: [")
             val strings: HashSet<String> = HashSet()
             clusterServiceProvider.getService()
-                    .getDistributedSet<ElasticSearchNode>(ELASTICSEARCH_CLUSTER_ENDPOINT).forEach {
-                strings.add("\"${it.ip}:${it.port}\"")
-            }
+                    .getDistributedSet<ElasticSearchNode>(ElasticSearchServiceProvider.ELASTICSEARCH_CLUSTER_ENDPOINT)
+                    .forEach {
+                        strings.add("\"${it.ip}:${it.port}\"")
+                    }
             fileWriter.write(Joiner.on(",").join(strings))
             fileWriter.write("]\n")
 
