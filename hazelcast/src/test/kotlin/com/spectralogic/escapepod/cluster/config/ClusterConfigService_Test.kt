@@ -6,6 +6,7 @@ import com.spectralogic.escapepod.util.ifNotNull
 import com.spectralogic.escapepod.util.resource.Resource
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
+import java.util.*
 
 class ClusterConfigService_Test {
 
@@ -14,7 +15,9 @@ class ClusterConfigService_Test {
         val clusterConfigResource = ResourceStub()
         val clusterConfigService = ClusterConfigServiceImpl(clusterConfigResource)
 
-        clusterConfigService.createConfig("test")
+        val id = UUID.randomUUID()
+
+        clusterConfigService.createConfig("test", id)
 
         val resource = clusterConfigService.getConfig()
 
@@ -22,6 +25,7 @@ class ClusterConfigService_Test {
 
         resource.ifNotNull {
             assertThat(it.name).isEqualTo("test")
+            assertThat(it.nodeId).isEqualTo(id)
         }
     }
 
@@ -30,7 +34,9 @@ class ClusterConfigService_Test {
         val clusterConfigResource = ResourceStub()
         val clusterConfigService = ClusterConfigServiceImpl(clusterConfigResource)
 
-        clusterConfigService.createConfig("test")
+        val id = UUID.randomUUID()
+
+        clusterConfigService.createConfig("test", id)
 
         clusterConfigService.addNode(ClusterNode("localhost", 8080))
         val resource = clusterConfigService.getConfig()
@@ -46,7 +52,9 @@ class ClusterConfigService_Test {
         val clusterConfigResource = ResourceStub()
         val clusterConfigService = ClusterConfigServiceImpl(clusterConfigResource)
 
-        clusterConfigService.createConfig("test")
+        val id = UUID.randomUUID()
+
+        clusterConfigService.createConfig("test", id)
 
         clusterConfigService.addNode(ClusterNode("localhost", 8080))
 
@@ -70,7 +78,9 @@ class ClusterConfigService_Test {
         val clusterConfigResource = ResourceStub()
         val clusterConfigService = ClusterConfigServiceImpl(clusterConfigResource)
 
-        clusterConfigService.createConfig("test")
+        val id = UUID.randomUUID()
+
+        clusterConfigService.createConfig("test", id)
         clusterConfigService.addNode(ClusterNode("localhost", 8080))
 
         val newNode = ClusterNode("test2", 8090)

@@ -10,6 +10,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.subjects.PublishSubject
 import org.slf4j.LoggerFactory
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -95,7 +96,7 @@ internal class ClusterServiceProviderImpl
 
         return innerCreateCluster(name).doOnComplete {
             clusterLifecycleEvents.onNext(ClusterCreatedEvent(name))
-            internalLifecycleEvents.onNext(ConfigCreatedChangeEvent(name))
+            internalLifecycleEvents.onNext(ConfigCreatedChangeEvent(name, UUID.randomUUID()))
         }
     }
 
@@ -133,7 +134,7 @@ internal class ClusterServiceProviderImpl
 
                    clusterService = createAndConfigureCluster(newHazelcastInstance)
 
-                   internalLifecycleEvents.onNext(ConfigCreatedChangeEvent(name))
+                   internalLifecycleEvents.onNext(ConfigCreatedChangeEvent(name, UUID.randomUUID()))
        }
     }
 
@@ -183,7 +184,7 @@ internal class ClusterServiceProviderImpl
 
     private fun clusterEventsHandler(event : ConfigChangeEvent) {
         when (event) {
-            is ConfigCreatedChangeEvent -> clusterConfigService.createConfig(event.clusterName)
+            is ConfigCreatedChangeEvent -> clusterConfigService.createConfig(event.clusterName, event.clusterId)
             is ConfigNodeAddedChangeEvent -> clusterConfigService.addNode(event.clusterNode)
             is ConfigNodeRemovedChangeEvent -> clusterConfigService.removeNode(event.clusterNode)
             is ConfigDeletedChangeEvent -> clusterConfigService.deleteConfig()
@@ -245,7 +246,7 @@ private class HazelcastMembershipListener(private val clusterEvents: PublishSubj
 
 private abstract class ConfigChangeEvent
 
-private class ConfigCreatedChangeEvent(val clusterName: String) : ConfigChangeEvent()
+private class ConfigCreatedChangeEvent(val clusterName: String, val clusterId: UUID) : ConfigChangeEvent()
 private class ConfigNodeAddedChangeEvent(val clusterNode: ClusterNode) : ConfigChangeEvent()
 private class ConfigNodeRemovedChangeEvent(val clusterNode: ClusterNode) : ConfigChangeEvent()
 private class ConfigDeletedChangeEvent : ConfigChangeEvent()

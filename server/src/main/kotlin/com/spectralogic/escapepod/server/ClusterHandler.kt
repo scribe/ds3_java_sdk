@@ -72,8 +72,6 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
                 ctx.response.status(400).send("Encountered an error with the cluster: " + e.message)
             }
         }
-
-
     }
 
     private fun joinCluster(ctx: Context) {
@@ -101,6 +99,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
                     }
                     .doOnError { t ->
                         // do error stuff
+                        LOG.error("failed to create cluster", t)
                         ctx.response.status(400).send("Failed to create cluster with name: " + clusterName)
                     }
                     .observeOn(scheduler)
