@@ -6,7 +6,7 @@ import com.mongodb.ServerAddress
 import com.spectralogic.escapepod.api.*
 import io.reactivex.Completable
 import io.reactivex.Single
-import io.reactivex.disposables.Disposable
+import io.reactivex.disposables.CompositeDisposable
 import org.slf4j.LoggerFactory
 import java.io.Serializable
 import java.nio.charset.Charset
@@ -29,16 +29,18 @@ internal class MongoPersistenceProvider
         private const val MONGO_CLUSTER_ENDPOINT = "mongoClusterEndpoint"
     }
 
+    private val disposables : CompositeDisposable = CompositeDisposable()
+
     private var mongoProcess : Process? = null
-    private var entryAddedDisposable : Disposable? = null
     private var mongoClient : MongoClient? = null
 
     override fun startService(): Completable {
+        // No op, wait for startup event to fire
         return Completable.complete()
     }
 
     override fun getService(): PersistenceService {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented")
     }
 
     override fun joinPersistenceCluster(name : String, port : Int) : Completable {
@@ -113,6 +115,10 @@ internal class MongoPersistenceProvider
         }.doOnComplete(this::createMongoClient)
     }
 
+    private fun startup() : Completable {
+        return Completable.complete()
+    }
+
     private fun startMongo(name : String, port : Int) : Completable {
         return Completable.create { emitter ->
 
@@ -129,7 +135,7 @@ internal class MongoPersistenceProvider
                     } else {
 
                         val distributedSet = clusterService.getDistributedSet<MongoNode>(MONGO_CLUSTER_ENDPOINT)
-                        entryAddedDisposable = distributedSet.entryAdded(this::newMongoNode)
+                        disposables.add(distributedSet.entryAdded(this::newMongoNode))
 
                         distributedSet.add(MongoNode(interfaceIp, port))
 
@@ -194,11 +200,7 @@ internal class MongoPersistenceProvider
 
         return Completable.create { emitter ->
             try {
-
-                entryAddedDisposable.ifNotNull {
-                    it.dispose()
-                    entryAddedDisposable = null
-                }
+                disposables.dispose()
 
                 mongoClient.ifNotNull {
                     it.close()
@@ -207,7 +209,7 @@ internal class MongoPersistenceProvider
 
                 mongoProcess.ifNotNull {
                     it.destroy()
-                    it.waitFor(30, TimeUnit.SECONDS)
+                    it.waitFor(300, TimeUnit.SECONDS)
 
                     if (it.isAlive) {
                         LOG.error("Mongo instance still active after shutdown attempt")
@@ -224,22 +226,29 @@ internal class MongoPersistenceProvider
         }
     }
 
-    override fun clusterHandler(event: ClusterEvent) {
-        if (event is ClusterCreatedEvent) {
-            val createNewPersistenceCluster = createNewPersistenceCluster(event.clusterName, persistencePort)
-            createNewPersistenceCluster
+    fun clusterHandler(event: ClusterEvent) {
+
+        when(event) {
+            is ClusterCreatedEvent -> {
+                val createNewPersistenceCluster = createNewPersistenceCluster(event.clusterName, persistencePort)
+                createNewPersistenceCluster
                     .doOnError{ t ->
                         LOG.error("Failed to create mongo persistence node", t)
                     }.subscribe()
-
-        } else if (event is ClusterJoinedEvent) {
-            LOG.info("Attempting to join existing mongo persistence layer")
-            joinPersistenceCluster(event.clusterName, persistencePort)
-                    .doOnError { t ->
-                        LOG.error("Failed to join existing mongo cluster", t)
-                    }.subscribe()
-        } else if (event is ClusterLeftEvent) {
-            shutdown().subscribe()
+            }
+            is ClusterJoinedEvent -> {
+                LOG.info("Attempting to join existing mongo persistence layer")
+                joinPersistenceCluster(event.clusterName, persistencePort)
+                        .doOnError { t ->
+                            LOG.error("Failed to join existing mongo cluster", t)
+                        }.subscribe()
+            }
+            is ClusterStartupEvent -> {
+                startup().subscribe()
+            }
+            is ClusterLeftEvent -> {
+                shutdown().subscribe()
+            }
         }
     }
 }
