@@ -18,6 +18,9 @@ internal interface DivaRetrofitClient {
 
     @POST("getGroupsList")
     fun getTapeGroups(@Body getTapeGroup: GetGroupsList) : Single<GetGroupsListResponse>
+
+    @POST("getSourceDestinationList")
+    fun getSourceDestintationList(@Body getSourceDestinationList: GetSourceDestinationList) : Single<GetSourceDestinationListResponse>
 }
 
 private fun createOkioClient() : OkHttpClient {

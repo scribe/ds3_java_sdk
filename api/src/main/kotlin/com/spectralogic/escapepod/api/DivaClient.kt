@@ -18,8 +18,11 @@ interface DivaClient {
     fun transfer(objects: Sequence<String>, path: String) : Completable
 
     fun objectInfo(objectName: String) : Observable<DivaObjectInfo>
+
+    fun sourceList() : Observable<DivaSource>
 }
 
 data class DivaTapeGroup(val name: String)
 data class DivaObject(val name: String)
 data class DivaObjectInfo(val name: String, val size: Long)
+data class DivaSource(val address: String, val name: String)

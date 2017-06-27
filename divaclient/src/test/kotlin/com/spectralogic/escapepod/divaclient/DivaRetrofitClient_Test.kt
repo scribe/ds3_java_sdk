@@ -48,4 +48,28 @@ internal class DivaRetrofitClient_Test {
 
         assertThat(groupList.groupReturn.divaStatus).isEqualTo("1000")
     }
+
+    @Test
+    fun displaySourceDestinationList() {
+        val divaClient = createDivaClient("http://kl-diva7:9763")
+//        val address = divaStub.address()
+//        println(address)
+//        val divaClient = createDivaClient(address)
+
+        val clientRegistration = RegisterClient()
+        clientRegistration.appName = "Escape_Pod_Test"
+        clientRegistration.locName = "1"
+        clientRegistration.processId = Int.randomInt().toString()
+
+        val registerClientResponse = divaClient.registerClient(clientRegistration).blockingGet()
+
+        assertThat(registerClientResponse.sessionId).isNotEmpty()
+
+        val getSourceDestinationList = GetSourceDestinationList()
+        getSourceDestinationList.sessionId = registerClientResponse.sessionId
+
+        val sourceDestintationList = divaClient.getSourceDestintationList(getSourceDestinationList).blockingGet()
+
+        assertThat(sourceDestintationList.sourceReturn.divaStatus).isEqualTo("1000")
+    }
 }

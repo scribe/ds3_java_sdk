@@ -1,10 +1,7 @@
 package com.spectralogic.escapepod.divaclient
 
 import com.google.inject.assistedinject.Assisted
-import com.spectralogic.escapepod.api.DivaClient
-import com.spectralogic.escapepod.api.DivaObject
-import com.spectralogic.escapepod.api.DivaObjectInfo
-import com.spectralogic.escapepod.api.DivaTapeGroup
+import com.spectralogic.escapepod.api.*
 import io.reactivex.Completable
 import io.reactivex.Observable
 import javax.inject.Inject
@@ -24,6 +21,10 @@ internal class DivaClientImpl @Inject constructor(@Assisted val endpoint: String
     }
 
     override fun objectInfo(objectName: String): Observable<DivaObjectInfo> {
+        return Observable.empty()
+    }
+
+    override fun sourceList() : Observable<DivaSource> {
         return Observable.empty()
     }
 }

@@ -43,3 +43,15 @@ internal class GetGroupsList {
     var sessionId : String = ""
 }
 
+@Namespace(prefix = "p", reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
+internal class GetSourceDestinationList {
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "xs")
+    @field:Element(name = "sessionCode")
+    var sessionId : String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "xs")
+    @field:Element(name = "options")
+    var options: String = ""
+}
+
