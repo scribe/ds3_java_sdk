@@ -2,21 +2,32 @@ package com.spectralogic.escapepod.divaclient
 
 import io.reactivex.Single
 import okhttp3.OkHttpClient
+//import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.simplexml.SimpleXmlConverterFactory
+import retrofit2.http.Body
 import retrofit2.http.POST
 
 // Need to make sure that we use the application/xml content type and accept header
 
 internal interface DivaRetrofitClient {
 
-    @POST
-    fun registerClient(client: RegisterClient) : Single<RegisterClientResponse>
+    @POST("registerClient")
+    fun registerClient(@Body client: RegisterClient) : Single<RegisterClientResponse>
+
+    @POST("getGroupsList")
+    fun getTapeGroups(@Body getTapeGroup: GetGroupsList) : Single<GetGroupsListResponse>
 }
 
 private fun createOkioClient() : OkHttpClient {
     val builder = OkHttpClient.Builder()
     builder.addInterceptor(LoggingInterceptor())
+
+    //val httpLoggingInterceptor = HttpLoggingInterceptor()
+    //httpLoggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
+
+    //builder.addInterceptor(httpLoggingInterceptor)
     builder.addInterceptor { chain ->
 
         val request = chain.request()
@@ -34,9 +45,10 @@ private fun createOkioClient() : OkHttpClient {
 internal fun createDivaClient(httpAddress : String) : DivaRetrofitClient {
 
     return Retrofit.Builder()
-            .baseUrl(httpAddress)
+            .baseUrl(httpAddress + "/services/DIVArchiveWS_REST_2.0/")
             .client(createOkioClient())
             .addConverterFactory(SimpleXmlConverterFactory.create())
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .build()
             .create(DivaRetrofitClient::class.java)
 }

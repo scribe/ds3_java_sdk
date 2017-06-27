@@ -28,3 +28,18 @@ internal class RegisterClient {
     @field:Element
     var processId : String = ""
 }
+
+/**
+ * <p:getGroupsList xmlns:p="http://interaction.api.ws.diva.fpdigital.com/xsd">
+<xs:sessionCode xmlns:xs="http://interaction.api.ws.diva.fpdigital.com/xsd">sessionCode</xs:sessionCode>
+</p:getGroupsList>
+ */
+
+@Namespace(prefix = "p", reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
+internal class GetGroupsList {
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "xs")
+    @field:Element(name = "sessionCode")
+    var sessionId : String = ""
+}
+
