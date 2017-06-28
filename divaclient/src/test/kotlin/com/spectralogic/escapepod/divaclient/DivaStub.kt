@@ -1,5 +1,7 @@
 package com.spectralogic.escapepod.divaclient
 
+import com.spectralogic.escapepod.divaclient.retrofit.RegisterClient
+import com.spectralogic.escapepod.divaclient.retrofit.RegisterClientResponse
 import com.spectralogic.escapepod.util.ifNotNull
 import org.simpleframework.xml.core.Persister
 import ratpack.func.Action

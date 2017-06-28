@@ -58,7 +58,6 @@ subprojects {
         testCompile 'org.assertj:assertj-core:3.6.2'
     }
 
-
     protobuf {
         generatedFilesBaseDir = "$projectDir/src"
 
@@ -80,7 +79,7 @@ subprojects {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.5'
+    gradleVersion = '4.0'
 }
 
 project (":api") {
@@ -109,6 +108,13 @@ project(":mongopersistence") {
 project(":hazelcast") {
     dependencies {
         compile project(":api")
+    }
+}
+
+project(":migrate") {
+    dependencies {
+        compile project(":api")
+        compile project(":divaclient")
     }
 }
 

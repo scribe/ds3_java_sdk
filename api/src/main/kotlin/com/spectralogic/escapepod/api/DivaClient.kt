@@ -15,7 +15,10 @@ interface DivaClient {
      */
     fun objects(tapeGroupName: String) : Observable<DivaObject>
 
-    fun transfer(objects: Sequence<String>, path: String) : Completable
+    /**
+     * TODO make destinationPath a Path object instead of a string
+     */
+    fun restore(objectName: String, objectCategory: String, destination: String, destinationPath: String) : Completable
 
     fun objectInfo(objectName: String) : Observable<DivaObjectInfo>
 

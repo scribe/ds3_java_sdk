@@ -1,4 +1,4 @@
-package com.spectralogic.escapepod.divaclient
+package com.spectralogic.escapepod.divaclient.retrofit
 
 import org.simpleframework.xml.*
 
@@ -178,3 +178,87 @@ internal class ArraysInfo {
     var serversSourceType: String = ""
 }
 
+@Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns4")
+internal class GetObjectInfoResponse {
+
+    @field:Element(name = "return")
+    var sourceReturn: GetSourceDestinationResult = GetSourceDestinationResult()
+}
+
+@NamespaceList(
+            Namespace(reference = "http://response.model.api.ws.diva.fpdigital.com/xsd", prefix = "ns1"),
+            Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance", prefix = "xsi")
+    )
+internal class GetObjectInfoReturn {
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
+    @field:Element
+    var divaStatus : String = ""
+
+    @field:Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance")
+    @field:Attribute
+    var type : String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
+    @field:Element
+    var info: GetObjectResponseInfo = GetObjectResponseInfo()
+}
+
+/**
+ * <ns2:actorInstances xsi:nil="1" xmlns:ns2="http://model.api.ws.diva.fpdigital.com/xsd"/>
+<ns2:archivingDate xmlns:ns2="http://model.api.ws.diva.fpdigital.com/xsd">archivingDate</ns2:archivingDate>
+<ns2:filesList xmlns:ns2="http://model.api.ws.diva.fpdigital.com/xsd">fileList</ns2:filesList>
+<ns2:inserted xmlns:ns2="http://model.api.ws.diva.fpdigital.com/xsd">inserted</ns2:inserted>
+<ns2:objectComments xmlns:ns2="http://model.api.ws.diva.fpdigital.com/xsd">objectComments</ns2:objectComments>
+<ns2:objectLockedStatus xmlns:ns2="http://model.api.ws.diva.fpdigital.com/xsd">objectLockedStatus</ns2:objectLockedStatus>
+<ns2:objectSize xmlns:ns2="http://model.api.ws.diva.fpdigital.com/xsd">objectSize</ns2:objectSize>
+<ns2:objectSource xmlns:ns2="http://model.api.ws.diva.fpdigital.com/xsd">objectSource</ns2:objectSource>
+<objectSummary xmlns="http://model.api.ws.diva.fpdigital.com/xsd">
+<objectCategory>objectCategory</objectCategory>
+<objectName>objectName</objectName>
+</objectSummary>
+<ns2:relatedRequests xsi:nil="1" xmlns:ns2="http://model.api.ws.diva.fpdigital.com/xsd"/>
+<ns2:rootDirectory xmlns:ns2="http://model.api.ws.diva.fpdigital.com/xsd">rootDirectory</ns2:rootDirectory>
+<tapeInstances xmlns="http://model.api.ws.diva.fpdigital.com/xsd">
+<groupName>groupName</groupName>
+<inserted>inserted</inserted>
+<instanceID>instanceID</instanceID>
+<reqStatus>reqStatus</reqStatus>
+<tapeDesc>
+<externalizationComment/>
+<goingToBeRepacked>goingToBeRepacked</goingToBeRepacked>
+<inserted>inserted</inserted>
+<vsn>vsn</vsn>
+</tapeDesc>
+</tapeInstances>
+<ns2:toBeRepacked xmlns:ns2="http://model.api.ws.diva.fpdigital.com/xsd">toBeRepacked</ns2:toBeRepacked>
+ */
+
+internal class GetObjectResponseInfo {
+
+}
+
+
+@Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns4")
+internal class RestoreObjectResponse {
+
+    @field:Element(name = "return")
+    var restoreReturn: RestoreObjectResult = RestoreObjectResult()
+}
+
+@NamespaceList(
+            Namespace(reference = "http://response.model.api.ws.diva.fpdigital.com/xsd", prefix = "ns1"),
+            Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance", prefix = "xsi")
+    )
+internal class RestoreObjectResult {
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
+    @field:Element
+    var divaStatus : String = ""
+
+    @field:Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance")
+    @field:Attribute
+    var type : String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
+    @field:Element
+    var requestNumber : String = ""
+}

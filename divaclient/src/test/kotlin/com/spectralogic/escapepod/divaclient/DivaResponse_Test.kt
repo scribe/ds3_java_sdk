@@ -1,5 +1,7 @@
 package com.spectralogic.escapepod.divaclient
 
+import com.spectralogic.escapepod.divaclient.retrofit.GetGroupsListResponse
+import com.spectralogic.escapepod.divaclient.retrofit.RegisterClientResponse
 import org.junit.Test
 import org.simpleframework.xml.core.Persister
 import org.assertj.core.api.Assertions.*

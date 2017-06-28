@@ -1,4 +1,4 @@
-package com.spectralogic.escapepod.divaclient
+package com.spectralogic.escapepod.divaclient.retrofit
 
 import com.spectralogic.escapepod.util.ifNotNull
 import okhttp3.Interceptor

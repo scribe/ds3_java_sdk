@@ -1,4 +1,4 @@
-package com.spectralogic.escapepod.divaclient
+package com.spectralogic.escapepod.divaclient.retrofit
 
 import io.reactivex.Single
 import okhttp3.OkHttpClient
@@ -20,7 +20,13 @@ internal interface DivaRetrofitClient {
     fun getTapeGroups(@Body getTapeGroup: GetGroupsList) : Single<GetGroupsListResponse>
 
     @POST("getSourceDestinationList")
-    fun getSourceDestintationList(@Body getSourceDestinationList: GetSourceDestinationList) : Single<GetSourceDestinationListResponse>
+    fun getSourceDestinationList(@Body getSourceDestinationList: GetSourceDestinationList) : Single<GetSourceDestinationListResponse>
+
+    @POST("getObjectInfo")
+    fun getObjectInfo(@Body getObjectInfo: GetObjectInfo) : Single<GetObjectInfoResponse>
+
+    @POST("restoreObject")
+    fun restoreObject(@Body restoreObject: RestoreObject) : Single<RestoreObjectResponse>
 }
 
 private fun createOkioClient() : OkHttpClient {
