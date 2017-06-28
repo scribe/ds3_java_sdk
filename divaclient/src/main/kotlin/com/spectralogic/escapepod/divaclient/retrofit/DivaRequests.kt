@@ -96,11 +96,11 @@ internal class RestoreObject {
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "xs")
     @field:Element
-    var qualityOfService : String = ""
+    var qualityOfService : Int = 0
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "xs")
     @field:Element
-    var priorityLevel : String = ""
+    var priorityLevel : Int = 0
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "xs")
     @field:Element
@@ -116,7 +116,7 @@ internal class GetRequestInfo {
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "xs")
     @field:Element(name = "requestNumber")
-    var requestId: Int = 0
+    var requestId: Long = 0L
 }
 
 

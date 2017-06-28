@@ -84,6 +84,7 @@ internal class DivaRetrofitClient_Test {
         assertThat(requestId).isNotEqualTo(0)
 
         val restoreStatus = divaClientImpl.restoreStatus(requestId).blockingGet()
-        assertThat(restoreStatus.requestState).isNotBlank()
+        assertThat(restoreStatus.requestState).isNotEqualTo(0)
+        assertThat(restoreStatus.requestState).isNotEqualTo(6)
     }
 }

@@ -1,6 +1,5 @@
 package com.spectralogic.escapepod.api
 
-import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 
@@ -21,9 +20,9 @@ interface DivaClient {
      *
      * @return Returns a Single that contains the diva request id if the request completed successfully
      */
-    fun restore(objectName: String, objectCategory: String, destination: String, destinationPath: String) : Single<Int>
+    fun restore(objectName: String, objectCategory: String, destination: String, destinationPath: String) : Single<Long>
 
-    fun restoreStatus(requestId : Int) : Single<DivaRestoreStatus>
+    fun restoreStatus(requestId : Long) : Single<DivaRestoreStatus>
 
     fun objectInfo(objectName: String) : Observable<DivaObjectInfo>
 
@@ -34,4 +33,4 @@ data class DivaTapeGroup(val name: String)
 data class DivaObject(val name: String)
 data class DivaObjectInfo(val name: String, val size: Long)
 data class DivaSource(val address: String, val name: String)
-data class DivaRestoreStatus(val requestState : String)
+data class DivaRestoreStatus(val requestState : Int)

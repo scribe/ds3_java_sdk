@@ -33,7 +33,7 @@ internal class DivaClientImpl @Inject constructor(
         return Observable.empty()
     }
 
-    override fun restore(objectName: String, objectCategory: String, destination: String, destinationPath: String) : Single<Int> {
+    override fun restore(objectName: String, objectCategory: String, destination: String, destinationPath: String) : Single<Long> {
         return divaSession.getSession().map { sessionId ->
             val restoreObject = RestoreObject()
             restoreObject.sessionId = sessionId
@@ -41,8 +41,8 @@ internal class DivaClientImpl @Inject constructor(
             restoreObject.objectName = objectName
             restoreObject.objectCategory = objectCategory
             restoreObject.filesPathRoot = destinationPath
-            restoreObject.qualityOfService = "0"
-            restoreObject.priorityLevel = "-1"
+            restoreObject.qualityOfService = 0
+            restoreObject.priorityLevel = -1
             restoreObject
         }.flatMap { restoreObject ->
             divaClient.restoreObject(restoreObject)
@@ -53,7 +53,7 @@ internal class DivaClientImpl @Inject constructor(
         }
     }
 
-    override fun restoreStatus(requestId: Int): Single<DivaRestoreStatus> {
+    override fun restoreStatus(requestId: Long): Single<DivaRestoreStatus> {
         return divaSession.getSession().map { sessionId ->
             val getRequestInfo = GetRequestInfo()
             getRequestInfo.sessionId = sessionId

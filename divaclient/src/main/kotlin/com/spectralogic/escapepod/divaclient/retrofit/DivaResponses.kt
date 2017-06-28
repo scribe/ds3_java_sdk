@@ -74,7 +74,7 @@ internal class Groups {
     var groupName : String = ""
 
     @field:Namespace(reference = "http://model.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
-    @field:Element
+    @field:Element(required = false)
     var mediaFormatId : String = ""
 }
 
@@ -259,7 +259,7 @@ internal class RestoreObjectResult {
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
     @field:Element
-    var requestNumber : Int = 0
+    var requestNumber : Long = 0L
 }
 
 @Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns4")
@@ -299,7 +299,7 @@ internal class DivaRequestInfoResponse {
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
     @field:Element
-    var currentPriority: String = ""
+    var currentPriority: Int = 0
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
     @field:Element
@@ -307,7 +307,7 @@ internal class DivaRequestInfoResponse {
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
     @field:Element
-    var progress: String = ""
+    var progress: Int = 0
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
     @field:Element
@@ -315,15 +315,15 @@ internal class DivaRequestInfoResponse {
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
     @field:Element
-    var requestNumber: String = ""
+    var requestNumber: Long = 0L
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
     @field:Element
-    var requestState: String = ""
+    var requestState: Int = 0
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
     @field:Element
-    var requestType: String = ""
+    var requestType: Int = 0
 }
 
 internal class AbortionReason {
