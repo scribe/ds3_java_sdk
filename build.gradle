@@ -121,12 +121,27 @@ project(":migrate") {
 project(":divaclient") {
     dependencies {
         compile project(":api")
+        compile project(":restclientutils")
     }
 }
 
 project(":flashnetclient") {
     dependencies {
         compile project(":api")
+        compile project(":restclientutils")
+    }
+}
+
+project(":avidmamclient") {
+    dependencies {
+        compile project(":api")
+        compile project(":restclientutils")
+    }
+}
+
+project(":restclientutils") {
+    dependencies {
+        compile project(":util")
     }
 }
 

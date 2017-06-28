@@ -1,4 +1,4 @@
-package com.spectralogic.escapepod.divaclient.retrofit
+package com.spectralogic.escapepod.restclientutils
 
 import com.spectralogic.escapepod.util.ifNotNull
 import okhttp3.Interceptor
@@ -7,7 +7,7 @@ import okio.Buffer
 import org.slf4j.LoggerFactory
 import java.nio.charset.Charset
 
-internal class LoggingInterceptor : Interceptor {
+class LoggingInterceptor : Interceptor {
     companion object {
         private val LOG = LoggerFactory.getLogger(LoggingInterceptor::class.java)
     }

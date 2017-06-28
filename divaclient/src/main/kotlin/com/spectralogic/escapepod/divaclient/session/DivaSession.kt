@@ -14,6 +14,7 @@ internal class DivaSessionImpl(private val divaClient : DivaRetrofitClient, priv
     private var currentSession : String? = null
 
     override fun getSession(): Single<String> {
+        // TODO fix to take into account the current time
         if (currentSession != null && lastClientAccess != null && lastClientAccess!!.isBefore(lastClientAccess!!.plusMinutes(30))) {
             return Single.just(currentSession!!)
         } else {

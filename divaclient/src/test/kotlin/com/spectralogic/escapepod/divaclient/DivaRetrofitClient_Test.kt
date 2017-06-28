@@ -2,6 +2,7 @@ package com.spectralogic.escapepod.divaclient
 
 import com.spectralogic.escapepod.divaclient.retrofit.*
 import com.spectralogic.escapepod.divaclient.session.DivaSessionFactoryImpl
+import com.spectralogic.escapepod.restclientutils.RetrofitClientFactoryImpl
 import com.spectralogic.escapepod.util.randomInt
 import org.junit.Test
 import org.assertj.core.api.Assertions.*
@@ -9,7 +10,7 @@ import org.junit.AfterClass
 import org.junit.BeforeClass
 
 internal class DivaRetrofitClient_Test {
-    private val divaRetrofitClientFactoryImpl = DivaRetrofitClientFactoryImpl()
+    private val divaRetrofitClientFactoryImpl = RetrofitClientFactoryImpl()
     companion object {
 
         val divaStub = DivaStub()
@@ -29,11 +30,11 @@ internal class DivaRetrofitClient_Test {
 
     @Test
     fun displayTapeGroups() {
-        val divaClient = divaRetrofitClientFactoryImpl.createDivaClient("http://kl-diva7:9763")
+        val divaClient = divaRetrofitClientFactoryImpl.createRestClient("http://kl-diva7:9763", DivaRetrofitClient::class.java, "http://www.blue-order.com/ma/usermanagementws/um")
 
 //        val address = divaStub.address()
 //        println(address)
-//        val divaClient = createDivaClient(address)
+//        val divaClient = createRestClient(address)
 
         val clientRegistration = RegisterClient()
         clientRegistration.appName = "Escape_Pod_Test"
@@ -54,10 +55,10 @@ internal class DivaRetrofitClient_Test {
 
     @Test
     fun displaySourceDestinationList() {
-        val divaClient = divaRetrofitClientFactoryImpl.createDivaClient("http://kl-diva7:9763")
+        val divaClient = divaRetrofitClientFactoryImpl.createRestClient("http://kl-diva7:9763", DivaRetrofitClient::class.java, "http://www.blue-order.com/ma/usermanagementws/um")
 //        val address = divaStub.address()
 //        println(address)
-//        val divaClient = createDivaClient(address)
+//        val divaClient = createRestClient(address)
 
         val clientRegistration = RegisterClient()
         clientRegistration.appName = "Escape_Pod_Test"
@@ -78,7 +79,7 @@ internal class DivaRetrofitClient_Test {
 
     @Test
     fun restoreObject() {
-        val divaClientImpl = DivaClientImpl("http://kl-diva7:9763", DivaRetrofitClientFactoryImpl(), DivaSessionFactoryImpl())
+        val divaClientImpl = DivaClientImpl("http://kl-diva7:9763", RetrofitClientFactoryImpl(), DivaSessionFactoryImpl())
         val restore = divaClientImpl.restore("SM_DV-based_25_576i_25ndf_2s4f_v0_20170524122323.mxf", "", "verde2", "")
         val requestId = restore.blockingGet()
         assertThat(requestId).isNotEqualTo(0)

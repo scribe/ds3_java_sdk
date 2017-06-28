@@ -3,7 +3,7 @@ package com.spectralogic.escapepod.divaclient
 import com.google.inject.assistedinject.Assisted
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.divaclient.retrofit.DivaRetrofitClient
-import com.spectralogic.escapepod.divaclient.retrofit.DivaRetrofitClientFactory
+import com.spectralogic.escapepod.restclientutils.RetrofitClientFactory
 import com.spectralogic.escapepod.divaclient.retrofit.GetRequestInfo
 import com.spectralogic.escapepod.divaclient.retrofit.RestoreObject
 import com.spectralogic.escapepod.divaclient.session.DivaSession
@@ -15,14 +15,14 @@ import javax.inject.Inject
 
 internal class DivaClientImpl @Inject constructor(
         @Assisted private val endpoint: String,
-        divaRetrofitClientFactory: DivaRetrofitClientFactory,
+        retrofitClientFactory: RetrofitClientFactory,
         divaSessionFactory: DivaSessionFactory
     ): DivaClient {
     private companion object {
         private val LOG = LoggerFactory.getLogger(DivaClientImpl::class.java)
     }
 
-    private val divaClient : DivaRetrofitClient = divaRetrofitClientFactory.createDivaClient(endpoint)
+    private val divaClient : DivaRetrofitClient = retrofitClientFactory.createRestClient(endpoint, DivaRetrofitClient::class.java,"/services/DIVArchiveWS_REST_2.0/")
     private val divaSession : DivaSession = divaSessionFactory.createDivaSession(divaClient)
 
     override fun tapeGroups(): Observable<DivaTapeGroup> {
