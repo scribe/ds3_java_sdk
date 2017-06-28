@@ -26,5 +26,10 @@ class AvidMamRetrofitClient_Test {
 
         assertThat(version.value).isNotNull()
         println(version.value)
+
+        val indexPathPrefix = createDivaClient.getKey("SpectraBlackPearlConnector_1", "Config/TpfrResultFolder").blockingGet()
+
+        assertThat(indexPathPrefix.value).isNotNull()
+        println(indexPathPrefix.value)
     }
 }
