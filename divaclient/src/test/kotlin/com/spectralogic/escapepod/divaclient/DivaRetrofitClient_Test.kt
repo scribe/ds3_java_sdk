@@ -79,7 +79,7 @@ internal class DivaRetrofitClient_Test {
     @Test
     fun restoreObject() {
         val divaClientImpl = DivaClientImpl("http://kl-diva7:9763", DivaRetrofitClientFactoryImpl(), DivaSessionFactoryImpl())
-        val restore = divaClientImpl.restore("SM_DV-based_25_576i_25ndf_2s4f_v0_20170524122323.mxf", "", "verde", "")
+        val restore = divaClientImpl.restore("SM_DV-based_25_576i_25ndf_2s4f_v0_20170524122323.mxf", "", "verde2", "")
         val requestId = restore.blockingGet()
         assertThat(requestId).isNotEqualTo(0)
 

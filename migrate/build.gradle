@@ -5,5 +5,6 @@ repositories {
 }
 
 dependencies {
-    compile 'com.spectralogic.tpfr:client:0.1.0'
+    compile "com.spectralogic.tpfr:api:$tpfrVersion"
+    compile "com.spectralogic.tpfr:client:$tpfrVersion"
 }
