@@ -1,0 +1,9 @@
+repositories {
+    maven {
+        url "https://dl.bintray.com/spectralogic/tpfr/"
+    }
+}
+
+dependencies {
+    compile 'com.spectralogic.tpfr:client:0.1.0'
+}

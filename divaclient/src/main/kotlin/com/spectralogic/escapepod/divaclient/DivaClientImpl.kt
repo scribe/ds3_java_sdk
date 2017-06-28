@@ -4,16 +4,20 @@ import com.google.inject.assistedinject.Assisted
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.divaclient.retrofit.DivaRetrofitClient
 import com.spectralogic.escapepod.divaclient.retrofit.DivaRetrofitClientFactory
+import com.spectralogic.escapepod.divaclient.retrofit.GetRequestInfo
 import com.spectralogic.escapepod.divaclient.retrofit.RestoreObject
 import com.spectralogic.escapepod.divaclient.session.DivaSession
 import com.spectralogic.escapepod.divaclient.session.DivaSessionFactory
-import io.reactivex.Completable
 import io.reactivex.Observable
+import io.reactivex.Single
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
 
-internal class DivaClientImpl @Inject constructor(@Assisted val endpoint: String, @Assisted clientName : String, divaRetrofitClientFactory: DivaRetrofitClientFactory, divaSessionFactory: DivaSessionFactory): DivaClient {
-
+internal class DivaClientImpl @Inject constructor(
+        @Assisted private val endpoint: String,
+        divaRetrofitClientFactory: DivaRetrofitClientFactory,
+        divaSessionFactory: DivaSessionFactory
+    ): DivaClient {
     private companion object {
         private val LOG = LoggerFactory.getLogger(DivaClientImpl::class.java)
     }
@@ -29,7 +33,7 @@ internal class DivaClientImpl @Inject constructor(@Assisted val endpoint: String
         return Observable.empty()
     }
 
-    override fun restore(objectName: String, objectCategory: String, destination: String, destinationPath: String) : Completable {
+    override fun restore(objectName: String, objectCategory: String, destination: String, destinationPath: String) : Single<Int> {
         return divaSession.getSession().map { sessionId ->
             val restoreObject = RestoreObject()
             restoreObject.sessionId = sessionId
@@ -44,7 +48,23 @@ internal class DivaClientImpl @Inject constructor(@Assisted val endpoint: String
             divaClient.restoreObject(restoreObject)
         }.doOnSuccess { restoreResponse ->
             LOG.info("Restore operation successfully submitted with id of {}", restoreResponse.restoreReturn.requestNumber)
-        }.toCompletable()
+        }.map { restoreResponse ->
+            restoreResponse.restoreReturn.requestNumber
+        }
+    }
+
+    override fun restoreStatus(requestId: Int): Single<DivaRestoreStatus> {
+        return divaSession.getSession().map { sessionId ->
+            val getRequestInfo = GetRequestInfo()
+            getRequestInfo.sessionId = sessionId
+            getRequestInfo.requestId = requestId
+
+            getRequestInfo
+        }.flatMap { requestInfo ->
+            divaClient.getRequestInfo(requestInfo)
+        }.map { requestInfoResponse ->
+            DivaRestoreStatus(requestInfoResponse.requestResult.divaRequestInfoResponse.requestState)
+        }
     }
 
     override fun objectInfo(objectName: String): Observable<DivaObjectInfo> {

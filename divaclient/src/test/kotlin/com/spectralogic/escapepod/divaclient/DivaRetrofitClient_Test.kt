@@ -1,6 +1,7 @@
 package com.spectralogic.escapepod.divaclient
 
 import com.spectralogic.escapepod.divaclient.retrofit.*
+import com.spectralogic.escapepod.divaclient.session.DivaSessionFactoryImpl
 import com.spectralogic.escapepod.util.randomInt
 import org.junit.Test
 import org.assertj.core.api.Assertions.*
@@ -8,7 +9,7 @@ import org.junit.AfterClass
 import org.junit.BeforeClass
 
 internal class DivaRetrofitClient_Test {
-
+    private val divaRetrofitClientFactoryImpl = DivaRetrofitClientFactoryImpl()
     companion object {
 
         val divaStub = DivaStub()
@@ -28,7 +29,8 @@ internal class DivaRetrofitClient_Test {
 
     @Test
     fun displayTapeGroups() {
-        val divaClient = createDivaClient("http://kl-diva7:9763")
+        val divaClient = divaRetrofitClientFactoryImpl.createDivaClient("http://kl-diva7:9763")
+
 //        val address = divaStub.address()
 //        println(address)
 //        val divaClient = createDivaClient(address)
@@ -52,7 +54,7 @@ internal class DivaRetrofitClient_Test {
 
     @Test
     fun displaySourceDestinationList() {
-        val divaClient = createDivaClient("http://kl-diva7:9763")
+        val divaClient = divaRetrofitClientFactoryImpl.createDivaClient("http://kl-diva7:9763")
 //        val address = divaStub.address()
 //        println(address)
 //        val divaClient = createDivaClient(address)
@@ -76,27 +78,12 @@ internal class DivaRetrofitClient_Test {
 
     @Test
     fun restoreObject() {
-        val divaClient = createDivaClient("http://kl-diva7:9763")
-        val clientRegistration = RegisterClient()
-        clientRegistration.appName = "Escape_Pod_Test"
-        clientRegistration.locName = "1"
-        clientRegistration.processId = Int.randomInt().toString()
+        val divaClientImpl = DivaClientImpl("http://kl-diva7:9763", DivaRetrofitClientFactoryImpl(), DivaSessionFactoryImpl())
+        val restore = divaClientImpl.restore("SM_DV-based_25_576i_25ndf_2s4f_v0_20170524122323.mxf", "", "verde", "")
+        val requestId = restore.blockingGet()
+        assertThat(requestId).isNotEqualTo(0)
 
-        val registerClientResponse = divaClient.registerClient(clientRegistration).blockingGet()
-
-        assertThat(registerClientResponse.sessionId).isNotEmpty()
-
-        val restoreObject = RestoreObject()
-        restoreObject.objectName = "SM_DV-based_25_576i_25ndf_2s4f_v0_20170524122323.mxf"
-        restoreObject.destination = "verde"
-        restoreObject.filesPathRoot = ""
-        restoreObject.objectCategory = ""
-        restoreObject.priorityLevel = "-1"
-        restoreObject.sessionId = registerClientResponse.sessionId
-        restoreObject.qualityOfService = "0"
-
-        val restoreResponse = divaClient.restoreObject(restoreObject).blockingGet()
-
-        assertThat(restoreResponse.restoreReturn.divaStatus).isEqualTo("1000")
+        val restoreStatus = divaClientImpl.restoreStatus(requestId).blockingGet()
+        assertThat(restoreStatus.requestState).isNotBlank()
     }
 }

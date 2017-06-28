@@ -237,7 +237,6 @@ internal class GetObjectResponseInfo {
 
 }
 
-
 @Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns4")
 internal class RestoreObjectResponse {
 
@@ -260,5 +259,90 @@ internal class RestoreObjectResult {
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
     @field:Element
-    var requestNumber : String = ""
+    var requestNumber : Int = 0
+}
+
+@Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns4")
+internal class GetRequestInfoResponse{
+
+    @field:Element(name = "return")
+    var requestResult: GetRequestInfoResult= GetRequestInfoResult()
+}
+
+@NamespaceList(
+            Namespace(reference = "http://response.model.api.ws.diva.fpdigital.com/xsd", prefix = "ns1"),
+            Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance", prefix = "xsi")
+    )
+internal class GetRequestInfoResult{
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
+    @field:Element
+    var divaStatus : String = ""
+
+    @field:Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance")
+    @field:Attribute
+    var type : String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
+    @field:Element(name = "divaRequestInfo")
+    var divaRequestInfoResponse : DivaRequestInfoResponse = DivaRequestInfoResponse()
+}
+
+internal class DivaRequestInfoResponse {
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
+    @field:Element
+    var abortionReason : AbortionReason? = null
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element
+    var additionalInfo : String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element
+    var currentPriority: String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
+    @field:Element
+    var objectSummary: ObjectSummary = ObjectSummary()
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element
+    var progress: String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
+    @field:Element
+    var repackTapes: RepackTapes = RepackTapes()
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element
+    var requestNumber: String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element
+    var requestState: String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element
+    var requestType: String = ""
+}
+
+internal class AbortionReason {
+    @field:Element
+    var code : String = ""
+    @field:Element
+    var description : String = ""
+}
+
+internal class ObjectSummary {
+    @field:Element
+    var objectCategory : String = ""
+    @field:Element
+    var objectName : String = ""
+}
+
+internal class RepackTapes {
+    @field:Element(required = false)
+    var destinationTape : String = ""
+    @field:Element(required = false)
+    var sourceTape: String = ""
 }

@@ -107,3 +107,16 @@ internal class RestoreObject {
     var restoreOptions: String = ""
 }
 
+@Namespace(prefix = "p", reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
+internal class GetRequestInfo {
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "xs")
+    @field:Element(name = "sessionCode")
+    var sessionId : String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "xs")
+    @field:Element(name = "requestNumber")
+    var requestId: Int = 0
+}
+
+
