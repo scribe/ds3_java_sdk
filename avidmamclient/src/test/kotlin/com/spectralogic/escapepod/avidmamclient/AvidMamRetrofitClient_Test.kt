@@ -20,14 +20,14 @@ class AvidMamRetrofitClient_Test {
     @Test
     fun getKey() {
         val retrofitClientFactoryImpl = RetrofitClientFactoryImpl()
-        val createDivaClient = retrofitClientFactoryImpl.createRestClient("http://10.129.156.54:9910", AvidMamRetrofitClient::class.java)
+        val avidMamRetrofitClient = retrofitClientFactoryImpl.createRestClient("http://10.129.156.54:9910", AvidMamRetrofitClient::class.java)
 
-        val version = createDivaClient.getKey("Global", "SystemInfo/SystemVersion").blockingGet()
+        val version = avidMamRetrofitClient.getKey("Global", "SystemInfo/SystemVersion").blockingGet()
 
         assertThat(version.value).isNotNull()
         println(version.value)
 
-        val indexPathPrefix = createDivaClient.getKey("SpectraBlackPearlConnector_1", "Config/TpfrResultFolder").blockingGet()
+        val indexPathPrefix = avidMamRetrofitClient.getKey("SpectraBlackPearlConnector_1", "Config/TpfrResultFolder").blockingGet()
 
         assertThat(indexPathPrefix.value).isNotNull()
         println(indexPathPrefix.value)

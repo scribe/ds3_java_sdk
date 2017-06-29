@@ -115,6 +115,7 @@ project(":migrate") {
     dependencies {
         compile project(":api")
         compile project(":divaclient")
+        compile project(":avidmamclient")
     }
 }
 

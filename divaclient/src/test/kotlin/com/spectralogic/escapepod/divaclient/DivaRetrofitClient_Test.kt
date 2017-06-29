@@ -30,11 +30,7 @@ internal class DivaRetrofitClient_Test {
 
     @Test
     fun displayTapeGroups() {
-        val divaClient = divaRetrofitClientFactoryImpl.createRestClient("http://kl-diva7:9763", DivaRetrofitClient::class.java, "http://www.blue-order.com/ma/usermanagementws/um")
-
-//        val address = divaStub.address()
-//        println(address)
-//        val divaClient = createRestClient(address)
+        val divaClient = divaRetrofitClientFactoryImpl.createRestClient("http://kl-diva7:9763", DivaRetrofitClient::class.java, "/services/DIVArchiveWS_REST_2.0/")
 
         val clientRegistration = RegisterClient()
         clientRegistration.appName = "Escape_Pod_Test"
@@ -55,10 +51,7 @@ internal class DivaRetrofitClient_Test {
 
     @Test
     fun displaySourceDestinationList() {
-        val divaClient = divaRetrofitClientFactoryImpl.createRestClient("http://kl-diva7:9763", DivaRetrofitClient::class.java, "http://www.blue-order.com/ma/usermanagementws/um")
-//        val address = divaStub.address()
-//        println(address)
-//        val divaClient = createRestClient(address)
+        val divaClient = divaRetrofitClientFactoryImpl.createRestClient("http://kl-diva7:9763", DivaRetrofitClient::class.java, "/services/DIVArchiveWS_REST_2.0/")
 
         val clientRegistration = RegisterClient()
         clientRegistration.appName = "Escape_Pod_Test"
@@ -75,6 +68,28 @@ internal class DivaRetrofitClient_Test {
         val sourceDestinationList = divaClient.getSourceDestinationList(getSourceDestinationList).blockingGet()
 
         assertThat(sourceDestinationList.sourceReturn.divaStatus).isEqualTo("1000")
+    }
+
+    @Test
+    fun objectInfo() {
+        val divaClient = divaRetrofitClientFactoryImpl.createRestClient("http://kl-diva7:9763", DivaRetrofitClient::class.java, "/services/DIVArchiveWS_REST_2.0/")
+
+        val clientRegistration = RegisterClient()
+        clientRegistration.appName = "Escape_Pod_Test"
+        clientRegistration.locName = "1"
+        clientRegistration.processId = Int.randomInt().toString()
+
+        val registerClientResponse = divaClient.registerClient(clientRegistration).blockingGet()
+
+        assertThat(registerClientResponse.sessionId).isNotEmpty()
+
+        val getObjectInfo = GetObjectInfo()
+        getObjectInfo.objectName = "SM_DV-based_25_576i_25ndf_2s4f_v0_20170524122323.mxf"
+        getObjectInfo.objectCategory = ""
+        getObjectInfo.sessionId = registerClientResponse.sessionId
+
+        val getObjectInfoResponse = divaClient.getObjectInfo(getObjectInfo).blockingGet()
+        assertThat(getObjectInfoResponse.sourceReturn.divaStatus).isEqualTo(1000)
     }
 
     @Test

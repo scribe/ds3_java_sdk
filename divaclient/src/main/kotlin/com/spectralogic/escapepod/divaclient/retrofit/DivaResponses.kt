@@ -47,7 +47,7 @@ internal class GetGroupsListReturn {
 
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
     @field:Element
-    var divaStatus : String = ""
+    var divaStatus : Int = 0
 
     @field:Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance")
     @field:Attribute
@@ -124,7 +124,7 @@ internal class GetSourceDestinationListResponse {
 internal class GetSourceDestinationResult {
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
     @field:Element
-    var divaStatus : String = ""
+    var divaStatus : Int = 0
 
     @field:Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance")
     @field:Attribute
@@ -182,7 +182,7 @@ internal class ArraysInfo {
 internal class GetObjectInfoResponse {
 
     @field:Element(name = "return")
-    var sourceReturn: GetSourceDestinationResult = GetSourceDestinationResult()
+    var sourceReturn: GetObjectInfoReturn = GetObjectInfoReturn()
 }
 
 @NamespaceList(
@@ -192,7 +192,7 @@ internal class GetObjectInfoResponse {
 internal class GetObjectInfoReturn {
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
     @field:Element
-    var divaStatus : String = ""
+    var divaStatus : Int = 0
 
     @field:Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance")
     @field:Attribute
@@ -235,6 +235,129 @@ internal class GetObjectInfoReturn {
 
 internal class GetObjectResponseInfo {
 
+    @Namespace(prefix = "xsi")
+    @field:Attribute(required = false)
+    var nil : Int = 0
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var isComplex : Boolean = false
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:ElementList(inline = true, required = false)
+    var actorInstances : List<ActorInstances> = ArrayList()
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var archivingDate : Int = 0
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var filesList : String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var inserted: Boolean = false
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var nbFilesInComplexComponent : Int = 0
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var nbFoldersInComplexComponent : Int = 0
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var objectComments: String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var lockStatus: Int = 0
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var objectSize : Long = 0L
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var objectSizeBytes : Long = 0L
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var objectSource : String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var objectSummary : ObjectSummary = ObjectSummary()
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var relatedRequests : String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var rootDirectory : String = ""
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var tapeInstances : TapeInstances = TapeInstances()
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var toBeRepacked: Boolean = false
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var modifiedOrDeleted : Int = 0
+
+    @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns2")
+    @field:Element(required = false)
+    var uuid : String = ""
+}
+
+internal class ActorInstances {
+    @field:Element
+    var actor : String = ""
+
+    @field:Element
+    var instanceID : Int = 0
+}
+
+internal class TapeInstances {
+    @Namespace(prefix = "xsi")
+    @field:Attribute(required = false)
+    var nil: Int = 0
+
+    @field:Element(required = false)
+    var groupName : String = ""
+
+    @field:Element(required = false)
+    var inserted : Boolean = false
+
+    @field:Element(required = false)
+    var instanceId : Int = 0
+
+    @field:Element(required = false)
+    var reqStatus : Int = 0
+
+    @field:ElementList(name = "tapeDesc", inline = true, required = false)
+    var tapeDesc : TapeDescription = TapeDescription()
+
+    @field:Element(required = false)
+    var toBeRepacked : Boolean = false
+}
+
+internal class TapeDescription {
+
+    @field:Element
+    var externalizationComment : String = ""
+    @field:Element
+    var goingToBeRepacked : Boolean = false
+    @field:Element
+    var inserted : Boolean = false
+    @field:Element
+    var vsn : String = ""
 }
 
 @Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd", prefix = "ns4")
@@ -251,7 +374,7 @@ internal class RestoreObjectResponse {
 internal class RestoreObjectResult {
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
     @field:Element
-    var divaStatus : String = ""
+    var divaStatus : Int = 0
 
     @field:Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance")
     @field:Attribute
@@ -276,7 +399,7 @@ internal class GetRequestInfoResponse{
 internal class GetRequestInfoResult{
     @field:Namespace(reference = "http://interaction.api.ws.diva.fpdigital.com/xsd")
     @field:Element
-    var divaStatus : String = ""
+    var divaStatus : Int = 0
 
     @field:Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance")
     @field:Attribute
