@@ -3,6 +3,7 @@ package com.spectralogic.escapepod.divaclient
 import com.google.inject.assistedinject.Assisted
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.divaclient.retrofit.DivaRetrofitClient
+import com.spectralogic.escapepod.divaclient.retrofit.GetObjectInfo
 import com.spectralogic.escapepod.restclientutils.RetrofitClientFactory
 import com.spectralogic.escapepod.divaclient.retrofit.GetRequestInfo
 import com.spectralogic.escapepod.divaclient.retrofit.RestoreObject
@@ -67,8 +68,21 @@ internal class DivaClientImpl @Inject constructor(
         }
     }
 
-    override fun objectInfo(objectName: String): Observable<DivaObjectInfo> {
-        return Observable.empty()
+    override fun objectInfo(objectName: String, category: String): Single<DivaObjectInfo> {
+        return divaSession.getSession().map { sessionId ->
+            val getObjectInfo = GetObjectInfo()
+            getObjectInfo.objectName = objectName
+            getObjectInfo.sessionId = sessionId
+            getObjectInfo.objectCategory = category
+            getObjectInfo
+        }.flatMap { objectInfoRequest ->
+            divaClient.getObjectInfo(objectInfoRequest)
+        }.map { objectInfo ->
+            val info = objectInfo.sourceReturn.info
+            val objectFileList = info.filesList.split(",").asSequence().map { DivaFile(it) }
+
+            DivaObjectInfo(objectName, info.objectSizeBytes, objectFileList)
+        }
     }
 
     override fun sourceList() : Observable<DivaSource> {

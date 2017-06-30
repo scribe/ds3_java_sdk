@@ -24,13 +24,15 @@ interface DivaClient {
 
     fun restoreStatus(requestId : Long) : Single<DivaRestoreStatus>
 
-    fun objectInfo(objectName: String) : Observable<DivaObjectInfo>
+    fun objectInfo(objectName: String, category: String = "DEFAULT") : Single<DivaObjectInfo>
 
     fun sourceList() : Observable<DivaSource>
 }
 
 data class DivaTapeGroup(val name: String)
 data class DivaObject(val name: String)
-data class DivaObjectInfo(val name: String, val size: Long)
+data class DivaObjectInfo(val name: String, val totalSizeInByte : Long, val files: Sequence<DivaFile>)
 data class DivaSource(val address: String, val name: String)
 data class DivaRestoreStatus(val requestState : Int)
+
+data class DivaFile(val name : String)

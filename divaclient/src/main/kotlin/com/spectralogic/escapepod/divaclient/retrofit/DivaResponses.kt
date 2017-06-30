@@ -223,12 +223,12 @@ internal class GetObjectInfoReturn {
 <inserted>inserted</inserted>
 <instanceID>instanceID</instanceID>
 <reqStatus>reqStatus</reqStatus>
-<tapeDesc>
+<tapeInstances>
 <externalizationComment/>
 <goingToBeRepacked>goingToBeRepacked</goingToBeRepacked>
 <inserted>inserted</inserted>
 <vsn>vsn</vsn>
-</tapeDesc>
+</tapeInstances>
 </tapeInstances>
 <ns2:toBeRepacked xmlns:ns2="http://model.api.ws.diva.fpdigital.com/xsd">toBeRepacked</ns2:toBeRepacked>
  */
@@ -317,10 +317,15 @@ internal class GetObjectResponseInfo {
 }
 
 internal class ActorInstances {
-    @field:Element
+
+    @Namespace(prefix = "xsi")
+    @field:Attribute(required = false)
+    var nil: Int = 0
+
+    @field:Element(required = false)
     var actor : String = ""
 
-    @field:Element
+    @field:Element(required = false)
     var instanceID : Int = 0
 }
 
@@ -336,12 +341,12 @@ internal class TapeInstances {
     var inserted : Boolean = false
 
     @field:Element(required = false)
-    var instanceId : Int = 0
+    var instanceID : Int = 0
 
     @field:Element(required = false)
     var reqStatus : Int = 0
 
-    @field:ElementList(name = "tapeDesc", inline = true, required = false)
+    @field:Element(required = false)
     var tapeDesc : TapeDescription = TapeDescription()
 
     @field:Element(required = false)
@@ -350,13 +355,15 @@ internal class TapeInstances {
 
 internal class TapeDescription {
 
-    @field:Element
+    @field:Element(required = false)
     var externalizationComment : String = ""
-    @field:Element
+    @field:Element(required = false)
     var goingToBeRepacked : Boolean = false
-    @field:Element
+    @field:Element(required = false)
     var inserted : Boolean = false
-    @field:Element
+    @field:Element(required = false)
+    var tapeFormatId: String = ""
+    @field:Element(required = false)
     var vsn : String = ""
 }
 

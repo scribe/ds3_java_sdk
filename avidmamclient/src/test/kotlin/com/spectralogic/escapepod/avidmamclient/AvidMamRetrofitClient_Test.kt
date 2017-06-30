@@ -32,4 +32,15 @@ class AvidMamRetrofitClient_Test {
         assertThat(indexPathPrefix.value).isNotNull()
         println(indexPathPrefix.value)
     }
+
+    @Test
+    fun listDivaAssetsFromDatabase() {
+        val avidMamDbClientFactory = AvidMamDbClientFactory()
+
+        val dbClient = avidMamDbClientFactory.createClient("kl-pm-mam59a", "sa", "M8nichts")
+
+        for ((fileName, filePath) in dbClient.listDivaAssets()) {
+            println("Filename: $fileName, category: $filePath")
+        }
+    }
 }

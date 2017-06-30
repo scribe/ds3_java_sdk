@@ -4,11 +4,11 @@ import com.google.common.collect.ImmutableList
 import com.google.inject.Guice
 import com.spectralogic.ds3client.Ds3ClientBuilder
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers
-import com.spectralogic.ds3client.helpers.channelbuilders.ObjectInputStreamBuilder
 import com.spectralogic.ds3client.helpers.channelbuilders.ReadOnlySeekableByteChannel
 import com.spectralogic.ds3client.models.bulk.Ds3Object
 import com.spectralogic.ds3client.models.common.Credentials
 import com.spectralogic.escapepod.api.DivaClientFactory
+import com.spectralogic.escapepod.avidmamclient.AvidMamDbClientFactory
 import com.spectralogic.escapepod.avidmamclient.AvidMamRetrofitClient
 import com.spectralogic.escapepod.divaclient.DivaClientGuiceModule
 import com.spectralogic.escapepod.restclientutils.RetrofitClientFactoryImpl
@@ -16,15 +16,13 @@ import com.spectralogic.escapepod.util.ordinalIndexOf
 import com.spectralogic.tpfr.api.ServerServiceFactoryImpl
 import com.spectralogic.tpfr.client.ClientImpl
 import com.spectralogic.tpfr.client.model.IndexResult
+import io.reactivex.Observable
 import io.reactivex.Single
 import jcifs.smb.NtlmPasswordAuthentication
 import jcifs.smb.SmbFile
 import org.junit.Test
 import org.assertj.core.api.Assertions.*
-import java.net.URI
 import java.nio.channels.Channels
-import java.nio.file.Files
-import java.nio.file.Paths
 
 internal class MigrateFromDiva_Test {
 
@@ -78,10 +76,10 @@ internal class MigrateFromDiva_Test {
         val bpAccessId = "ZXJpY2FuZHJl"
         val bpSecretKey = "jeVwTcbN"
         val bpBucket = "migration_test"
-
+        val mamEndpoint = "http://10.129.156.54:9910"
         val divaClientGuiceModule = DivaClientGuiceModule()
-        val injector = Guice.createInjector(divaClientGuiceModule)
 
+        val injector = Guice.createInjector(divaClientGuiceModule)
         val divaClientFactory = injector.getInstance(DivaClientFactory::class.java)
 
         println("========== Moving file from Diva ==========")
@@ -116,7 +114,7 @@ internal class MigrateFromDiva_Test {
         // there should be 2 files, an xml and mov file
 
         val retrofitClientFactoryImpl = RetrofitClientFactoryImpl()
-        val avidMamRetrofitClient = retrofitClientFactoryImpl.createRestClient("http://10.129.156.54:9910", AvidMamRetrofitClient::class.java)
+        val avidMamRetrofitClient = retrofitClientFactoryImpl.createRestClient(mamEndpoint, AvidMamRetrofitClient::class.java)
 
         val indexPathPrefixResponse = avidMamRetrofitClient.getKey("SpectraBlackPearlConnector_1", "Config/TpfrResultFolder").blockingGet()
 
@@ -125,7 +123,7 @@ internal class MigrateFromDiva_Test {
         val pathPrefix = value.substring(0, ordinalIndexOfSlash)
 
         val mamPrfIndexPath = pathPrefix + "\\PFR-INDEX"
-        val verdePfrIndexPath =verdePath + "\\PFR-INDEX"
+        val verdePfrIndexPath = verdePath + "\\PFR-INDEX"
 
         val copyAsyncResponse = avidMamRetrofitClient.directoryCopyAsync(verdePfrIndexPath, mamPrfIndexPath, "false").blockingGet()
 
@@ -159,6 +157,37 @@ internal class MigrateFromDiva_Test {
             val readableByteChannel = Channels.newChannel(smbFile.inputStream)
             ReadOnlySeekableByteChannel(readableByteChannel)
         }
+    }
+
+    @Test
+    fun testDivaFileListFromMam() {
+
+        val divaEndpoint = "http://kl-diva7:9763"
+
+        val avidMamDbClientFactory = AvidMamDbClientFactory()
+        val injector = Guice.createInjector(DivaClientGuiceModule())
+        val divaClientFactory = injector.getInstance(DivaClientFactory::class.java)
+
+        val avidDbClient = avidMamDbClientFactory.createClient("kl-pm-mam59a", "sa", "M8nichts")
+        val divaClient = divaClientFactory.create(divaEndpoint)
+
+        val listDivaAssets = avidDbClient.listDivaAssets()
+
+        Observable
+                .fromIterable(listDivaAssets.asIterable())
+                .doOnNext { (fileName, category) ->
+                    println("FileName: $fileName, Category: $category")
+                }
+                .flatMap { (fileName, category) ->
+                    divaClient.objectInfo(fileName, category).toObservable()
+                }
+                .flatMap { objectInfo ->
+                    Observable.fromIterable(objectInfo.files.asIterable())
+                }
+                .doOnNext { file ->
+                    println("File In Diva: $file")
+                }
+                .subscribe()
     }
 
     @Test
