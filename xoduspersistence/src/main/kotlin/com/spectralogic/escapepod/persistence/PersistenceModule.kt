@@ -4,7 +4,6 @@ import com.google.inject.AbstractModule
 import com.spectralogic.escapepod.api.ClusterServiceProvider
 import com.spectralogic.escapepod.api.Module
 import com.spectralogic.escapepod.api.ModuleLoader
-import com.spectralogic.escapepod.api.PersistenceServiceProvider
 import io.reactivex.Completable
 import javax.inject.Inject
 

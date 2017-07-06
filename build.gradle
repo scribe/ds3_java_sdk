@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.1.2-5'
+    ext.kotlin_version = '1.1.3-2'
 
     repositories {
         maven {
@@ -50,6 +50,7 @@ subprojects {
         compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.14.1'
         compile 'org.jetbrains.kotlinx:kotlinx-coroutines-nio:0.14.1'
         compile 'com.google.protobuf:protobuf-java:3.2.0'
+        compile group: 'io.ratpack', name: 'ratpack-core', version: '1.4.6'
 
         testCompile group: 'org.slf4j', name: 'slf4j-simple', version: "$slf4jVersion"
         testCompile 'junit:junit:4.12'
@@ -94,6 +95,12 @@ project(":localcache") {
 }
 
 project(":planner") {
+    dependencies {
+        compile project(":api")
+    }
+}
+
+project(":xoduspersistence") {
     dependencies {
         compile project(":api")
     }
@@ -152,7 +159,7 @@ project(":server") {
         compile project(":hazelcast")
         compile project(":localcache")
         compile project(":scheduler")
-        compile project(":mongopersistence")
+        compile project(":xoduspersistence")
     }
 }
 

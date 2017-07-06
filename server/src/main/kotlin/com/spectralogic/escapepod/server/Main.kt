@@ -9,6 +9,7 @@ import com.spectralogic.escapepod.persistence.PersistenceModule
 import com.spectralogic.escapepod.util.collections.GuavaCollectors
 import ratpack.server.RatpackServer
 
+
 class Main {
 
     companion object {
