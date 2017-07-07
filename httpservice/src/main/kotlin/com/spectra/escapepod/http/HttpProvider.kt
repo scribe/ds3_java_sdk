@@ -35,7 +35,7 @@ class  HttpProvider @Inject constructor (@Named("managementPort") val port:Int, 
 
     fun clusterHandler(event: ClusterEvent): Unit {
         when(event) {
-            is ClusterLeftEvent -> shutdown()
+            is ClusterLeftEvent -> shutdown().subscribe()
         }
     }
 
