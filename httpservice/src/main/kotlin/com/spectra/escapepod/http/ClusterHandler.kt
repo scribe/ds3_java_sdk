@@ -1,4 +1,4 @@
-package com.spectralogic.escapepod.server
+package com.spectra.escapepod.http
 
 import com.spectralogic.escapepod.api.ClusterServiceProvider
 import io.reactivex.Scheduler
