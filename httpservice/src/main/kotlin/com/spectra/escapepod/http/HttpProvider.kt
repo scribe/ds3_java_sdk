@@ -7,10 +7,14 @@ import com.spectralogic.escapepod.api.ClusterLeftEvent
 import com.spectralogic.escapepod.api.WebService
 import com.spectralogic.escapepod.api.WebServiceProvider
 import io.reactivex.Completable
+import ratpack.handling.Handler
+import ratpack.registry.Registry
 import ratpack.server.RatpackServer
 
-class  HttpProvider @Inject constructor (@Named("managementPort") val port:Int, val rootHandler:RootHandler): WebServiceProvider {
+class HttpProvider @Inject constructor (@Named("managementPort") val port:Int, val rootHandler:RootHandler): WebServiceProvider {
+
     var server : RatpackServer? = null
+    val httpRouter : HttpRouter = HttpRouter()
 
     override fun shutdown(): Completable {
         return Completable.create { emitter ->
@@ -21,10 +25,12 @@ class  HttpProvider @Inject constructor (@Named("managementPort") val port:Int, 
 
     override fun startService(): Completable {
         return Completable.create { emitter ->
+
             server = RatpackServer.start { server ->
                 server.serverConfig {
                     it.port(port)
                 }
+
                 server.handlers {
                     it.prefix("api", rootHandler)
                 }
@@ -42,4 +48,15 @@ class  HttpProvider @Inject constructor (@Named("managementPort") val port:Int, 
     override fun getService(): WebService {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
+
+
+}
+
+class HttpRouter() {
+    private val list : MutableList<Handler> = ArrayList<Handler>()
+    fun register(handler: Handler) {
+        list.add(handler
+        )
+    }
+
 }

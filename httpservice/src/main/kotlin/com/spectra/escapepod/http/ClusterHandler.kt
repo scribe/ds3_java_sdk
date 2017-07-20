@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory
 import ratpack.func.Action
 import ratpack.handling.Chain
 import ratpack.handling.Context
-import ratpack.http.HttpMethod
 import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 

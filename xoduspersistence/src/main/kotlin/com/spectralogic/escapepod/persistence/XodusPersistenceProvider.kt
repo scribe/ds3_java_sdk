@@ -12,7 +12,7 @@ import javax.inject.Named
 
 class XodusPersistenceProvider
 @Inject constructor(
-//        private val clusterServiceProvider: ClusterServiceProvider,
+        //        private val clusterServiceProvider: ClusterServiceProvider,
 //      @Named("interfaceIp") private val interfaceIp : String,
         @Named("dataDir") private val dataDir : Path,
         @Named("persistencePort") private val persistencePort: Int
@@ -41,8 +41,9 @@ class XodusPersistenceProvider
                 entityStore = PersistentEntityStores.newInstance(dataDir.toFile())
                 xodusService = XodusPersistenceService(entityStore)
                 emitter.onComplete()
+            } else {
+                emitter.onError(Exception("Failed to start Xodus, could not access ${data.absolutePath}"))
             }
-            emitter.onError(Exception("Failed to start Xodus, could not access ${data.absolutePath}"))
         }
     }
 
