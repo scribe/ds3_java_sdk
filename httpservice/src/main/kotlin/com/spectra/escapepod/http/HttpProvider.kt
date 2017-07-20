@@ -55,8 +55,7 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") val po
 internal class HttpRouter() {
     private val list : MutableList<Handler> = ArrayList<Handler>()
     fun register(handler: Handler) {
-        list.add(handler
-        )
+        list.add(handler )
     }
 
 }

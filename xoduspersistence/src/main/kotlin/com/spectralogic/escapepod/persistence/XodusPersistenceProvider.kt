@@ -6,6 +6,7 @@ import jetbrains.exodus.entitystore.PersistentEntityStore
 import jetbrains.exodus.entitystore.PersistentEntityStores
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import javax.inject.Inject
 import javax.inject.Named
@@ -36,13 +37,12 @@ internal class XodusPersistenceProvider
     override fun startService(): Completable {
         return Completable.create { emitter ->
             LOG.info("Starting Xodus Service")
-            val data : File = dataDir.toFile()
-            if(data.exists() && data.isDirectory && data.canRead() && data.canWrite()) {
+            if(Files.exists(dataDir) && Files.isDirectory(dataDir) && Files.isReadable(dataDir) && Files.isWritable(dataDir)) {
                 entityStore = PersistentEntityStores.newInstance(dataDir.toFile())
                 xodusService = XodusPersistenceService(entityStore)
                 emitter.onComplete()
             } else {
-                emitter.onError(Exception("Failed to start Xodus, could not access ${data.absolutePath}"))
+                emitter.onError(Exception("Failed to start Xodus, could not access ${dataDir.toAbsolutePath().toString()}"))
             }
         }
     }
