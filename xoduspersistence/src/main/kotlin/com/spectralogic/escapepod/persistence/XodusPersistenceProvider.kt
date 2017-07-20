@@ -10,7 +10,7 @@ import java.nio.file.Path
 import javax.inject.Inject
 import javax.inject.Named
 
-class XodusPersistenceProvider
+internal class XodusPersistenceProvider
 @Inject constructor(
         //        private val clusterServiceProvider: ClusterServiceProvider,
 //      @Named("interfaceIp") private val interfaceIp : String,

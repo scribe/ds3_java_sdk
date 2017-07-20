@@ -11,7 +11,7 @@ import ratpack.handling.Handler
 import ratpack.registry.Registry
 import ratpack.server.RatpackServer
 
-class HttpProvider @Inject constructor (@Named("managementPort") val port:Int, val rootHandler:RootHandler): WebServiceProvider {
+internal class HttpProvider @Inject constructor (@Named("managementPort") val port:Int, val rootHandler:RootHandler): WebServiceProvider {
 
     var server : RatpackServer? = null
     val httpRouter : HttpRouter = HttpRouter()

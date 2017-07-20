@@ -4,7 +4,7 @@ import ratpack.func.Action
 import ratpack.handling.Chain
 import javax.inject.Inject
 
-class RootHandler @Inject constructor(private val moduleHandler: ModuleHandler, private val clusterHandlerChain: ClusterHandlerChain) : Action<Chain> {
+internal class RootHandler @Inject constructor(private val moduleHandler: ModuleHandler, private val clusterHandlerChain: ClusterHandlerChain) : Action<Chain> {
 
     override fun execute(chain: Chain) {
         chain.get("modules", moduleHandler)

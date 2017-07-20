@@ -6,7 +6,7 @@ import jetbrains.exodus.entitystore.EntityIterable
 import jetbrains.exodus.entitystore.PersistentEntityStore
 import jetbrains.exodus.entitystore.StoreTransaction
 
-class XodusPersistenceService(val entityStore: PersistentEntityStore) : PersistenceService {
+internal class XodusPersistenceService(val entityStore: PersistentEntityStore) : PersistenceService {
 
     //These are just examples of things a persistence service could provide, we need to finalize what it should do.
     enum class NodeTypes {
