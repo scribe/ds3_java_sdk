@@ -1,26 +1,31 @@
 package com.spectralogic.escapepod.api.operations
 
-import com.google.inject.Guice
-import com.spectralogic.escapepod.api.ApiGuiceModule
+import io.reactivex.functions.Action
+import io.reactivex.functions.Consumer
 import org.junit.Assert.*
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 
 class OperationRunner_Test {
     @Test
     fun testCallingOperationReturningNull() {
+        var failure : Throwable? = null
+
         val operationReturningNull = object : Operation<Unit?> {
             override fun call(): Unit? {
                 return null
             }
-        }
 
-        var failure : Throwable? = null
+            override fun onError(t: Throwable) {
+                failure = t
+            }
+        }
 
         val countDownLatch = CountDownLatch(1)
 
-        val operationRunner = OperationRunnerImpl()
-        val operationObserver = operationRunner.addAndRunOperation(operationReturningNull)
+        val operationRunner = OperationRunnerImpl(Executors.newSingleThreadExecutor())
+        val operationObserver = operationRunner.runOperation(operationReturningNull)
         operationObserver.subscribe(
                 { _ ->
                     countDownLatch.countDown()
@@ -36,14 +41,54 @@ class OperationRunner_Test {
 
         countDownLatch.await()
 
-        if (failure != null) {
-            fail(failure?.message)
+        assertNull(failure)
+    }
+
+    @Test
+    fun testCallingOperationReturningNothing() {
+        var failure : Throwable? = null
+
+        var numTimesCallCalled = 0
+
+        val operationReturningNull = object : Operation<Unit> {
+            override fun call(): Unit {
+                ++numTimesCallCalled
+                return
+            }
+
+            override fun onError(t: Throwable) {
+                failure = t
+            }
         }
+
+        val countDownLatch = CountDownLatch(1)
+
+        val operationRunner = OperationRunnerImpl(Executors.newSingleThreadExecutor())
+        val operationObserver = operationRunner.runOperation(operationReturningNull)
+        operationObserver.subscribe(
+                { _ ->
+                    countDownLatch.countDown()
+                },
+                { throwable ->
+                    failure = throwable
+                    countDownLatch.countDown()
+                },
+                {
+                    countDownLatch.countDown()
+                }
+        )
+
+        countDownLatch.await()
+
+        assertEquals(1, numTimesCallCalled)
+        assertNull(failure)
     }
 
     @Test
     fun testOperationThatThrows() {
         var operationOnErrorCalled = false
+        var failure : Throwable? = null
+        var numFailures = 0
 
         val operationThatThrows = object : Operation<Unit?> {
             override fun call(): Unit? {
@@ -51,23 +96,22 @@ class OperationRunner_Test {
             }
 
             override fun onError(t: Throwable) {
-                super.onError(t)
+                failure = t
                 operationOnErrorCalled = true
+                ++numFailures
             }
         }
 
-        var failure : Throwable? = null
-
         val countDownLatch = CountDownLatch(1)
 
-        val operationRunner = OperationRunnerImpl()
-        val operationObserver = operationRunner.addAndRunOperation(operationThatThrows)
+        val operationRunner = OperationRunnerImpl(Executors.newSingleThreadExecutor())
+        val operationObserver = operationRunner.runOperation(operationThatThrows)
         operationObserver.subscribe(
                 { _ ->
                     countDownLatch.countDown()
                 },
                 { throwable ->
-                    failure = throwable
+                    ++numFailures
                     countDownLatch.countDown()
                 },
                 {
@@ -78,17 +122,24 @@ class OperationRunner_Test {
         countDownLatch.await()
 
         assertTrue(operationOnErrorCalled)
-        assertFalse(failure == null)
+        assertNotNull(failure)
         assertTrue(failure is NullPointerException)
+        assertEquals(2, numFailures)
     }
 
     @Test
     fun testThatOperationPropagatesCorrectValue() {
         val expectedValue = 85
 
+        var failure : Throwable? = null
+
         val operationReturningInt = object : Operation<Int> {
             override fun call(): Int {
                 return expectedValue
+            }
+
+            override fun onError(t: Throwable) {
+                failure = t
             }
         }
 
@@ -96,14 +147,16 @@ class OperationRunner_Test {
 
         var operationResult = 0
 
-        val operationRunner = OperationRunnerImpl()
-        val operationObserver = operationRunner.addAndRunOperation(operationReturningInt)
+
+        val operationRunner = OperationRunnerImpl(Executors.newSingleThreadExecutor())
+        val operationObserver = operationRunner.runOperation(operationReturningInt)
         operationObserver.subscribe(
                 { result ->
                     operationResult = result
                     countDownLatch.countDown()
                 },
-                { _ ->
+                { throwable ->
+                    failure = throwable
                     countDownLatch.countDown()
                 },
                 {
@@ -114,15 +167,21 @@ class OperationRunner_Test {
         countDownLatch.await()
 
         assertEquals(expectedValue, operationResult)
+        assertNull(failure)
     }
 
     @Test
     fun testOperationCompleteCalled() {
         var onComplleteCalled = false
+        var failure : Throwable? = null
 
         val operationReturningNull = object : Operation<Unit?> {
             override fun call(): Unit? {
                 return null
+            }
+
+            override fun onError(t: Throwable) {
+                failure = t
             }
 
             override fun onComplete(result: Unit?) {
@@ -134,13 +193,14 @@ class OperationRunner_Test {
 
         val countDownLatch = CountDownLatch(1)
 
-        val operationRunner = OperationRunnerImpl()
-        val operationObserver = operationRunner.addAndRunOperation(operationReturningNull)
+        val operationRunner = OperationRunnerImpl(Executors.newSingleThreadExecutor())
+        val operationObserver = operationRunner.runOperation(operationReturningNull)
         operationObserver.subscribe(
                 { _ ->
                     countDownLatch.countDown()
                 },
-                { _ ->
+                { throwable ->
+                    failure = throwable
                     countDownLatch.countDown()
                 },
                 {
@@ -150,16 +210,24 @@ class OperationRunner_Test {
 
         countDownLatch.await()
 
+        assertNull(failure)
         assertTrue(onComplleteCalled)
     }
 
+    // !!! test for failure in the rest of these tests
     @Test
-    fun testCacelCalled() {
+    fun testCancelCalled() {
         var canceled = false
+
+        var failure : Throwable? = null
 
         val canceledOperation = object : Operation<Int> {
             override fun call(): Int {
                 return 1
+            }
+
+            override fun onError(t: Throwable) {
+                failure = t
             }
 
             override fun cancel() {
@@ -170,14 +238,15 @@ class OperationRunner_Test {
 
         val countDownLatch = CountDownLatch(1)
 
-        val operationRunner = OperationRunnerImpl()
-        val operationObserver = operationRunner.addAndRunOperation(canceledOperation)
+        val operationRunner = OperationRunnerImpl(Executors.newSingleThreadExecutor())
+        val operationObserver = operationRunner.runOperation(canceledOperation)
         operationObserver.subscribe(
                 { _ ->
                     canceledOperation.cancel()
                     countDownLatch.countDown()
                 },
-                { _ ->
+                { throwable ->
+                    failure = throwable
                     countDownLatch.countDown()
                 },
                 {
@@ -187,66 +256,208 @@ class OperationRunner_Test {
 
         countDownLatch.await()
 
+        assertNull(failure)
         assertTrue(canceled)
     }
 
     @Test
-    fun testRunningOnCallingThread() {
-        val callingThread = Thread.currentThread()
+    fun test2operations() {
+        val expectedValue = 85
+
+        var failure : Throwable? = null
 
         val operationReturningInt = object : Operation<Int> {
             override fun call(): Int {
-                return 1
+                return expectedValue
+            }
+
+            override fun onError(t: Throwable) {
+                failure = t
             }
         }
 
-        var operationThread : Thread? = null
+        val countDownLatch = CountDownLatch(2)
 
-        val operationRunner = OperationRunnerImpl()
-        val operationObserver = operationRunner.addAndRunOperation(operationReturningInt, OperationResultReporterThread.CALLING_THREAD)
-        operationObserver.subscribe(
-                { _ ->
-                    operationThread = Thread.currentThread()
-                },
-                { throwable ->
-                    fail(throwable.message)
-                }
-        )
+        var operationResult = 0
 
-        assertEquals(callingThread, operationThread)
-    }
+        val operationRunner = OperationRunnerImpl(Executors.newSingleThreadExecutor())
 
-    @Test
-    fun testRunningOnSomeOtherThread() {
-        val callingThread = Thread.currentThread()
-
-        val operationReturningInt = object : Operation<Int> {
-            override fun call(): Int {
-                return 1
-            }
+        val onNext = Consumer<Int> { result ->
+            operationResult += result
+            countDownLatch.countDown()
         }
 
-        val countDownLatch = CountDownLatch(1)
+        val onError = Consumer<Throwable> { throwable ->
+            failure = throwable
+            countDownLatch.countDown()
+        }
 
-        var operationThread : Thread? = null
+        val onComplete = Action {
+            countDownLatch.countDown()
+        }
 
-        val injector = Guice.createInjector(ApiGuiceModule())
+        operationRunner.runOperation(operationReturningInt)
+                .subscribe(onNext, onError, onComplete)
 
-        val operationRunner = injector.getInstance(OperationRunner::class.java)
-
-        val operationObserver = operationRunner.addAndRunOperation(operationReturningInt)
-        operationObserver.subscribe(
-                { result ->
-                    operationThread = Thread.currentThread()
-                    countDownLatch.countDown()
-                },
-                { throwable ->
-                    fail(throwable.message)
-                }
-        )
+        operationRunner.runOperation(operationReturningInt)
+                .subscribe(onNext, onError, onComplete)
 
         countDownLatch.await()
 
-        assertNotEquals(callingThread, operationThread)
+        assertNull(failure)
+        assertEquals(expectedValue * 2, operationResult)
+    }
+
+    @Test
+    fun testIterableOperations() {
+        val expectedValue = 85
+
+        var failure : Throwable? = null
+
+        var numTimesOnCompleteCalled = 0
+
+        val op1 = object : Operation<Int> {
+            override fun call(): Int {
+                return expectedValue
+            }
+
+            override fun onError(t: Throwable) {
+                failure = t
+            }
+
+            override fun onComplete(result: Int) {
+                ++numTimesOnCompleteCalled
+            }
+        }
+
+        val op2 = object : Operation<Int> {
+            override fun call(): Int {
+                return expectedValue + 1
+            }
+
+            override fun onError(t: Throwable) {
+                failure = t
+            }
+
+            override fun onComplete(result: Int) {
+                ++numTimesOnCompleteCalled
+            }
+        }
+
+        val operations = listOf<Operation<Int>>(op1, op2)
+        val countDownLatch = CountDownLatch(operations.size)
+
+        var operationsResult = 0
+
+        val operationRunner = OperationRunnerImpl(Executors.newSingleThreadExecutor())
+        operationRunner.runOperation(operations)
+                .subscribe(
+                        { result ->
+                            operationsResult += result
+                            countDownLatch.countDown()
+                        },
+                        { throwable ->
+                            failure = throwable
+                            countDownLatch.countDown()
+                        },
+                        {
+                            countDownLatch.countDown()
+                        }
+                )
+
+        countDownLatch.await()
+
+        assertEquals(expectedValue * 2 + 1, operationsResult)
+        assertNull(failure)
+        assertEquals(2, numTimesOnCompleteCalled)
+    }
+
+    @Test
+    fun testIterableOperationsWithOpreturningNull() {
+        var failure : Throwable? = null
+
+        val operationReturningNull = object : Operation<Unit?> {
+            override fun call(): Unit? {
+                return null
+            }
+
+            override fun onError(t: Throwable) {
+                failure = t
+            }
+        }
+
+        var operationresult : Unit? = null
+
+        val operations = listOf<Operation<Unit?>>(operationReturningNull)
+        val countDownLatch = CountDownLatch(operations.size)
+
+        val operationRunner = OperationRunnerImpl(Executors.newSingleThreadExecutor())
+        operationRunner.runOperation(operations)
+                .subscribe(
+                        { result ->
+                            operationresult = result
+                            countDownLatch.countDown()
+                        },
+                        { throwable ->
+                            failure = throwable
+                            countDownLatch.countDown()
+                        },
+                        {
+                            countDownLatch.countDown()
+                        }
+                )
+
+        countDownLatch.await()
+
+        assertNotNull(failure)
+        assertNull(operationresult)
+    }
+
+    @Test
+    fun test1OpReturningIntAndAnotherThatThrows() {
+        val expectedValue = 85
+
+        val operationReturningInt = object : Operation<Int> {
+            override fun call(): Int {
+                return expectedValue
+            }
+        }
+
+        var failure : Throwable? = null
+        var operationresult = 0
+
+        val operationThatThrows = object : Operation<Int> {
+            override fun call(): Int {
+                throw NullPointerException()
+            }
+
+            override fun onError(t: Throwable) {
+                failure = t
+            }
+        }
+
+        val operations = listOf<Operation<Int>>(operationReturningInt, operationThatThrows)
+        val countDownLatch = CountDownLatch(operations.size)
+
+        val operationRunner = OperationRunnerImpl(Executors.newSingleThreadExecutor())
+        operationRunner.runOperation(operations)
+                .subscribe(
+                        { result ->
+                            operationresult = result
+                            countDownLatch.countDown()
+                        },
+                        { throwable ->
+                            countDownLatch.countDown()
+                        },
+                        {
+                            countDownLatch.countDown()
+                        }
+                )
+
+        countDownLatch.await()
+
+        assertNotNull(failure)
+        assertTrue(failure is NullPointerException)
+        assertEquals(expectedValue, operationresult)
     }
 }

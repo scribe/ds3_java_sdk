@@ -17,12 +17,13 @@ package com.spectralogic.escapepod.api.operations
 
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
+import java.util.concurrent.ExecutorService
 
-class OperationRunnerImpl : OperationRunner {
-    override fun <ResultType> addAndRunOperation(operation: Operation<ResultType>,
-                                                 vararg operationResultReporterThread: OperationResultReporterThread): Observable<ResultType>
-    {
-        val observable = Observable.create<ResultType> (
+class OperationRunnerImpl(executorService: ExecutorService) : OperationRunner {
+    private val scheduler = Schedulers.from(executorService)
+
+    override fun <ResultType> runOperation(operation: Operation<ResultType>) : Observable<ResultType> {
+        return Observable.create<ResultType>(
                 { emitter ->
                     try {
                         val result = operation.call()
@@ -37,28 +38,27 @@ class OperationRunnerImpl : OperationRunner {
                         operation.onError(throwable)
                         emitter.onError(throwable)
                     }
-                }
-        )
-
-        if (operationResultReporterThread.isEmpty()) {
-            return observableOnIOThread(observable)
-        }
-
-        return observableOnCallingThread(observable)
-    }
-
-    private fun <ResultType> observableOnIOThread(observable : Observable<ResultType>) : Observable<ResultType> {
-        return observable
-                .observeOn(Schedulers.io())
+                })
+                .observeOn(scheduler)
                 .flatMap {
                     result -> newObservable(result)
                 }
     }
 
-    private fun <ResultType> observableOnCallingThread(observable : Observable<ResultType>) : Observable<ResultType> {
-        return observable
-                .flatMap {
-                    result -> newObservable(result)
+    override fun <ResultType> runOperation(operations: Iterable<Operation<ResultType>>): Observable<ResultType> {
+        return Observable.fromIterable(operations)
+                .observeOn(scheduler)
+                .flatMap { operation ->
+                    var result : ResultType? = null
+
+                    try {
+                        result = operation.call()
+                        operation.onComplete(result)
+                    } catch (throwable : Throwable) {
+                        operation.onError(throwable)
+                    }
+
+                    newObservable(result)
                 }
     }
 
