@@ -370,9 +370,11 @@ class OperationRunner_Test {
         }
 
         val operations = listOf(op1, op2)
-        val countDownLatch = CountDownLatch(operations.size)
+        val countDownLatch = CountDownLatch(operations.size + 1)
 
         var operationsResult = 0
+
+        var numTimesCompletionHandlerCalled = 0
 
         val operationRunner = OperationRunnerImpl(Executors.newSingleThreadExecutor())
         operationRunner.runOperation(operations)
@@ -386,6 +388,7 @@ class OperationRunner_Test {
                             countDownLatch.countDown()
                         },
                         {
+                            ++numTimesCompletionHandlerCalled
                             countDownLatch.countDown()
                         }
                 )
@@ -395,6 +398,7 @@ class OperationRunner_Test {
         assertEquals(expectedValue * 2 + 1, operationsResult)
         assertNull(failure)
         assertEquals(2, numTimesOnCompleteCalled)
+        assertEquals(1, numTimesCompletionHandlerCalled)
     }
 
     @Test
