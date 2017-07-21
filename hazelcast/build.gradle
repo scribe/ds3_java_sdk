@@ -1,3 +1,10 @@
 dependencies {
     compile group: 'com.hazelcast', name: 'hazelcast', version: '3.8'
+    compile "com.squareup.retrofit2:retrofit:$retrofitVersion"
+    compile group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: "$retrofitVersion"
+    compile "com.squareup.retrofit2:converter-scalars:$retrofitVersion"
+}
+
+clean.doFirst {
+    delete "${projectDir}/src/main/java"
 }

@@ -1,0 +1,10 @@
+dependencies {
+    compile "com.squareup.retrofit2:retrofit:$retrofitVersion"
+    compile group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: "$retrofitVersion"
+    compile group: 'org.simpleframework', name: 'simple-xml', version: "$simpleXmlVersion"
+    compile group: 'com.squareup.retrofit2', name: 'converter-simplexml', version: "$retrofitVersion"
+    compile group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: "$retrofitVersion"
+    //compile "com.squareup.okhttp3:logging-interceptor:$okioVersion"
+    testCompile group: 'io.ratpack', name: 'ratpack-core', version: "$ratpackVersion"
+    testCompile group: 'io.ratpack', name: 'ratpack-test', version: "$ratpackVersion"
+}

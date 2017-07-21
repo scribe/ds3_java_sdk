@@ -13,12 +13,10 @@ internal class EscapePodScheduler @Inject constructor(val planner : MigrationPla
         set(value) {config = value}
 
     override fun start() {
-        println("EscapePodScheduler [start]")
+        println("EscapePodScheduler [startModule]")
 
 
-        val migrationTasks = planner.getMigrationTasks()
 
-        val future = migrationTasks.iterator().next()
 
         //future.suspend()
     }

@@ -1,54 +1,43 @@
 package com.spectralogic.escapepod.server
 
+import com.google.common.collect.ImmutableList
 import com.google.inject.Guice
-import com.greyrock.escapepod.util.ifNotNull
-import com.spectralogic.escapepod.api.*
-import com.spectralogic.escapepod.cluster.HazelcastModule
-import com.spectralogic.escapepod.persistence.MongoPersistenceModule
-import org.slf4j.LoggerFactory
+import com.google.inject.Key
+import com.google.inject.name.Names
+import com.spectralogic.escapepod.cluster.ClusterModule
+import com.spectralogic.escapepod.persistence.PersistenceModule
+import com.spectralogic.escapepod.util.collections.GuavaCollectors
 import ratpack.server.RatpackServer
 
 class Main {
 
     companion object {
 
-        private val LOG = LoggerFactory.getLogger(Main::class.java)
-
-        // TODO need to add a shutdown thread for the persistence layer and any other subprocesses that could be running
-
         @JvmStatic
         fun main(arg: Array<String>) {
-            val injector = Guice.createInjector(ServerModule(), HazelcastModule(), MongoPersistenceModule())
+
+            val clusterModule = ClusterModule()
+            val persistenceModule = PersistenceModule()
+
+            val injector = Guice.createInjector(ServerModule(), clusterModule.guiceModule(), persistenceModule.guiceModule())
 
             Runtime.getRuntime().addShutdownHook(injector.getInstance(ShutdownHook::class.java))
 
-            val clusterService = injector.getInstance(ClusterServiceProvider::class.java)
-            val persistenceService = injector.getInstance(PersistenceServiceProvider::class.java)
+            val moduleList = ImmutableList.of(clusterModule, persistenceModule)
 
-            clusterService.clusterLifecycleEvents { event ->
-                if (event is ClusterCreatedEvent) {
-                    persistenceService.createNewPersistenceCluster(event.clusterName, 27017) // TODO default port for Mongo
-                } else if (event is ClusterLeftEvent) {
-                    persistenceService.shutdown()
-                }
-            }
+            val moduleInstances = moduleList.stream()
+                    .map { injector.getInstance(it.moduleLoader()) }
+                    .collect(GuavaCollectors.immutableList())
 
-            clusterService.clusterLifecycleEvents { event ->
-                if (event is ClusterNodeJoinedEvent) {
-                    LOG.info("New node joined cluster: {}:{}", event.clusterNode.ip, event.clusterNode.port)
-                }
-            }
+            // 2 stage loading of the modules
+            moduleInstances.forEach { it.loadModule() }
+            moduleInstances.forEach { it.startModule() }
 
             RatpackServer.start { server ->
 
-                val envVars = System.getenv()
-
-                if ("serverPort" in envVars) {
-                    server.serverConfig { config ->
-                        envVars["serverPort"].ifNotNull {
-                            config.port(it.toInt())
-                        }
-                    }
+                server.serverConfig { config ->
+                    val portProvider = injector.getProvider(Key.get(Int::class.java, Names.named("managementPort")))
+                    config.port(portProvider.get())
                 }
 
                 server.handlers { chain ->
