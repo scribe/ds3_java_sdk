@@ -18,6 +18,7 @@ class OperationRunner_Test {
             }
 
             override fun onError(t: Throwable) {
+                super.onError(t)
                 failure = t
             }
         }
@@ -57,6 +58,7 @@ class OperationRunner_Test {
             }
 
             override fun onError(t: Throwable) {
+                super.onError(t)
                 failure = t
             }
         }
@@ -96,6 +98,7 @@ class OperationRunner_Test {
             }
 
             override fun onError(t: Throwable) {
+                super.onError(t)
                 failure = t
                 operationOnErrorCalled = true
                 ++numFailures
@@ -110,7 +113,7 @@ class OperationRunner_Test {
                 { _ ->
                     countDownLatch.countDown()
                 },
-                { throwable ->
+                { _ ->
                     ++numFailures
                     countDownLatch.countDown()
                 },
@@ -139,6 +142,7 @@ class OperationRunner_Test {
             }
 
             override fun onError(t: Throwable) {
+                super.onError(t)
                 failure = t
             }
         }
@@ -172,7 +176,7 @@ class OperationRunner_Test {
 
     @Test
     fun testOperationCompleteCalled() {
-        var onComplleteCalled = false
+        var onCompleteCalled = false
         var failure : Throwable? = null
 
         val operationReturningNull = object : Operation<Unit?> {
@@ -181,13 +185,14 @@ class OperationRunner_Test {
             }
 
             override fun onError(t: Throwable) {
+                super.onError(t)
                 failure = t
             }
 
             override fun onComplete(result: Unit?) {
                 super.onComplete(result)
                 assertNull(result)
-                onComplleteCalled = true
+                onCompleteCalled = true
             }
         }
 
@@ -211,10 +216,9 @@ class OperationRunner_Test {
         countDownLatch.await()
 
         assertNull(failure)
-        assertTrue(onComplleteCalled)
+        assertTrue(onCompleteCalled)
     }
 
-    // !!! test for failure in the rest of these tests
     @Test
     fun testCancelCalled() {
         var canceled = false
@@ -227,6 +231,7 @@ class OperationRunner_Test {
             }
 
             override fun onError(t: Throwable) {
+                super.onError(t)
                 failure = t
             }
 
@@ -272,6 +277,7 @@ class OperationRunner_Test {
             }
 
             override fun onError(t: Throwable) {
+                super.onError(t)
                 failure = t
             }
         }
@@ -322,6 +328,7 @@ class OperationRunner_Test {
             }
 
             override fun onError(t: Throwable) {
+                super.onError(t)
                 failure = t
             }
 
@@ -344,7 +351,7 @@ class OperationRunner_Test {
             }
         }
 
-        val operations = listOf<Operation<Int>>(op1, op2)
+        val operations = listOf(op1, op2)
         val countDownLatch = CountDownLatch(operations.size)
 
         var operationsResult = 0
@@ -373,7 +380,7 @@ class OperationRunner_Test {
     }
 
     @Test
-    fun testIterableOperationsWithOpreturningNull() {
+    fun testIterableOperationsWithOpReturningNull() {
         var failure : Throwable? = null
 
         val operationReturningNull = object : Operation<Unit?> {
@@ -382,11 +389,13 @@ class OperationRunner_Test {
             }
 
             override fun onError(t: Throwable) {
+                super.onError(t)
                 failure = t
             }
         }
 
-        var operationresult : Unit? = null
+        var onNextCalled = false
+        var onCompleteCalled = false
 
         val operations = listOf<Operation<Unit?>>(operationReturningNull)
         val countDownLatch = CountDownLatch(operations.size)
@@ -394,8 +403,8 @@ class OperationRunner_Test {
         val operationRunner = OperationRunnerImpl(Executors.newSingleThreadExecutor())
         operationRunner.runOperation(operations)
                 .subscribe(
-                        { result ->
-                            operationresult = result
+                        { _ ->
+                            onNextCalled = true
                             countDownLatch.countDown()
                         },
                         { throwable ->
@@ -403,14 +412,16 @@ class OperationRunner_Test {
                             countDownLatch.countDown()
                         },
                         {
+                            onCompleteCalled = true
                             countDownLatch.countDown()
                         }
                 )
 
         countDownLatch.await()
 
-        assertNotNull(failure)
-        assertNull(operationresult)
+        assertNull(failure)
+        assertFalse(onNextCalled)
+        assertTrue(onCompleteCalled)
     }
 
     @Test
@@ -424,7 +435,7 @@ class OperationRunner_Test {
         }
 
         var failure : Throwable? = null
-        var operationresult = 0
+        var operationResult = 0
 
         val operationThatThrows = object : Operation<Int> {
             override fun call(): Int {
@@ -432,21 +443,22 @@ class OperationRunner_Test {
             }
 
             override fun onError(t: Throwable) {
+                super.onError(t)
                 failure = t
             }
         }
 
-        val operations = listOf<Operation<Int>>(operationReturningInt, operationThatThrows)
+        val operations = listOf(operationReturningInt, operationThatThrows)
         val countDownLatch = CountDownLatch(operations.size)
 
         val operationRunner = OperationRunnerImpl(Executors.newSingleThreadExecutor())
         operationRunner.runOperation(operations)
                 .subscribe(
                         { result ->
-                            operationresult = result
+                            operationResult = result
                             countDownLatch.countDown()
                         },
-                        { throwable ->
+                        { _ ->
                             countDownLatch.countDown()
                         },
                         {
@@ -458,6 +470,6 @@ class OperationRunner_Test {
 
         assertNotNull(failure)
         assertTrue(failure is NullPointerException)
-        assertEquals(expectedValue, operationresult)
+        assertEquals(expectedValue, operationResult)
     }
 }

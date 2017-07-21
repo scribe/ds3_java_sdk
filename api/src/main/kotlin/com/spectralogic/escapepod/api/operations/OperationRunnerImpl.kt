@@ -45,26 +45,16 @@ class OperationRunnerImpl(executorService: ExecutorService) : OperationRunner {
                 }
     }
 
-    override fun <ResultType> runOperation(operations: Iterable<Operation<ResultType>>): Observable<ResultType> {
-        return Observable.fromIterable(operations)
-                .observeOn(scheduler)
-                .flatMap { operation ->
-                    var result : ResultType? = null
-
-                    try {
-                        result = operation.call()
-                        operation.onComplete(result)
-                    } catch (throwable : Throwable) {
-                        operation.onError(throwable)
-                    }
-
-                    newObservable(result)
-                }
-    }
-
     private fun <ResultType> newObservable(result : ResultType) : Observable<ResultType> {
         return Observable.create({
             emitter -> emitter.onNext(result!!)
         })
+    }
+
+    override fun <ResultType> runOperation(operations: Iterable<Operation<ResultType>>): Observable<ResultType> {
+        return Observable.fromIterable(operations)
+                .flatMap { operation ->
+                    runOperation(operation)
+                }
     }
 }
