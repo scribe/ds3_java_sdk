@@ -313,8 +313,10 @@ class OperationRunner_Test {
             countDownLatch.countDown()
         }
 
+        var numTimesCompleteCalled = 0
+
         val onComplete = Action {
-            countDownLatch.countDown()
+            ++numTimesCompleteCalled
         }
 
         operationRunner.runOperation(operationReturningInt)
@@ -327,6 +329,7 @@ class OperationRunner_Test {
 
         assertNull(failure)
         assertEquals(expectedValue * 2, operationResult)
+        assertEquals(2, numTimesCompleteCalled)
     }
 
     @Test

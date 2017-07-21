@@ -46,8 +46,9 @@ class OperationRunnerImpl(executorService: ExecutorService) : OperationRunner {
     }
 
     private fun <ResultType> newObservable(result : ResultType) : Observable<ResultType> {
-        return Observable.create({
-            emitter -> emitter.onNext(result!!)
+        return Observable.create({ emitter ->
+            emitter.onNext(result!!)
+            emitter.onComplete()
         })
     }
 
