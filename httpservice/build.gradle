@@ -1,0 +1,3 @@
+dependencies {
+    compile group: 'io.ratpack', name: 'ratpack-core', version: "$ratpackVersion"
+}
