@@ -27,13 +27,13 @@ interface AvidMamRetrofitClient {
 
     /**
      * For MAM 5.9 the port needs to be 9900
-     * For MAM 5.9 the port needs to be 9901
+     * For MAM 6.0 the port needs to be 9901
      */
     @GET("/WorkflowLibraryWS/WorkflowLibrary.asmx/FileCopyAsync")
     fun fileCopyAsync(@Query("source") source : String, @Query("dest") dest : String, @Query("overwrite") overwrite: String) : Single<CopyAsyncResponse>
     /**
      * For MAM 5.9 the port needs to be 9900
-     * For MAM 5.9 the port needs to be 9901
+     * For MAM 6.0 the port needs to be 9901
      */
     @GET("/WorkflowLibraryWS/WorkflowLibrary.asmx/FileCopyAsync")
     fun directoryCopyAsync(@Query("source") source : String, @Query("dest") dest : String, @Query("overwrite") overwrite: String) : Single<CopyAsyncResponse>
