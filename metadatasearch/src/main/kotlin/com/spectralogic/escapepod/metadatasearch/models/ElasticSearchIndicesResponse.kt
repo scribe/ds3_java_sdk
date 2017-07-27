@@ -3,9 +3,9 @@ package com.spectralogic.escapepod.metadatasearch.models
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 
-data class ElasticSearchIndicesResponse @JsonCreator constructor(val indices: List<ElasticSearchIndex>)
+internal data class ElasticSearchIndicesResponse @JsonCreator constructor(val indices: List<ElasticSearchIndex>)
 
-data class ElasticSearchIndex @JsonCreator constructor(
+internal data class ElasticSearchIndex @JsonCreator constructor(
         @JsonProperty("index")
         val indexName: String,
 

@@ -26,7 +26,7 @@ class Main {
 
             Runtime.getRuntime().addShutdownHook(injector.getInstance(ShutdownHook::class.java))
 
-            val moduleList = ImmutableList.of(clusterModule, /*persistenceModule*/ metadataSearchModule)
+            val moduleList = ImmutableList.of(clusterModule, persistenceModule, metadataSearchModule)
 
             val moduleInstances = moduleList.stream()
                     .map { injector.getInstance(it.moduleLoader()) }

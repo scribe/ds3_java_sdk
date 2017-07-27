@@ -1,0 +1,8 @@
+{
+    "settings" : {
+        "index" : {
+            "number_of_shards" : %d,
+            "number_of_replicas" : %d
+        }
+    }
+}

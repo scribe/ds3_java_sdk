@@ -12,140 +12,132 @@ interface MetadataSearchServiceProvider : ServiceProvider<MetadataSearchService>
     fun clusterHandler(event: ClusterEvent)
 }
 
+interface MetadataSearchServiceConfigFile {
+    fun createConfigFile()
+}
+
 interface MetadataSearchService {
+
     /***
      * Query the health of the cluster
-     * @return
      */
     fun health(): Single<MetadataSearchHealthResponse>
 
     /***
-     * Create an index in the underline search provider with a default of 5 shards and 2 replicas
+     * Create an index for a BlackPearl in the underline search provider with a default of 5 shards and 2 replicas
      * @param numberOfShard
      * @param numberOfReplicas
-     * @return
      */
-    fun createIndex(index: String, numberOfShard: Int = 5, numberOfReplicas: Int = 2): Completable
+    fun createIndex(blackPearlName: String, numberOfShard: Int = 5, numberOfReplicas: Int = 2): Completable
 
     /***
-     * Update the number of replicas for the given index
-     * @param index
+     * Update the number of replicas for the given BlackPearl index
+     * @param blackPearlName
      * @param numberOfReplicas
-     * @return
      */
-    fun updateIndexNumberOfReplicas(index: String, numberOfReplicas: Int): Completable
+    fun updateIndexNumberOfReplicas(blackPearlName: String, numberOfReplicas: Int): Completable
 
     /***
-     * Get all the indices in the system
+     * Get all the BlackPearl indices in the system
      */
     fun getAllIndices(): Observable<MetadataIndex>
 
     /***
-     * Delete the given index
-     * @param index
-     * @return
+     * Delete the given BlackPearl index from the underline provider
+     * @param blackPearlName
      */
-    fun deleteIndex(index: String): Completable
+    fun deleteIndex(blackPearlName: String): Completable
 
     /***
-     * Delete a document from a bucket
-     * @param index
+     * Delete a document from a bucket in BlackPearl
+     * @param blackPearlName
      * @param bucket
-     * @param id
+     * @param fileName
      */
-    fun deleteDocument(index: String, bucket: String, id: String): Completable
+    fun deleteDocument(blackPearlName: String, bucket: String, fileName: String): Completable
 
     /***
      * Index a document
-     * @param index
+     * @param blackPearlName
      * @param bucket
-     * @param id
+     * @param fileName
      * @param metadata
-     * @return
      */
-    fun indexDocument(index: String, bucket: String, id: String, metadata: Map<String, String>): Completable
+    fun indexDocument(blackPearlName: String, bucket: String, fileName: String,
+                      metadata: Map<String, String>): Completable
 
     /***
-     * Update an index document
-     * @param index
+     * Update the metadata for an indexed document
+     * @param blackPearlName
      * @param bucket
-     * @param id
+     * @param fileName
      * @param metadata
-     * @return
      */
-    fun updateIndexedDocument(index: String, bucket: String, id: String, metadata: Map<String, String>): Completable
+    fun updateIndexedDocument(blackPearlName: String, bucket: String, fileName: String, metadata: Map<String, String>): Completable
 
     /***
-     * Search by id in a bucket
-     * @param index
+     * Return all the indexed documents that satisfy the search by fileName in the given bucket in blackPearlName
+     * @param blackPearlName
      * @param bucket
-     * @param id
-     * @return
+     * @param fileName
      */
-    fun searchById(index: String, bucket: String, id: String): Observable<MetadataSearchHitsNode>
+    fun searchById(blackPearlName: String, bucket: String, fileName: String): Observable<MetadataSearchHitsNode>
 
     /***
-     * Search by id in all the buckets
-     * @param index
-     * @param id
-     * @return
+     * Return all the indexed documents that satisfy the search by fileName in blackPearlName
+     * @param blackPearlName
+     * @param fileName
      */
-    fun searchById(index: String, id: String): Observable<MetadataSearchHitsNode>
+    fun searchById(blackPearlName: String, fileName: String): Observable<MetadataSearchHitsNode>
 
     /***
-     * Search by id in all the system
-     * @param id
+     * Return all the indexed documents that satisfy the search by fileName in all the system
+     * @param fileName
      */
-    fun searchById(id: String): Observable<MetadataSearchHitsNode>
+    fun searchById(fileName: String): Observable<MetadataSearchHitsNode>
 
     /***
-     * Search by metadata in a bucket
-     * @param index
+     * Return all the indexed documents that satisfy the search by metadata in the given buckets in blackPearlName
+     * @param blackPearlName
      * @param bucket
-     * @param key
-     * @param value
-     * @return
+     * @param metadataKey
+     * @param metadataValue
      */
-    fun searchByMetadata(index: String, bucket: String, key: String, value: String): Observable<MetadataSearchHitsNode>
+    fun searchByMetadata(blackPearlName: String, bucket: String, metadataKey: String, metadataValue: String):
+            Observable<MetadataSearchHitsNode>
 
     /***
-     * Search by metadata in all the buckets
-     * @param index
-     * @param key
-     * @param value
-     * @return
+     * Return all the indexed documents that satisfy the search by metadata in blackPearlName
+     * @param blackPearlName
+     * @param metadataKey
+     * @param metadataValue
      */
-    fun searchByMetadata(index: String, key: String, value: String):  Observable<MetadataSearchHitsNode>
+    fun searchByMetadata(blackPearlName: String, metadataKey: String, metadataValue: String):  Observable<MetadataSearchHitsNode>
 
     /***
-     * Search by metadata in all the system
-     * @param key
-     * @param value
+     * Return all the indexed documents that satisfy the search by metadata in all the system
+     * @param metadataKey
+     * @param metadataValue
      */
-    fun searchByMetadata(key: String, value: String): Observable<MetadataSearchHitsNode>
+    fun searchByMetadata(metadataKey: String, metadataValue: String): Observable<MetadataSearchHitsNode>
 
     /***
-     * Return all the indexed documents in a bucket
-     * @param index
+     * Return all the indexed documents for the given bucket in blackPealName
+     * @param blackPearlName
      * @param bucket
      */
-    fun searchByMatchAll(index: String, bucket: String): Observable<MetadataSearchHitsNode>
+    fun searchByMatchAll(blackPearlName: String, bucket: String): Observable<MetadataSearchHitsNode>
 
     /***
-     * Return all the indexed documents in all the buckets
-     * @param index
+     * Return all the indexed documents in all the buckets for the given blackPearlName
+     * @param blackPearlName
      */
-    fun searchByMatchAll(index: String): Observable<MetadataSearchHitsNode>
+    fun searchByMatchAll(blackPearlName: String): Observable<MetadataSearchHitsNode>
 
     /***
      * Return all the indexed documents in all the system
      */
     fun searchByMatchAll(): Observable<MetadataSearchHitsNode>
-
-    /***
-     * Close the connection to the underline search provider
-     */
-    fun closeConnection(): Completable
 }
 
 data class MetadataSearchHealthResponse(val clusterName: String, val status: String)
