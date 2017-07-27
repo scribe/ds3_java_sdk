@@ -5,10 +5,11 @@ import com.spectralogic.escapepod.cluster.models.ClusterConfigProto
 import com.spectralogic.escapepod.cluster.models.Url
 import com.spectralogic.escapepod.util.resource.Resource
 import org.slf4j.LoggerFactory
+import java.util.*
 import javax.inject.Inject
 
 interface ClusterConfigService {
-    fun createConfig(clusterName : String)
+    fun createConfig(clusterName : String, nodeId: UUID)
     fun getConfig() : ClusterConfigProto.ClusterConfig?
     fun addNode(node : ClusterNode)
     fun removeNode(node : ClusterNode)
@@ -21,13 +22,13 @@ class ClusterConfigServiceImpl @Inject constructor(private val clusterConfigReso
         private val LOG = LoggerFactory.getLogger(ClusterConfigServiceImpl::class.java)
     }
 
-    override fun createConfig(clusterName: String) {
+    override fun createConfig(clusterName: String, nodeId : UUID) {
         LOG.info("Creating cluster config")
-        clusterConfigResource.saveResource(createClusterConfig(clusterName))
+        clusterConfigResource.saveResource(createClusterConfig(clusterName, nodeId))
     }
 
-    private fun createClusterConfig(clusterName: String) : ClusterConfigProto.ClusterConfig {
-         return ClusterConfigProto.ClusterConfig.newBuilder().setName(clusterName).build()
+    private fun createClusterConfig(clusterName: String, nodeId: UUID) : ClusterConfigProto.ClusterConfig {
+         return ClusterConfigProto.ClusterConfig.newBuilder().setName(clusterName).setNodeId(nodeId.toString()).build()
     }
 
     override fun getConfig(): ClusterConfigProto.ClusterConfig? {

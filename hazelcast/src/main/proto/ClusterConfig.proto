@@ -8,10 +8,11 @@ import "Url.proto";
 
 message ClusterConfig {
     string name = 1;
+    string nodeId = 2;
 
     message ClusterNode {
         URL host = 1;
     }
 
-    repeated ClusterNode nodes = 2;
+    repeated ClusterNode nodes = 3;
 }

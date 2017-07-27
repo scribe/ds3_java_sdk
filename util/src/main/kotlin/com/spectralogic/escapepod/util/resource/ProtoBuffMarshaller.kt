@@ -11,6 +11,7 @@ class ProtoBuffMarshaller<T : Message>(
         resource.writeTo(outStream)
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun loadResource(inStream: InputStream): T {
         return builderFunction.invoke().mergeFrom(inStream).build() as T
     }

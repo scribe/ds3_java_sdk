@@ -1,0 +1,5 @@
+dependencies {
+    compile "org.jetbrains.xodus:xodus-openAPI:$xodusVersion"
+    compile "org.jetbrains.xodus:xodus-entity-store:$xodusVersion"
+    compile project(":api")
+}

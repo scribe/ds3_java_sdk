@@ -18,7 +18,7 @@ class PersistenceModule : Module<PersistenceModuleLoader> {
     }
 }
 
-class PersistenceModuleLoader @Inject constructor(private val clusterServiceProvider: ClusterServiceProvider, private val persistenceServiceProvider: PersistenceServiceProvider) : ModuleLoader {
+class PersistenceModuleLoader @Inject internal constructor(private val clusterServiceProvider: ClusterServiceProvider, private val persistenceServiceProvider: MongoPersistenceProvider) : ModuleLoader {
     override fun loadModule(): Completable {
         return Completable.create { emitter ->
 

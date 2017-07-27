@@ -1,1 +1,1 @@
-include 'api', 'localcache', 'hazelcast', 'util', 'diva', 'gui', 'planner', 'server', 'bpclient', 'scheduler', 'mongopersistence', 'metadatasearch'
+include 'api', 'avidmamclient', 'localcache', 'hazelcast', 'restclientutils', 'util', 'gui', 'planner', 'server', 'bpclient', 'scheduler', 'divaclient', 'flashnetclient', 'migrate', 'xoduspersistence', 'mongopersistence', 'httpservice', 'metadatasearch'
