@@ -9,6 +9,7 @@ interface ModuleRegistration<T : Module> {
 }
 
 interface Module {
+    val name : String
     fun loadModule() : Completable
     fun startModule() : Completable
     fun shutdownModule() : Completable

@@ -14,6 +14,9 @@ class PersistenceModuleRegistration : ModuleRegistration<PersistenceModule> {
 }
 
 class PersistenceModule @Inject internal constructor(private val clusterServiceProvider: ClusterServiceProvider, private val persistenceServiceProvider: XodusPersistenceProvider) : Module {
+
+    override val name: String = "Persistence"
+
     override fun loadModule(): Completable {
         return Completable.create { emitter ->
 

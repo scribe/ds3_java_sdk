@@ -18,6 +18,8 @@ class ClusterModule @Inject constructor(private val clusterServiceProvider: Clus
         private val LOG = LoggerFactory.getLogger(ClusterModule::class.java)
     }
 
+    override val name: String = "Cluster"
+
     override fun loadModule(): Completable {
 
         return Completable.create { emitter ->

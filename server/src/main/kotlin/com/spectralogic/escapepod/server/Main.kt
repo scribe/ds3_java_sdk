@@ -27,4 +27,7 @@ fun main(arg: Array<String>) {
     // 2 stage loading of the modules
     Completable.merge(moduleLoaders.map { it.loadModule()}).subscribe()
     Completable.merge(moduleLoaders.map { it.startModule() }).subscribe()
+
 }
+
+
