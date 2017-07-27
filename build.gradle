@@ -79,7 +79,7 @@ subprojects {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.0'
+    gradleVersion = '4.0.2'
 }
 
 project (":api") {
@@ -159,13 +159,21 @@ project(":server") {
         compile project(":localcache")
         compile project(":scheduler")
         compile project(":xoduspersistence")
-        compile project(":httpservice")
+	compile project(":metadatasearch")
+	compile project(":httpservice")
     }
 }
 
 project(":scheduler") {
     dependencies {
         compile project(":api")
+    }
+}
+
+project(":metadatasearch") {
+    dependencies {
+        compile project(":api")
+        compile project(":util")
     }
 }
 

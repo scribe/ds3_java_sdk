@@ -5,6 +5,8 @@ import com.google.inject.Guice
 import com.spectra.escapepod.http.HttpModuleRegistration
 import com.spectralogic.escapepod.cluster.ClusterModuleRegistration
 import com.spectralogic.escapepod.persistence.PersistenceModuleRegistration
+import com.spectralogic.escapepod.metadatasearch.MetadataSearchModuleRegistration
+
 import com.spectralogic.escapepod.util.collections.GuavaCollectors
 import io.reactivex.Completable
 
@@ -13,10 +15,12 @@ fun main(arg: Array<String>) {
     val clusterModule = ClusterModuleRegistration()
     val persistenceModule = PersistenceModuleRegistration()
     val httpModule = HttpModuleRegistration()
+    val metadataSearchModule = MetadataSearchModuleRegistration()
 
-    val injector = Guice.createInjector(ServerModule(), clusterModule.guiceModule(), persistenceModule.guiceModule(), httpModule.guiceModule())
 
-    val moduleList = ImmutableList.of(clusterModule, persistenceModule, httpModule)
+    val injector = Guice.createInjector(ServerModule(), clusterModule.guiceModule(), persistenceModule.guiceModule(), metadataSearchModule.guiceModule(), httpModule.guiceModule())
+
+    val moduleList = ImmutableList.of(clusterModule, persistenceModule, metadataSearchModule, httpModule)
 
     val moduleLoaders = moduleList.stream()
             .map { injector.getInstance(it.module()) }
