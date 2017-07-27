@@ -3,12 +3,13 @@ package com.spectralogic.escapepod.api
 import com.google.inject.AbstractModule
 import io.reactivex.Completable
 
-interface Module<T : ModuleLoader> {
-    fun moduleLoader() : Class<T>
+interface ModuleRegistration<T : Module> {
+    fun module() : Class<T>
     fun guiceModule() : AbstractModule
 }
 
-interface ModuleLoader {
+interface Module {
     fun loadModule() : Completable
     fun startModule() : Completable
+    fun shutdownModule() : Completable
 }

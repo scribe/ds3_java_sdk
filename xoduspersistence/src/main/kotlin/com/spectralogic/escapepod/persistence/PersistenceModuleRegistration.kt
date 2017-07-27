@@ -2,18 +2,18 @@ package com.spectralogic.escapepod.persistence
 
 import com.google.inject.AbstractModule
 import com.spectralogic.escapepod.api.ClusterServiceProvider
+import com.spectralogic.escapepod.api.ModuleRegistration
 import com.spectralogic.escapepod.api.Module
-import com.spectralogic.escapepod.api.ModuleLoader
 import io.reactivex.Completable
 import javax.inject.Inject
 
-class PersistenceModule : Module<PersistenceModuleLoader> {
-    override fun moduleLoader(): Class<PersistenceModuleLoader> = PersistenceModuleLoader::class.java
+class PersistenceModuleRegistration : ModuleRegistration<PersistenceModule> {
+    override fun module(): Class<PersistenceModule> = PersistenceModule::class.java
 
     override fun guiceModule(): AbstractModule = XodusPersistenceGuiceModule()
 }
 
-class PersistenceModuleLoader @Inject internal constructor(private val clusterServiceProvider: ClusterServiceProvider, private val persistenceServiceProvider: XodusPersistenceProvider) : ModuleLoader {
+class PersistenceModule @Inject internal constructor(private val clusterServiceProvider: ClusterServiceProvider, private val persistenceServiceProvider: XodusPersistenceProvider) : Module {
     override fun loadModule(): Completable {
         return Completable.create { emitter ->
 
@@ -24,4 +24,7 @@ class PersistenceModuleLoader @Inject internal constructor(private val clusterSe
     }
 
     override fun startModule(): Completable = persistenceServiceProvider.startService()
+
+    override fun shutdownModule(): Completable = persistenceServiceProvider.shutdown()
+
 }

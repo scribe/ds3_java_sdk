@@ -15,7 +15,6 @@ class ServerModule : AbstractModule() {
     private val workers: ExecutorService = ForkJoinPool.commonPool()
 
     override fun configure() {
-        bind(ShutdownHook::class.java).`in`(Singleton::class.java)
     }
 
     @Provides
