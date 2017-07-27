@@ -46,6 +46,8 @@ subprojects {
         compile "com.google.inject:guice:$guiceVersion"
         compile "com.google.inject.extensions:guice-assistedinject:$guiceVersion"
         compile group: 'org.slf4j', name: 'slf4j-api', version: "$slf4jVersion"
+        compile 'ch.qos.logback:logback-core:1.2.3'
+        compile 'ch.qos.logback:logback-classic:1.2.3'
         compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
         compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.14.1'
         compile 'org.jetbrains.kotlinx:kotlinx-coroutines-nio:0.14.1'
@@ -159,13 +161,21 @@ project(":server") {
         compile project(":localcache")
         compile project(":scheduler")
         compile project(":xoduspersistence")
-        compile project(":httpservice")
+	compile project(":metadatasearch")
+	compile project(":httpservice")
     }
 }
 
 project(":scheduler") {
     dependencies {
         compile project(":api")
+    }
+}
+
+project(":metadatasearch") {
+    dependencies {
+        compile project(":api")
+        compile project(":util")
     }
 }
 

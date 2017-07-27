@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList
 import com.google.inject.Guice
 import com.spectra.escapepod.http.HttpModule
 import com.spectralogic.escapepod.cluster.ClusterModule
+import com.spectralogic.escapepod.metadatasearch.MetadataSearchModule
 import com.spectralogic.escapepod.persistence.PersistenceModule
 import com.spectralogic.escapepod.util.collections.GuavaCollectors
 
@@ -18,20 +19,21 @@ class Main {
             val clusterModule = ClusterModule()
             val persistenceModule = PersistenceModule()
             val httpModule = HttpModule()
+            val metadataSearchModule = MetadataSearchModule()
 
-            val injector = Guice.createInjector(ServerModule(), clusterModule.guiceModule(), persistenceModule.guiceModule(), httpModule.guiceModule())
+            val injector = Guice.createInjector(ServerModule(), clusterModule.guiceModule(), persistenceModule.guiceModule(), httpModule.guiceModule(), metadataSearchModule.guiceModule())
 
             Runtime.getRuntime().addShutdownHook(injector.getInstance(ShutdownHook::class.java))
 
-            val moduleList = ImmutableList.of(clusterModule, persistenceModule, httpModule)
+            val moduleList = ImmutableList.of(clusterModule, persistenceModule, metadataSearchModule)
 
             val moduleInstances = moduleList.stream()
                     .map { injector.getInstance(it.moduleLoader()) }
                     .collect(GuavaCollectors.immutableList())
 
             // 2 stage loading of the modules
-            moduleInstances.forEach { it.loadModule() }
-            moduleInstances.forEach { it.startModule() }
+            moduleInstances.forEach { it.loadModule().subscribe() }
+            moduleInstances.forEach { it.startModule().subscribe() }
 
         }
     }

@@ -1,0 +1,6 @@
+cluster.name: localCluster
+node.name: node1
+network.host: 127.0.0.1
+http.port: 9200
+discovery.zen.ping.unicast.hosts: []
+discovery.zen.minimum_master_nodes: 1
