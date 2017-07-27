@@ -7,17 +7,22 @@ import com.spectralogic.escapepod.api.ClusterLeftEvent
 import com.spectralogic.escapepod.api.WebService
 import com.spectralogic.escapepod.api.WebServiceProvider
 import io.reactivex.Completable
+import org.slf4j.LoggerFactory
 import ratpack.handling.Handler
-import ratpack.registry.Registry
 import ratpack.server.RatpackServer
 
-internal class HttpProvider @Inject constructor (@Named("managementPort") val port:Int, val rootHandler:RootHandler): WebServiceProvider {
+internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootHandler : RootHandler) : WebServiceProvider {
+
+    private companion object {
+        private val LOG = LoggerFactory.getLogger(HttpProvider::class.java)
+    }
 
     var server : RatpackServer? = null
     val httpRouter : HttpRouter = HttpRouter()
 
     override fun shutdown(): Completable {
         return Completable.create { emitter ->
+            LOG.info("Stopping http server")
             server?.stop()
             emitter.onComplete()
         }
@@ -25,7 +30,7 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") val po
 
     override fun startService(): Completable {
         return Completable.create { emitter ->
-
+            LOG.info("Starting http server")
             server = RatpackServer.start { server ->
                 server.serverConfig {
                     it.port(port)
@@ -39,7 +44,7 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") val po
         }
     }
 
-    fun clusterHandler(event: ClusterEvent): Unit {
+    fun clusterHandler(event: ClusterEvent) {
         when(event) {
             is ClusterLeftEvent -> shutdown().subscribe()
         }
@@ -52,8 +57,8 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") val po
 
 }
 
-internal class HttpRouter() {
-    private val list : MutableList<Handler> = ArrayList<Handler>()
+internal class HttpRouter {
+    private val list : MutableList<Handler> = ArrayList()
     fun register(handler: Handler) {
         list.add(handler )
     }

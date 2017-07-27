@@ -8,13 +8,9 @@ import io.reactivex.Completable
 import javax.inject.Inject
 
 class PersistenceModule : Module<PersistenceModuleLoader> {
-    override fun moduleLoader(): Class<PersistenceModuleLoader> {
-        return PersistenceModuleLoader::class.java
-    }
+    override fun moduleLoader(): Class<PersistenceModuleLoader> = PersistenceModuleLoader::class.java
 
-    override fun guiceModule(): AbstractModule {
-        return XodusPersistenceGuiceModule()
-    }
+    override fun guiceModule(): AbstractModule = XodusPersistenceGuiceModule()
 }
 
 class PersistenceModuleLoader @Inject internal constructor(private val clusterServiceProvider: ClusterServiceProvider, private val persistenceServiceProvider: XodusPersistenceProvider) : ModuleLoader {
@@ -26,4 +22,6 @@ class PersistenceModuleLoader @Inject internal constructor(private val clusterSe
             emitter.onComplete()
         }
     }
+
+    override fun startModule(): Completable = persistenceServiceProvider.startService()
 }

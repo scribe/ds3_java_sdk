@@ -8,14 +8,9 @@ import io.reactivex.Completable
 import javax.inject.Inject
 
 class HttpModule : Module<HttpModuleLoader> {
-    override fun moduleLoader(): Class<HttpModuleLoader> {
-        return HttpModuleLoader::class.java
-    }
+    override fun moduleLoader(): Class<HttpModuleLoader> = HttpModuleLoader::class.java
 
-    override fun guiceModule(): AbstractModule {
-        return HttpGuiceModule()
-    }
-
+    override fun guiceModule(): AbstractModule = HttpGuiceModule()
 }
 
 class HttpModuleLoader @Inject internal constructor(private val clusterServiceProvider: ClusterServiceProvider, private val httpServiceProvider: HttpProvider): ModuleLoader {
@@ -26,4 +21,5 @@ class HttpModuleLoader @Inject internal constructor(private val clusterServicePr
         }
     }
 
+    override fun startModule(): Completable = httpServiceProvider.startService()
 }

@@ -30,37 +30,36 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
             }
         }
 
-        chain.get { ctx ->
-            clusterServiceProvider.getService().name().doOnSuccess { name ->
-                ctx.render(name)
-            }.doOnError { t ->
-                LOG.error("Failed to get cluster name", t)
-                ctx.response.status(400).send("The cluster is not responding")
-            }.observeOn(scheduler).subscribe()
-        }
+        chain.all { ctx -> ctx.byMethod {
 
-        chain.post { ctx ->
-            if ("name" in ctx.request.queryParams) {
-                createCluster(ctx)
-            } else if ("ip" in ctx.request.queryParams) {
-                joinCluster(ctx)
-            } else {
-                ctx.response.status(400).send("The request must have either name or ip set")
-            }
-        }
+            it.get {
 
-        chain.delete { ctx ->
-            clusterServiceProvider.leaveCluster().doOnComplete {
-                ctx.response.status(204).send("Successfully removed from cluster")
+                clusterServiceProvider.getService().name().doOnSuccess { name ->
+                    ctx.render(name)
+                }.doOnError { t ->
+                    LOG.error("Failed to get cluster name", t)
+                    ctx.response.status(400).send("The cluster is not responding")
+                }.observeOn(scheduler).subscribe()
             }
-                    .doOnError {
-                        ctx.response.status(400).send("Failed to remove system from cluster")
-                    }
-                    .observeOn(scheduler).subscribe()
-        }
-        chain.all {
-            it.context.response.status(405).send("Method not implimentd")
-        }
+
+            it.post {
+                when {
+                    "name" in ctx.request.queryParams -> createCluster(ctx)
+                    "ip" in ctx.request.queryParams -> joinCluster(ctx)
+                    else -> ctx.response.status(400).send("The request must have either name or ip set")
+                }
+            }
+
+            it.delete {
+                clusterServiceProvider.leaveCluster().doOnComplete {
+                    ctx.response.status(204).send("Successfully removed from cluster")
+                }
+                .doOnError {
+                    ctx.response.status(400).send("Failed to remove system from cluster")
+                }
+                .observeOn(scheduler).subscribe()
+            }
+        } }
     }
 
     private fun joinCluster(ctx: Context) {

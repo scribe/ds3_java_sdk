@@ -5,7 +5,7 @@ import com.google.inject.Singleton
 import com.spectralogic.escapepod.api.WebServiceProvider
 import ratpack.server.RatpackServerSpec
 
-internal class HttpGuiceModule() : AbstractModule() {
+internal class HttpGuiceModule : AbstractModule() {
     override fun configure() {
         bind(WebServiceProvider::class.java).to(HttpProvider::class.java).`in`(Singleton::class.java)
         bind(RootHandler::class.java).`in`(Singleton::class.java)
