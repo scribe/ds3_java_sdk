@@ -20,7 +20,7 @@ class Main {
             val persistenceModule = PersistenceModule()
             val httpModule = HttpModule()
             val metadataSearchModule = MetadataSearchModule()
-	    
+
             val injector = Guice.createInjector(ServerModule(), clusterModule.guiceModule(), persistenceModule.guiceModule(), httpModule.guiceModule(), metadataSearchModule.guiceModule())
 
             Runtime.getRuntime().addShutdownHook(injector.getInstance(ShutdownHook::class.java))
