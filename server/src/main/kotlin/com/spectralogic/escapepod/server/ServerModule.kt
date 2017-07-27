@@ -15,32 +15,25 @@ class ServerModule : AbstractModule() {
     private val workers: ExecutorService = ForkJoinPool.commonPool()
 
     override fun configure() {
-        bind(Server::class.java).to(EscapePodServer::class.java)
-
-        bind(ShutdownHook::class.java).`in`(Singleton::class.java)
     }
 
     @Provides
     @Named("dataDir")
-    fun dataDir(@Named("baseDir") baseDir: Path) : Path {
-        return baseDir.resolve("data")
-    }
+    fun dataDir(@Named("baseDir") baseDir: Path) : Path = baseDir.resolve("data")
 
     @Provides
     @Named("configDir")
-    fun configDir(@Named("baseDir") baseDir : Path) : Path {
-        return baseDir.resolve("config")
-    }
+    fun configDir(@Named("baseDir") baseDir : Path) : Path = baseDir.resolve("config")
 
     @Provides
     @Named("baseDir")
     fun baseDir() : Path {
         val dataDirName = System.getenv()["baseDir"]
 
-        if (dataDirName == null) {
-            return Paths.get(System.getProperty("user.dir"), ".escapepod")
+        return if (dataDirName == null) {
+            Paths.get(System.getProperty("user.dir"), ".escapepod")
         } else {
-            return Paths.get(dataDirName)
+            Paths.get(dataDirName)
         }
     }
 
@@ -60,9 +53,7 @@ class ServerModule : AbstractModule() {
 
     @Provides
     @Named("interfaceIp")
-    fun interfaceIp() : String {
-        return System.getenv()["interfaceIp"]?: "127.0.0.1"
-    }
+    fun interfaceIp() : String = System.getenv()["interfaceIp"]?: "127.0.0.1"
 
     @Provides
     @Named("persistencePort")
@@ -78,8 +69,6 @@ class ServerModule : AbstractModule() {
     }
 
     @Provides
-    fun workers() : ExecutorService {
-        return workers
-    }
+    fun workers() : ExecutorService = workers
 
 }

@@ -6,6 +6,7 @@ import jetbrains.exodus.entitystore.PersistentEntityStore
 import jetbrains.exodus.entitystore.PersistentEntityStores
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import javax.inject.Inject
@@ -23,13 +24,13 @@ internal class XodusPersistenceProvider
         private val LOG = LoggerFactory.getLogger(XodusPersistenceProvider::class.java)
     }
 
-    private lateinit var entityStore : PersistentEntityStore
+    private var entityStore : PersistentEntityStore? = null
     private var xodusService : PersistenceService? = null
 
 
     override fun shutdown(): Completable {
         return Completable.create { emitter ->
-            entityStore.close()
+            entityStore?.close()
             emitter.onComplete()
         }
     }
@@ -37,12 +38,15 @@ internal class XodusPersistenceProvider
     override fun startService(): Completable {
         return Completable.create { emitter ->
             LOG.info("Starting Xodus Service")
-            if(Files.exists(dataDir) && Files.isDirectory(dataDir) && Files.isReadable(dataDir) && Files.isWritable(dataDir)) {
+
+            try {
+                Files.createDirectories(dataDir)
                 entityStore = PersistentEntityStores.newInstance(dataDir.toFile())
-                xodusService = XodusPersistenceService(entityStore)
+                xodusService = XodusPersistenceService(entityStore!!)
                 emitter.onComplete()
-            } else {
-                emitter.onError(Exception("Failed to start Xodus, could not access ${dataDir.toAbsolutePath().toString()}"))
+            } catch (e : IOException) {
+                LOG.error("Failed to access data directory for Xodus", e)
+                emitter.onError(e)
             }
         }
     }
@@ -61,7 +65,7 @@ internal class XodusPersistenceProvider
         TODO("not implemented")
     }
 
-    fun clusterHandler(event: ClusterEvent): Unit {
+    fun clusterHandler(event: ClusterEvent) {
         when(event) {
             is ClusterCreatedEvent -> {
                 val createNewPersistenceCluster = createNewPersistenceCluster(event.clusterName, persistencePort)
@@ -77,17 +81,10 @@ internal class XodusPersistenceProvider
                             LOG.error("Failed to join existing xodus cluster", t)
                         }.subscribe()
             }
-            is ClusterStartupEvent -> {
-                startup().subscribe()
-            }
             is ClusterLeftEvent -> {
                 shutdown().subscribe()
             }
         }
-    }
-
-    private fun  startup(): Completable {
-        return Completable.complete()
     }
 
 }

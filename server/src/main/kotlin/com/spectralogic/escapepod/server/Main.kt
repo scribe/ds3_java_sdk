@@ -2,39 +2,36 @@ package com.spectralogic.escapepod.server
 
 import com.google.common.collect.ImmutableList
 import com.google.inject.Guice
-import com.spectra.escapepod.http.HttpModule
-import com.spectralogic.escapepod.cluster.ClusterModule
-import com.spectralogic.escapepod.metadatasearch.MetadataSearchModule
-import com.spectralogic.escapepod.persistence.PersistenceModule
+import com.spectra.escapepod.http.HttpModuleRegistration
+import com.spectralogic.escapepod.cluster.ClusterModuleRegistration
+import com.spectralogic.escapepod.persistence.PersistenceModuleRegistration
+import com.spectralogic.escapepod.metadatasearch.MetadataSearchModuleRegistration
+
 import com.spectralogic.escapepod.util.collections.GuavaCollectors
+import io.reactivex.Completable
+
+fun main(arg: Array<String>) {
+
+    val clusterModule = ClusterModuleRegistration()
+    val persistenceModule = PersistenceModuleRegistration()
+    val httpModule = HttpModuleRegistration()
+    val metadataSearchModule = MetadataSearchModuleRegistration()
 
 
-class Main {
+    val injector = Guice.createInjector(ServerModule(), clusterModule.guiceModule(), persistenceModule.guiceModule(), metadataSearchModule.guiceModule(), httpModule.guiceModule())
 
-    companion object {
+    val moduleList = ImmutableList.of(clusterModule, persistenceModule, metadataSearchModule, httpModule)
 
-        @JvmStatic
-        fun main(arg: Array<String>) {
+    val moduleLoaders = moduleList.stream()
+            .map { injector.getInstance(it.module()) }
+            .collect(GuavaCollectors.immutableList())
 
-            val clusterModule = ClusterModule()
-            val persistenceModule = PersistenceModule()
-            val httpModule = HttpModule()
-            val metadataSearchModule = MetadataSearchModule()
+    Runtime.getRuntime().addShutdownHook(ShutdownHook(moduleLoaders))
 
-            val injector = Guice.createInjector(ServerModule(), clusterModule.guiceModule(), persistenceModule.guiceModule(), httpModule.guiceModule(), metadataSearchModule.guiceModule())
+    // 2 stage loading of the modules
+    Completable.merge(moduleLoaders.map { it.loadModule()}).subscribe()
+    Completable.merge(moduleLoaders.map { it.startModule() }).subscribe()
 
-            Runtime.getRuntime().addShutdownHook(injector.getInstance(ShutdownHook::class.java))
-
-            val moduleList = ImmutableList.of(clusterModule, persistenceModule, metadataSearchModule)
-
-            val moduleInstances = moduleList.stream()
-                    .map { injector.getInstance(it.moduleLoader()) }
-                    .collect(GuavaCollectors.immutableList())
-
-            // 2 stage loading of the modules
-            moduleInstances.forEach { it.loadModule().subscribe() }
-            moduleInstances.forEach { it.startModule().subscribe() }
-
-        }
-    }
 }
+
+

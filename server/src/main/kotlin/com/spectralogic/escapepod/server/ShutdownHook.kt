@@ -1,12 +1,10 @@
 package com.spectralogic.escapepod.server
 
-import com.spectralogic.escapepod.api.ClusterServiceProvider
-import com.spectralogic.escapepod.api.PersistenceServiceProvider
+import com.spectralogic.escapepod.api.Module
 import io.reactivex.Completable
 import org.slf4j.LoggerFactory
-import javax.inject.Inject
 
-class ShutdownHook @Inject constructor(private val persistenceServiceProvider: PersistenceServiceProvider, private val clusterServiceProvider: ClusterServiceProvider) : Thread() {
+class ShutdownHook constructor(private val modules : Iterable<Module>) : Thread("module-shutdown-hook") {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(ShutdownHook::class.java)
@@ -14,11 +12,11 @@ class ShutdownHook @Inject constructor(private val persistenceServiceProvider: P
 
     override fun run() {
 
-        LOG.info("Shutting down all dependant services")
+        LOG.info("Shutting down all modules")
 
-        Completable.mergeArray(persistenceServiceProvider.shutdown(), clusterServiceProvider.shutdown())
+        Completable.merge(modules.map { it.shutdownModule() })
                 .doOnError { t ->
-                    LOG.error("Failed to shutdown services", t)
+                    LOG.error("Failed to shutdown modules", t)
                 }
                 .subscribe()
     }

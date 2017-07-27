@@ -6,21 +6,19 @@ import io.reactivex.Completable
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
 
-class ClusterModule : Module<ClusterModuleLoader> {
-    override fun moduleLoader(): Class<ClusterModuleLoader> {
-        return ClusterModuleLoader::class.java
-    }
+class ClusterModuleRegistration : ModuleRegistration<ClusterModule> {
+    override fun module(): Class<ClusterModule> = ClusterModule::class.java
 
-    override fun guiceModule(): AbstractModule {
-        return HazelcastGuiceModule()
-    }
+    override fun guiceModule(): AbstractModule = HazelcastGuiceModule()
 }
 
-class ClusterModuleLoader @Inject constructor(private val clusterServiceProvider: ClusterServiceProvider) : ModuleLoader {
+class ClusterModule @Inject constructor(private val clusterServiceProvider: ClusterServiceProvider) : Module {
 
     private companion object {
-        private val LOG = LoggerFactory.getLogger(ClusterModuleLoader::class.java)
+        private val LOG = LoggerFactory.getLogger(ClusterModule::class.java)
     }
+
+    override val name: String = "Cluster"
 
     override fun loadModule(): Completable {
 
@@ -44,4 +42,6 @@ class ClusterModuleLoader @Inject constructor(private val clusterServiceProvider
         LOG.info("Starting the cluster module")
         return clusterServiceProvider.startService()
     }
+
+    override fun shutdownModule(): Completable = clusterServiceProvider.shutdown()
 }
