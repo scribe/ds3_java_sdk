@@ -105,12 +105,6 @@ project(":xoduspersistence") {
     }
 }
 
-project(":mongopersistence") {
-    dependencies {
-        compile project(":api")
-    }
-}
-
 project(":hazelcast") {
     dependencies {
         compile project(":api")
@@ -159,7 +153,6 @@ project(":server") {
         compile project(":localcache")
         compile project(":scheduler")
         compile project(":xoduspersistence")
-	compile project(":metadatasearch")
 	compile project(":httpservice")
     }
 }
@@ -167,13 +160,6 @@ project(":server") {
 project(":scheduler") {
     dependencies {
         compile project(":api")
-    }
-}
-
-project(":metadatasearch") {
-    dependencies {
-        compile project(":api")
-        compile project(":util")
     }
 }
 
