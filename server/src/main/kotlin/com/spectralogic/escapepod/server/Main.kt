@@ -1,36 +1,26 @@
 package com.spectralogic.escapepod.server
 
-import com.google.common.collect.ImmutableList
 import com.google.inject.Guice
-import com.spectra.escapepod.http.HttpModuleRegistration
-import com.spectralogic.escapepod.cluster.ClusterModuleRegistration
-import com.spectralogic.escapepod.persistence.PersistenceModuleRegistration
-import com.spectralogic.escapepod.metadatasearch.MetadataSearchModuleRegistration
+import com.spectralogic.escapepod.api.ModuleRegistration
 
-import com.spectralogic.escapepod.util.collections.GuavaCollectors
+import com.spectralogic.escapepod.util.collections.toImmutableList
 import io.reactivex.Completable
 
 fun main(arg: Array<String>) {
 
-    val clusterModule = ClusterModuleRegistration()
-    val persistenceModule = PersistenceModuleRegistration()
-    val httpModule = HttpModuleRegistration()
-    val metadataSearchModule = MetadataSearchModuleRegistration()
+    val moduleLoader = ModuleLoaderImpl()
 
+    val loadedModules = moduleLoader.loadModules()
 
-    val injector = Guice.createInjector(ServerModule(), clusterModule.guiceModule(), persistenceModule.guiceModule(), metadataSearchModule.guiceModule(), httpModule.guiceModule())
+    val injector = Guice.createInjector(loadedModules.map(ModuleRegistration<*>::guiceModule).asIterable())
 
-    val moduleList = ImmutableList.of(clusterModule, persistenceModule, metadataSearchModule, httpModule)
+    val moduleInstances = loadedModules.map(ModuleRegistration<*>::module).map { injector.getInstance(it) }.toImmutableList()
 
-    val moduleLoaders = moduleList.stream()
-            .map { injector.getInstance(it.module()) }
-            .collect(GuavaCollectors.immutableList())
-
-    Runtime.getRuntime().addShutdownHook(ShutdownHook(moduleLoaders))
+    Runtime.getRuntime().addShutdownHook(ShutdownHook(moduleInstances))
 
     // 2 stage loading of the modules
-    Completable.merge(moduleLoaders.map { it.loadModule()}).subscribe()
-    Completable.merge(moduleLoaders.map { it.startModule() }).subscribe()
+    Completable.merge(moduleInstances.map { it.loadModule()}).subscribe()
+    Completable.merge(moduleInstances.map { it.startModule() }).subscribe()
 
 }
 

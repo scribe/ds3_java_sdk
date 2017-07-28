@@ -20,7 +20,7 @@ public final class GuavaCollectors {
     return Collector.of(ImmutableSet.Builder::new, ImmutableSet.Builder::add,
         (l, r) -> l.addAll(r.build()), ImmutableSet.Builder<T>::build, UNORDERED);
   }
-  
+
   private GuavaCollectors() {
     throw new AssertionError("No instances.");
   }

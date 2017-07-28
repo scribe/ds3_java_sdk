@@ -10,7 +10,7 @@ import java.util.concurrent.ForkJoinPool
 import javax.inject.Named
 import javax.inject.Singleton
 
-class ServerModule : AbstractModule() {
+class ServerGuiceModule : AbstractModule() {
 
     private val workers: ExecutorService = ForkJoinPool.commonPool()
 
