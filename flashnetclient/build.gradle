@@ -8,4 +8,7 @@ dependencies {
     testCompile group: 'com.fasterxml.jackson.module', name: 'jackson-module-jaxb-annotations', version: '2.6.7'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.7'
     testCompile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.7'
+    compile group: 'com.fasterxml', name: 'jackson-xml-databind', version: '0.6.2'
+
+
 }
