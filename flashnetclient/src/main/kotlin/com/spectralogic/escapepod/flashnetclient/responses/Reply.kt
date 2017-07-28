@@ -15,10 +15,21 @@
 
 package com.spectralogic.escapepod.flashnetclient.responses
 
-import com.fasterxml.jackson.xml.annotate.JacksonXmlProperty
+import org.simpleframework.xml.Attribute
 
-data class Reply(@JacksonXmlProperty(localName = "Version", isAttribute = true) val Version : String,
-                 @JacksonXmlProperty(localName = "Status", isAttribute = true) val Status : String,
-                 @JacksonXmlProperty(localName = "Error", isAttribute = true) val Error : String,
-                 @JacksonXmlProperty(localName = "RequestId", isAttribute = true) val RequestId : Int)
+data class Reply(@field:Attribute(name = "Version", required = false)
+                 @param:Attribute(name = "Version", required = false)
+                 val Version : String?,
 
+                 @field:Attribute(name = "Status", required = false)
+                 @param:Attribute(name = "Status", required = false)
+                 val Status : String?,
+
+
+                 @field:Attribute(name = "Error", required = false)
+                 @param:Attribute(name = "Error", required = false)
+                 val Error : String?,
+
+                 @field:Attribute(name = "RequestId", required = false)
+                 @param:Attribute(name = "RequestId", required = false)
+                 val RequestId : Int?)

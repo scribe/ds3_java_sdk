@@ -2,13 +2,5 @@ dependencies {
     compile "com.squareup.retrofit2:retrofit:$retrofitVersion"
     compile group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: "$retrofitVersion"
 
-    compile group: 'org.codehaus.woodstox', name: 'stax2-api', version: '4.0.0'
-    testCompile group: 'org.codehaus.woodstox', name: 'stax2-api', version: '4.0.0'
-    compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-jaxb-annotations', version: '2.6.7'
-    testCompile group: 'com.fasterxml.jackson.module', name: 'jackson-module-jaxb-annotations', version: '2.6.7'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.7'
-    testCompile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.7'
-    compile group: 'com.fasterxml', name: 'jackson-xml-databind', version: '0.6.2'
-
-
+    compile group: 'org.simpleframework', name: 'simple-xml', version: '2.7.1'
 }

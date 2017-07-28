@@ -61,4 +61,41 @@ class Responses_Test {
         assertEquals(reply.Status, "Passed")
         assertEquals(reply.Version, "6.3.00.0")
     }
+
+    @Test
+    fun testRehydratingResponseLeavingSomestuffOut() {
+        val socketPortTuple = bindToUnusedPort()
+
+        if (socketPortTuple.socket == null) {
+            fail("Could not bind a server socket.")
+        }
+
+        val countDownLatch = CountDownLatch(1)
+
+        val orginalXmlResponseString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Reply Status=\"Passed\" Error=\"No error\" />"
+
+        val responsePayload = " FlashNet XML " + orginalXmlResponseString.length + " " + orginalXmlResponseString
+
+        kotlin.concurrent.thread(start = true, isDaemon = false, contextClassLoader = null, name = "Server Socket", priority = -1,
+                block = {
+                    countDownLatch.countDown()
+                    val newSocket = socketPortTuple.socket?.accept()
+                    BufferedWriter(OutputStreamWriter(newSocket?.getOutputStream())).use {
+                        socketWriter -> socketWriter.write(responsePayload)
+                    }
+                }
+        )
+
+        countDownLatch.await()
+
+        val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
+        val xmlResponseString = clientSocket.readResponse()
+
+        val reply = FlashNetReplyImpl().fromResponsePayload(xmlResponseString)
+
+        assertEquals(reply.Error, "No error")
+        assertEquals(reply.RequestId, null)
+        assertEquals(reply.Status, "Passed")
+        assertEquals(reply.Version, null)
+    }
 }

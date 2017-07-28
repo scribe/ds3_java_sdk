@@ -1,12 +1,10 @@
 package com.spectralogic.escapepod.flashnetclient.responses
 
-import com.fasterxml.jackson.xml.XmlMapper
-
-// TODO: Figure out how to handle unspecified values
+import org.simpleframework.xml.core.Persister
 
 class FlashNetReplyImpl : FlashNetReply {
     override fun fromResponsePayload(responsePayload: String): Reply {
-        val xmlMapper = XmlMapper()
-        return xmlMapper.readValue(responsePayload, Reply::class.java)
+        val serializer = Persister()
+        return serializer.read(Reply::class.java, responsePayload)
     }
 }
