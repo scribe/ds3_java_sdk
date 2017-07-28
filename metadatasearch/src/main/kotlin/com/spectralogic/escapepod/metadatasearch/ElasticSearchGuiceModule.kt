@@ -13,7 +13,7 @@ internal class ElasticSearchGuiceModule : AbstractModule() {
     override fun configure() {
         bind(MetadataSearchServiceProvider::class.java).to(ElasticSearchServiceProvider::class.java).`in`(Singleton::class.java)
         bind(MetadataSearchServiceConfigFile::class.java).to(ElasticSearchConfigFile::class.java).`in`(Singleton::class.java)
-        bind(MetadataSearchModuleLoader::class.java)
+        bind(MetadataSearchModuleRegistration::class.java)
     }
 
     @Provides
@@ -25,15 +25,12 @@ internal class ElasticSearchGuiceModule : AbstractModule() {
 
     @Provides
     @Named("elasticSearchBinDir")
-    fun elasticSearchBinDir(@Named("elasticSearchDir") elasticSearchDir: Path) : Path {
-        return elasticSearchDir.resolve("bin")
-    }
+    fun elasticSearchBinDir(@Named("elasticSearchDir") elasticSearchDir: Path) : Path = elasticSearchDir.resolve("bin")
 
     @Provides
     @Named("elasticSearchConfigDir")
-    fun elasticSearchConfigDir(@Named("elasticSearchDir") elasticSearchDir: Path) : Path {
-        return elasticSearchDir.resolve("config")
-    }
+    fun elasticSearchConfigDir(@Named("elasticSearchDir") elasticSearchDir: Path) : Path =
+            elasticSearchDir.resolve("config")
 
     @Provides
     @Named("elasticSearchPort")
@@ -41,11 +38,7 @@ internal class ElasticSearchGuiceModule : AbstractModule() {
 
         val port = System.getenv()["elasticSearchPort"]
 
-        if (port == null) {
-            return 9200
-        } else {
-            return port.toInt()
-        }
+        return port?.toInt() ?: 9200
     }
 }
 

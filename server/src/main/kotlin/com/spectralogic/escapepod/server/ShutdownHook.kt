@@ -4,7 +4,7 @@ import com.spectralogic.escapepod.api.Module
 import io.reactivex.Completable
 import org.slf4j.LoggerFactory
 
-class ShutdownHook constructor(private val modules : Iterable<Module>) : Thread("module-shutdown-hook") {
+class ShutdownHook constructor(private val modules : List<Module>) : Thread("module-shutdown-hook") {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(ShutdownHook::class.java)

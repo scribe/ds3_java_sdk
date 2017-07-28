@@ -64,13 +64,13 @@ class ElasticSearchService : ElasticSearchMetadataService {
         }
     }
 
-    override fun createIndex(index: String, numberOfShard: Int, numberOfReplicas: Int): Completable {
+    override fun createIndex(blackPearlName: String, numberOfShard: Int, numberOfReplicas: Int): Completable {
         return ReactivexAdapters.createCompletable { emitter ->
             ReadFileFromResources.readFile("elasticsearch/index/createIndex.template")
                     .doOnSuccess { template ->
                         val response = restClient.performRequest(
                                 PUT,
-                                index,
+                                blackPearlName,
                                 PRETTY_TRUE,
                                 NStringEntity(String.format(template, numberOfShard, numberOfReplicas),
                                         ContentType.APPLICATION_JSON)
@@ -86,13 +86,13 @@ class ElasticSearchService : ElasticSearchMetadataService {
     }
 
 
-    override fun updateIndexNumberOfReplicas(index: String, numberOfReplicas: Int): Completable {
+    override fun updateIndexNumberOfReplicas(blackPearlName: String, numberOfReplicas: Int): Completable {
         return ReactivexAdapters.createCompletable { emitter ->
             ReadFileFromResources.readFile("elasticsearch/index/updateIndexNumberOfReplicas.template")
                     .doOnSuccess { template ->
                         val response = restClient.performRequest(
                                 PUT,
-                                "/$index/_settings",
+                                "/$blackPearlName/_settings",
                                 PRETTY_TRUE,
                                 NStringEntity(String.format(template, numberOfReplicas),
                                         ContentType.APPLICATION_JSON)
@@ -146,13 +146,11 @@ class ElasticSearchService : ElasticSearchMetadataService {
         }
     }
 
-    override fun indexDocument(index: String, bucket: String, id: String, metadata: Map<String, String>): Completable {
-        return indexDocumentHelper(index, bucket, id, metadata, PUT)
-    }
+    override fun indexDocument(blackPearlName: String, bucket: String, fileName: String, metadata: Map<String, String>): Completable =
+            indexDocumentHelper(blackPearlName, bucket, fileName, metadata, PUT)
 
-    override fun updateIndexedDocument(index: String, bucket: String, id: String, metadata: Map<String, String>): Completable {
-        return indexDocumentHelper(index, bucket, id, metadata, POST)
-    }
+    override fun updateIndexedDocument(blackPearlName: String, bucket: String, fileName: String, metadata: Map<String, String>): Completable =
+            indexDocumentHelper(blackPearlName, bucket, fileName, metadata, POST)
 
     private fun indexDocumentHelper(index: String, bucket: String, id: String, metadata: Map<String, String>,
                                     method: String): Completable {
@@ -181,13 +179,10 @@ class ElasticSearchService : ElasticSearchMetadataService {
         }
     }
 
-    override fun deleteDocument(index: String, bucket: String, id: String): Completable {
-        return deleteHelper("/$index/$bucket/$id")
-    }
+    override fun deleteDocument(blackPearlName: String, bucket: String, fileName: String): Completable =
+            deleteHelper("/$blackPearlName/$bucket/$fileName")
 
-    override fun deleteIndex(index: String): Completable {
-        return deleteHelper("/$index")
-    }
+    override fun deleteIndex(blackPearlName: String): Completable = deleteHelper("/$blackPearlName")
 
     private fun deleteHelper(endpoint: String): Completable {
         return ReactivexAdapters.createCompletable { emitter ->
@@ -205,17 +200,14 @@ class ElasticSearchService : ElasticSearchMetadataService {
         }
     }
 
-    override fun searchById(index: String, bucket: String, id: String): Observable<MetadataSearchHitsNode> {
-        return searchByIdHelper("/$index/$bucket/_search", id)
-    }
+    override fun searchById(blackPearlName: String, bucket: String, fileName: String): Observable<MetadataSearchHitsNode> =
+            searchByIdHelper("/$blackPearlName/$bucket/_search", fileName)
 
-    override fun searchById(index: String, id: String): Observable<MetadataSearchHitsNode> {
-        return searchByIdHelper("/$index/_search", id)
-    }
+    override fun searchById(blackPearlName: String, fileName: String): Observable<MetadataSearchHitsNode> =
+            searchByIdHelper("/$blackPearlName/_search", fileName)
 
-    override fun searchById(id: String): Observable<MetadataSearchHitsNode> {
-        return searchByIdHelper("/_search", id)
-    }
+    override fun searchById(fileName: String): Observable<MetadataSearchHitsNode> =
+            searchByIdHelper("/_search", fileName)
 
     private fun searchByIdHelper(endpoint: String, id: String): Observable<MetadataSearchHitsNode> {
         return ReactivexAdapters.createObservable { emitter ->
@@ -235,17 +227,14 @@ class ElasticSearchService : ElasticSearchMetadataService {
         }
     }
 
-    override fun searchByMetadata(index: String, bucket: String, key: String, value: String): Observable<MetadataSearchHitsNode> {
-        return searchByMetadataHelper("/$index/$bucket/_search", key, value)
-    }
+    override fun searchByMetadata(blackPearlName: String, bucket: String, metadataKey: String, metadataValue: String): Observable<MetadataSearchHitsNode> =
+            searchByMetadataHelper("/$blackPearlName/$bucket/_search", metadataKey, metadataValue)
 
-    override fun searchByMetadata(index: String, key: String, value: String): Observable<MetadataSearchHitsNode> {
-        return searchByMetadataHelper("/$index/_search", key, value)
-    }
+    override fun searchByMetadata(blackPearlName: String, metadataKey: String, metadataValue: String): Observable<MetadataSearchHitsNode> =
+            searchByMetadataHelper("/$blackPearlName/_search", metadataKey, metadataValue)
 
-    override fun searchByMetadata(key: String, value: String): Observable<MetadataSearchHitsNode> {
-        return searchByMetadataHelper("/_search", key, value)
-    }
+    override fun searchByMetadata(metadataKey: String, metadataValue: String): Observable<MetadataSearchHitsNode> =
+            searchByMetadataHelper("/_search", metadataKey, metadataValue)
 
     private fun searchByMetadataHelper(endpoint: String, key: String, value: String): Observable<MetadataSearchHitsNode> {
         return ReactivexAdapters.createObservable { emitter ->
@@ -265,17 +254,13 @@ class ElasticSearchService : ElasticSearchMetadataService {
         }
     }
 
-    override fun searchByMatchAll(index: String, bucket: String): Observable<MetadataSearchHitsNode> {
-        return searchByMatchAllHelper("/$index/$bucket/_search")
-    }
+    override fun searchByMatchAll(blackPearlName: String, bucket: String): Observable<MetadataSearchHitsNode> =
+            searchByMatchAllHelper("/$blackPearlName/$bucket/_search")
 
-    override fun searchByMatchAll(index: String): Observable<MetadataSearchHitsNode> {
-        return searchByMatchAllHelper("/$index/_search")
-    }
+    override fun searchByMatchAll(blackPearlName: String): Observable<MetadataSearchHitsNode> =
+            searchByMatchAllHelper("/$blackPearlName/_search")
 
-    override fun searchByMatchAll(): Observable<MetadataSearchHitsNode> {
-        return searchByMatchAllHelper("/_search")
-    }
+    override fun searchByMatchAll(): Observable<MetadataSearchHitsNode> = searchByMatchAllHelper("/_search")
 
     private fun searchByMatchAllHelper(endpoint: String): Observable<MetadataSearchHitsNode> {
         return ReactivexAdapters.createObservable { emitter ->
