@@ -3,6 +3,9 @@ package com.spectralogic.escapepod.server
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.spectralogic.escapepod.api.Server
+import com.uber.jaeger.Configuration
+import com.uber.jaeger.senders.Sender
+import io.opentracing.Tracer
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ExecutorService
@@ -15,6 +18,15 @@ class ServerGuiceModule : AbstractModule() {
     private val workers: ExecutorService = ForkJoinPool.commonPool()
 
     override fun configure() {
+    }
+
+
+    @Provides
+    @Singleton
+    fun tracer() : Tracer {
+        val configuration = Configuration("escapePod", Configuration.SamplerConfiguration("const",  1), null)
+
+        return configuration.tracer
     }
 
     @Provides

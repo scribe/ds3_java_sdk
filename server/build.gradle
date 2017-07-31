@@ -1,4 +1,5 @@
 dependencies {
     runtime group: 'ch.qos.logback', name: 'logback-core', version: "$logbackVersion"
     runtime group: 'ch.qos.logback', name: 'logback-classic', version: "$logbackVersion"
+    compile group: 'com.uber.jaeger', name: 'jaeger-core', version: "$jaegerVersion"
 }
