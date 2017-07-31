@@ -24,8 +24,7 @@ class ServerGuiceModule : AbstractModule() {
     @Provides
     @Singleton
     fun tracer() : Tracer {
-
-        val configuration = Configuration("escapePod", Configuration.SamplerConfiguration("const", 1), null)
+        val configuration = Configuration("escapePod", Configuration.SamplerConfiguration("const",  1), null)
 
         return configuration.tracer
     }
