@@ -168,7 +168,7 @@ project(":restclientutils") {
     }
 }
 
-project(":server") {
+project(":runner") {
     dependencies {
         compile project(":api")
         compile project(":hazelcast")
