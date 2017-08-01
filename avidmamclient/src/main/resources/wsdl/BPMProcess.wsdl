@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess" xmlns:s1="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess/AbstractTypes" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" targetNamespace="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+    <wsdl:types>
+        <s:schema elementFormDefault="qualified" targetNamespace="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess">
+            <s:element name="StartProcess">
+                <s:complexType>
+                    <s:sequence>
+                        <s:element minOccurs="0" maxOccurs="1" name="accesskey" type="s:string" />
+                        <s:element minOccurs="0" maxOccurs="1" name="className" type="s:string" />
+                        <s:element minOccurs="0" maxOccurs="1" name="metas" type="tns:ArrayOfMetaAttribute" />
+                        <s:element minOccurs="0" maxOccurs="1" name="mvAttributes" type="tns:ArrayOfMultiValueAttribute" />
+                        <s:element minOccurs="0" maxOccurs="1" name="parentProcessId" type="s:string" />
+                    </s:sequence>
+                </s:complexType>
+            </s:element>
+            <s:complexType name="ArrayOfMetaAttribute">
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="unbounded" name="MetaAttribute" nillable="true" type="tns:MetaAttribute" />
+                </s:sequence>
+            </s:complexType>
+            <s:complexType name="MetaAttribute">
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" name="Name" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" name="Value" type="s:string" />
+                </s:sequence>
+            </s:complexType>
+            <s:complexType name="ArrayOfMultiValueAttribute">
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="unbounded" name="MultiValueAttribute" nillable="true" type="tns:MultiValueAttribute" />
+                </s:sequence>
+            </s:complexType>
+            <s:complexType name="MultiValueAttribute">
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" name="Name" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" name="AttrName" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" name="Value" type="s:string" />
+                    <s:element minOccurs="1" maxOccurs="1" name="Index" type="s:int" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="StartProcessResponse">
+                <s:complexType>
+                    <s:sequence>
+                        <s:element minOccurs="0" maxOccurs="1" name="StartProcessResult" type="s:string" />
+                    </s:sequence>
+                </s:complexType>
+            </s:element>
+            <s:element name="GetProcessStatus">
+                <s:complexType>
+                    <s:sequence>
+                        <s:element minOccurs="0" maxOccurs="1" name="accesskey" type="s:string" />
+                        <s:element minOccurs="0" maxOccurs="1" name="processId" type="s:string" />
+                    </s:sequence>
+                </s:complexType>
+            </s:element>
+            <s:element name="GetProcessStatusResponse">
+                <s:complexType>
+                    <s:sequence>
+                        <s:element minOccurs="0" maxOccurs="1" name="GetProcessStatusResult" type="tns:ProcessStatus" />
+                    </s:sequence>
+                </s:complexType>
+            </s:element>
+            <s:complexType name="ProcessStatus">
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" name="ErrorMessage" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" name="Guid" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" name="Lifecycle" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" name="Maintitle" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" name="Progress" type="s:string" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="GetProcessesStatus">
+                <s:complexType>
+                    <s:sequence>
+                        <s:element minOccurs="0" maxOccurs="1" name="accesskey" type="s:string" />
+                        <s:element minOccurs="0" maxOccurs="1" name="processIds" type="tns:ArrayOfString" />
+                    </s:sequence>
+                </s:complexType>
+            </s:element>
+            <s:complexType name="ArrayOfString">
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="unbounded" name="string" nillable="true" type="s:string" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="GetProcessesStatusResponse">
+                <s:complexType>
+                    <s:sequence>
+                        <s:element minOccurs="0" maxOccurs="1" name="GetProcessesStatusResult" type="tns:ArrayOfProcessStatus" />
+                    </s:sequence>
+                </s:complexType>
+            </s:element>
+            <s:complexType name="ArrayOfProcessStatus">
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="unbounded" name="ProcessStatus" nillable="true" type="tns:ProcessStatus" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="SyncProcessStatus">
+                <s:complexType>
+                    <s:sequence>
+                        <s:element minOccurs="0" maxOccurs="1" name="accesskey" type="s:string" />
+                        <s:element minOccurs="0" maxOccurs="1" name="processId" type="s:string" />
+                    </s:sequence>
+                </s:complexType>
+            </s:element>
+            <s:element name="SyncProcessStatusResponse">
+                <s:complexType />
+            </s:element>
+            <s:element name="IncreaseProcessProgress">
+                <s:complexType>
+                    <s:sequence>
+                        <s:element minOccurs="0" maxOccurs="1" name="accesskey" type="s:string" />
+                        <s:element minOccurs="0" maxOccurs="1" name="processGuid" type="s:string" />
+                        <s:element minOccurs="1" maxOccurs="1" name="amountToIncrease" type="s:float" />
+                    </s:sequence>
+                </s:complexType>
+            </s:element>
+            <s:element name="IncreaseProcessProgressResponse">
+                <s:complexType />
+            </s:element>
+            <s:element name="ProcessStatus" nillable="true" type="tns:ProcessStatus" />
+            <s:element name="ArrayOfProcessStatus" nillable="true" type="tns:ArrayOfProcessStatus" />
+        </s:schema>
+        <s:schema targetNamespace="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess/AbstractTypes">
+            <s:import namespace="http://schemas.xmlsoap.org/soap/encoding/" />
+            <s:complexType name="StringArray">
+                <s:complexContent mixed="false">
+                    <s:restriction base="soapenc:Array">
+                        <s:sequence>
+                            <s:element minOccurs="0" maxOccurs="unbounded" name="String" type="s:string" />
+                        </s:sequence>
+                    </s:restriction>
+                </s:complexContent>
+            </s:complexType>
+        </s:schema>
+    </wsdl:types>
+    <wsdl:message name="StartProcessSoapIn">
+        <wsdl:part name="parameters" element="tns:StartProcess" />
+    </wsdl:message>
+    <wsdl:message name="StartProcessSoapOut">
+        <wsdl:part name="parameters" element="tns:StartProcessResponse" />
+    </wsdl:message>
+    <wsdl:message name="GetProcessStatusSoapIn">
+        <wsdl:part name="parameters" element="tns:GetProcessStatus" />
+    </wsdl:message>
+    <wsdl:message name="GetProcessStatusSoapOut">
+        <wsdl:part name="parameters" element="tns:GetProcessStatusResponse" />
+    </wsdl:message>
+    <wsdl:message name="GetProcessesStatusSoapIn">
+        <wsdl:part name="parameters" element="tns:GetProcessesStatus" />
+    </wsdl:message>
+    <wsdl:message name="GetProcessesStatusSoapOut">
+        <wsdl:part name="parameters" element="tns:GetProcessesStatusResponse" />
+    </wsdl:message>
+    <wsdl:message name="SyncProcessStatusSoapIn">
+        <wsdl:part name="parameters" element="tns:SyncProcessStatus" />
+    </wsdl:message>
+    <wsdl:message name="SyncProcessStatusSoapOut">
+        <wsdl:part name="parameters" element="tns:SyncProcessStatusResponse" />
+    </wsdl:message>
+    <wsdl:message name="IncreaseProcessProgressSoapIn">
+        <wsdl:part name="parameters" element="tns:IncreaseProcessProgress" />
+    </wsdl:message>
+    <wsdl:message name="IncreaseProcessProgressSoapOut">
+        <wsdl:part name="parameters" element="tns:IncreaseProcessProgressResponse" />
+    </wsdl:message>
+    <wsdl:message name="GetProcessStatusHttpGetIn">
+        <wsdl:part name="accesskey" type="s:string" />
+        <wsdl:part name="processId" type="s:string" />
+    </wsdl:message>
+    <wsdl:message name="GetProcessStatusHttpGetOut">
+        <wsdl:part name="Body" element="tns:ProcessStatus" />
+    </wsdl:message>
+    <wsdl:message name="GetProcessesStatusHttpGetIn">
+        <wsdl:part name="accesskey" type="s:string" />
+        <wsdl:part name="processIds" type="s1:StringArray" />
+    </wsdl:message>
+    <wsdl:message name="GetProcessesStatusHttpGetOut">
+        <wsdl:part name="Body" element="tns:ArrayOfProcessStatus" />
+    </wsdl:message>
+    <wsdl:message name="SyncProcessStatusHttpGetIn">
+        <wsdl:part name="accesskey" type="s:string" />
+        <wsdl:part name="processId" type="s:string" />
+    </wsdl:message>
+    <wsdl:message name="SyncProcessStatusHttpGetOut" />
+    <wsdl:message name="IncreaseProcessProgressHttpGetIn">
+        <wsdl:part name="accesskey" type="s:string" />
+        <wsdl:part name="processGuid" type="s:string" />
+        <wsdl:part name="amountToIncrease" type="s:string" />
+    </wsdl:message>
+    <wsdl:message name="IncreaseProcessProgressHttpGetOut" />
+    <wsdl:message name="GetProcessStatusHttpPostIn">
+        <wsdl:part name="accesskey" type="s:string" />
+        <wsdl:part name="processId" type="s:string" />
+    </wsdl:message>
+    <wsdl:message name="GetProcessStatusHttpPostOut">
+        <wsdl:part name="Body" element="tns:ProcessStatus" />
+    </wsdl:message>
+    <wsdl:message name="GetProcessesStatusHttpPostIn">
+        <wsdl:part name="accesskey" type="s:string" />
+        <wsdl:part name="processIds" type="s1:StringArray" />
+    </wsdl:message>
+    <wsdl:message name="GetProcessesStatusHttpPostOut">
+        <wsdl:part name="Body" element="tns:ArrayOfProcessStatus" />
+    </wsdl:message>
+    <wsdl:message name="SyncProcessStatusHttpPostIn">
+        <wsdl:part name="accesskey" type="s:string" />
+        <wsdl:part name="processId" type="s:string" />
+    </wsdl:message>
+    <wsdl:message name="SyncProcessStatusHttpPostOut" />
+    <wsdl:message name="IncreaseProcessProgressHttpPostIn">
+        <wsdl:part name="accesskey" type="s:string" />
+        <wsdl:part name="processGuid" type="s:string" />
+        <wsdl:part name="amountToIncrease" type="s:string" />
+    </wsdl:message>
+    <wsdl:message name="IncreaseProcessProgressHttpPostOut" />
+    <wsdl:portType name="BPMProcessSoap">
+        <wsdl:operation name="StartProcess">
+            <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Starts a process specified by className.&lt;br/&gt;&lt;u&gt;Parameters:&lt;/u&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; accesskey&lt;/b&gt;: A valid MAM session token.&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; className&lt;/b&gt;: The process class name.&lt;br/&gt;&lt;b&gt;&lt;i&gt;List&lt;MetaAttribute&gt;&lt;/i&gt; metas&lt;/b&gt;: Process meta data attributes (optional).&lt;br/&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;List&lt;MultiValueAttribute&gt;&lt;/i&gt; mvAttributes&lt;/b&gt;: Multi-value (non-compound) or multi-value-compound attributes (optional).&lt;br/&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; parentProcessId&lt;/b&gt;: Process ID of current running process. The process to be started is stored as child process for parentProcessId. If empty, no relationship to current process is stored. (optional)&lt;br/&gt;&lt;u&gt;Exceptions:&lt;/u&gt;&lt;br&gt;&lt;b&gt;InvalidParameterException&lt;/b&gt;: Parameters are invalid.&lt;br&gt;&lt;b&gt;ArgumentNullException&lt;/b&gt;: Parameters are empty (e.g. empty).&lt;br&gt;&lt;b&gt;InternalError&lt;/b&gt;: If an unexpected error occurred.&lt;br/&gt;&lt;br/&gt;</wsdl:documentation>
+            <wsdl:input message="tns:StartProcessSoapIn" />
+            <wsdl:output message="tns:StartProcessSoapOut" />
+        </wsdl:operation>
+        <wsdl:operation name="GetProcessStatus">
+            <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Returns process information (lifecycle, main title, GUID, error) about requested process by processId.&lt;br/&gt;If the process object does contain a DM attribute P_PROCESS_PARENT_ID the process status of current process specified by &lt;i&gt;processId&lt;/i&gt; is synchronized with its parent process (only if P_CHILD_PROCESSES exists in parent process object).&lt;br/&gt;&lt;u&gt;Parameters:&lt;/u&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; accesskey&lt;/b&gt;: A valid MAM session token.&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; processId&lt;/b&gt;: The DMGUID for process to request information for.&lt;br/&gt;&lt;u&gt;Exceptions:&lt;/u&gt;&lt;br&gt;&lt;b&gt;InvalidParameterException&lt;/b&gt;: Parameters are invalid.&lt;br&gt;&lt;b&gt;ArgumentNullException&lt;/b&gt;: Parameters are empty (e.g. empty).&lt;br&gt;&lt;b&gt;InternalError&lt;/b&gt;: If an unexpected error occurred.&lt;br/&gt;&lt;br/&gt;</wsdl:documentation>
+            <wsdl:input message="tns:GetProcessStatusSoapIn" />
+            <wsdl:output message="tns:GetProcessStatusSoapOut" />
+        </wsdl:operation>
+        <wsdl:operation name="GetProcessesStatus">
+            <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Returns process information (lifecycle, main title, GUID, error) about requested process by processId.&lt;br/&gt;&lt;u&gt;Parameters:&lt;/u&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; accesskey&lt;/b&gt;: A valid MAM session token.&lt;br/&gt;&lt;b&gt;&lt;i&gt;string[]&lt;/i&gt; processId&lt;/b&gt;: The DMGUIDs for processes to request information for.&lt;br/&gt;&lt;u&gt;Exceptions:&lt;/u&gt;&lt;br&gt;&lt;b&gt;InvalidParameterException&lt;/b&gt;: Parameters are invalid.&lt;br&gt;&lt;b&gt;ArgumentNullException&lt;/b&gt;: Parameters are empty (e.g. empty).&lt;br&gt;&lt;b&gt;InternalError&lt;/b&gt;: If an unexpected error occurred.&lt;br/&gt;&lt;br/&gt;</wsdl:documentation>
+            <wsdl:input message="tns:GetProcessesStatusSoapIn" />
+            <wsdl:output message="tns:GetProcessesStatusSoapOut" />
+        </wsdl:operation>
+        <wsdl:operation name="SyncProcessStatus">
+            <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Synchronizes child and parent process status.&lt;br/&gt;&lt;b&gt;Note: USe this method to get all child processes from the main process. &lt;br /&gt;For each child process the status is requested and updated in its corresponding main process P_CHILD_PROCESSES MVC line.&lt;br /&gt; This method should be used when the child process does not contain a DM attribute named P_PROCESS_PARENT_ID. If the DM attribute is contained in the data model use GetProcessStatus instead which automatically syncs the status between the two objects.&lt;/b&gt;&lt;br /&gt;&lt;u&gt;Parameters:&lt;/u&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; accesskey&lt;/b&gt;: A valid MAM session token.&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; processId&lt;/b&gt;: The DMGUID of the main process. All child processes are read from main process P_CHILD_PROCESSES and their status (lifecycle, progress etc.) are updated to their main process.&lt;br/&gt;&lt;u&gt;Exceptions:&lt;/u&gt;&lt;br&gt;&lt;b&gt;InvalidParameterException&lt;/b&gt;: Parameters are invalid.&lt;br&gt;&lt;b&gt;ArgumentNullException&lt;/b&gt;: Parameters are empty (e.g. empty).&lt;br&gt;&lt;b&gt;InternalError&lt;/b&gt;: If an unexpected error occurred.&lt;br/&gt;&lt;br/&gt;</wsdl:documentation>
+            <wsdl:input message="tns:SyncProcessStatusSoapIn" />
+            <wsdl:output message="tns:SyncProcessStatusSoapOut" />
+        </wsdl:operation>
+        <wsdl:operation name="IncreaseProcessProgress">
+            <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Increases the process progress (P_PROCESS_PROGRESS) of the given process object by the given amount.&lt;br/&gt;The value of the process progress is capped at 100.0.&lt;br/&gt;The access to this method is synchronized on a process object level.&lt;br/&gt;&lt;br/&gt;&lt;u&gt;Parameters:&lt;/u&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; accesskey&lt;/b&gt;: A valid MAM access token&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; processGuid&lt;/b&gt;: The GUID of the process object.&lt;br/&gt;&lt;b&gt;&lt;i&gt;float&lt;/i&gt; amountToIncrease&lt;/b&gt;: The amount the process progress will be increased.&lt;br/&gt;&lt;br/&gt;&lt;u&gt;Exceptions:&lt;/u&gt;&lt;br&gt;&lt;b&gt;Client.WorkflowLibraryWS.InvalidParameter&lt;/b&gt;: Parameters are invalid (e.g. empty).&lt;br&gt;&lt;b&gt;Server.WorkflowLibraryWS.InternalError&lt;/b&gt;: If an unexpected error occurred.&lt;br/&gt;&lt;br/&gt;&lt;u&gt;Workflow declaration&lt;/u&gt;: &lt;i&gt;declare void IncreaseProcessProgress(accesskey, processGuid, amountToIncrease);&lt;/i&gt;</wsdl:documentation>
+            <wsdl:input message="tns:IncreaseProcessProgressSoapIn" />
+            <wsdl:output message="tns:IncreaseProcessProgressSoapOut" />
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:portType name="BPMProcessHttpGet">
+        <wsdl:operation name="GetProcessStatus">
+            <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Returns process information (lifecycle, main title, GUID, error) about requested process by processId.&lt;br/&gt;If the process object does contain a DM attribute P_PROCESS_PARENT_ID the process status of current process specified by &lt;i&gt;processId&lt;/i&gt; is synchronized with its parent process (only if P_CHILD_PROCESSES exists in parent process object).&lt;br/&gt;&lt;u&gt;Parameters:&lt;/u&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; accesskey&lt;/b&gt;: A valid MAM session token.&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; processId&lt;/b&gt;: The DMGUID for process to request information for.&lt;br/&gt;&lt;u&gt;Exceptions:&lt;/u&gt;&lt;br&gt;&lt;b&gt;InvalidParameterException&lt;/b&gt;: Parameters are invalid.&lt;br&gt;&lt;b&gt;ArgumentNullException&lt;/b&gt;: Parameters are empty (e.g. empty).&lt;br&gt;&lt;b&gt;InternalError&lt;/b&gt;: If an unexpected error occurred.&lt;br/&gt;&lt;br/&gt;</wsdl:documentation>
+            <wsdl:input message="tns:GetProcessStatusHttpGetIn" />
+            <wsdl:output message="tns:GetProcessStatusHttpGetOut" />
+        </wsdl:operation>
+        <wsdl:operation name="GetProcessesStatus">
+            <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Returns process information (lifecycle, main title, GUID, error) about requested process by processId.&lt;br/&gt;&lt;u&gt;Parameters:&lt;/u&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; accesskey&lt;/b&gt;: A valid MAM session token.&lt;br/&gt;&lt;b&gt;&lt;i&gt;string[]&lt;/i&gt; processId&lt;/b&gt;: The DMGUIDs for processes to request information for.&lt;br/&gt;&lt;u&gt;Exceptions:&lt;/u&gt;&lt;br&gt;&lt;b&gt;InvalidParameterException&lt;/b&gt;: Parameters are invalid.&lt;br&gt;&lt;b&gt;ArgumentNullException&lt;/b&gt;: Parameters are empty (e.g. empty).&lt;br&gt;&lt;b&gt;InternalError&lt;/b&gt;: If an unexpected error occurred.&lt;br/&gt;&lt;br/&gt;</wsdl:documentation>
+            <wsdl:input message="tns:GetProcessesStatusHttpGetIn" />
+            <wsdl:output message="tns:GetProcessesStatusHttpGetOut" />
+        </wsdl:operation>
+        <wsdl:operation name="SyncProcessStatus">
+            <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Synchronizes child and parent process status.&lt;br/&gt;&lt;b&gt;Note: USe this method to get all child processes from the main process. &lt;br /&gt;For each child process the status is requested and updated in its corresponding main process P_CHILD_PROCESSES MVC line.&lt;br /&gt; This method should be used when the child process does not contain a DM attribute named P_PROCESS_PARENT_ID. If the DM attribute is contained in the data model use GetProcessStatus instead which automatically syncs the status between the two objects.&lt;/b&gt;&lt;br /&gt;&lt;u&gt;Parameters:&lt;/u&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; accesskey&lt;/b&gt;: A valid MAM session token.&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; processId&lt;/b&gt;: The DMGUID of the main process. All child processes are read from main process P_CHILD_PROCESSES and their status (lifecycle, progress etc.) are updated to their main process.&lt;br/&gt;&lt;u&gt;Exceptions:&lt;/u&gt;&lt;br&gt;&lt;b&gt;InvalidParameterException&lt;/b&gt;: Parameters are invalid.&lt;br&gt;&lt;b&gt;ArgumentNullException&lt;/b&gt;: Parameters are empty (e.g. empty).&lt;br&gt;&lt;b&gt;InternalError&lt;/b&gt;: If an unexpected error occurred.&lt;br/&gt;&lt;br/&gt;</wsdl:documentation>
+            <wsdl:input message="tns:SyncProcessStatusHttpGetIn" />
+            <wsdl:output message="tns:SyncProcessStatusHttpGetOut" />
+        </wsdl:operation>
+        <wsdl:operation name="IncreaseProcessProgress">
+            <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Increases the process progress (P_PROCESS_PROGRESS) of the given process object by the given amount.&lt;br/&gt;The value of the process progress is capped at 100.0.&lt;br/&gt;The access to this method is synchronized on a process object level.&lt;br/&gt;&lt;br/&gt;&lt;u&gt;Parameters:&lt;/u&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; accesskey&lt;/b&gt;: A valid MAM access token&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; processGuid&lt;/b&gt;: The GUID of the process object.&lt;br/&gt;&lt;b&gt;&lt;i&gt;float&lt;/i&gt; amountToIncrease&lt;/b&gt;: The amount the process progress will be increased.&lt;br/&gt;&lt;br/&gt;&lt;u&gt;Exceptions:&lt;/u&gt;&lt;br&gt;&lt;b&gt;Client.WorkflowLibraryWS.InvalidParameter&lt;/b&gt;: Parameters are invalid (e.g. empty).&lt;br&gt;&lt;b&gt;Server.WorkflowLibraryWS.InternalError&lt;/b&gt;: If an unexpected error occurred.&lt;br/&gt;&lt;br/&gt;&lt;u&gt;Workflow declaration&lt;/u&gt;: &lt;i&gt;declare void IncreaseProcessProgress(accesskey, processGuid, amountToIncrease);&lt;/i&gt;</wsdl:documentation>
+            <wsdl:input message="tns:IncreaseProcessProgressHttpGetIn" />
+            <wsdl:output message="tns:IncreaseProcessProgressHttpGetOut" />
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:portType name="BPMProcessHttpPost">
+        <wsdl:operation name="GetProcessStatus">
+            <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Returns process information (lifecycle, main title, GUID, error) about requested process by processId.&lt;br/&gt;If the process object does contain a DM attribute P_PROCESS_PARENT_ID the process status of current process specified by &lt;i&gt;processId&lt;/i&gt; is synchronized with its parent process (only if P_CHILD_PROCESSES exists in parent process object).&lt;br/&gt;&lt;u&gt;Parameters:&lt;/u&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; accesskey&lt;/b&gt;: A valid MAM session token.&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; processId&lt;/b&gt;: The DMGUID for process to request information for.&lt;br/&gt;&lt;u&gt;Exceptions:&lt;/u&gt;&lt;br&gt;&lt;b&gt;InvalidParameterException&lt;/b&gt;: Parameters are invalid.&lt;br&gt;&lt;b&gt;ArgumentNullException&lt;/b&gt;: Parameters are empty (e.g. empty).&lt;br&gt;&lt;b&gt;InternalError&lt;/b&gt;: If an unexpected error occurred.&lt;br/&gt;&lt;br/&gt;</wsdl:documentation>
+            <wsdl:input message="tns:GetProcessStatusHttpPostIn" />
+            <wsdl:output message="tns:GetProcessStatusHttpPostOut" />
+        </wsdl:operation>
+        <wsdl:operation name="GetProcessesStatus">
+            <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Returns process information (lifecycle, main title, GUID, error) about requested process by processId.&lt;br/&gt;&lt;u&gt;Parameters:&lt;/u&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; accesskey&lt;/b&gt;: A valid MAM session token.&lt;br/&gt;&lt;b&gt;&lt;i&gt;string[]&lt;/i&gt; processId&lt;/b&gt;: The DMGUIDs for processes to request information for.&lt;br/&gt;&lt;u&gt;Exceptions:&lt;/u&gt;&lt;br&gt;&lt;b&gt;InvalidParameterException&lt;/b&gt;: Parameters are invalid.&lt;br&gt;&lt;b&gt;ArgumentNullException&lt;/b&gt;: Parameters are empty (e.g. empty).&lt;br&gt;&lt;b&gt;InternalError&lt;/b&gt;: If an unexpected error occurred.&lt;br/&gt;&lt;br/&gt;</wsdl:documentation>
+            <wsdl:input message="tns:GetProcessesStatusHttpPostIn" />
+            <wsdl:output message="tns:GetProcessesStatusHttpPostOut" />
+        </wsdl:operation>
+        <wsdl:operation name="SyncProcessStatus">
+            <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Synchronizes child and parent process status.&lt;br/&gt;&lt;b&gt;Note: USe this method to get all child processes from the main process. &lt;br /&gt;For each child process the status is requested and updated in its corresponding main process P_CHILD_PROCESSES MVC line.&lt;br /&gt; This method should be used when the child process does not contain a DM attribute named P_PROCESS_PARENT_ID. If the DM attribute is contained in the data model use GetProcessStatus instead which automatically syncs the status between the two objects.&lt;/b&gt;&lt;br /&gt;&lt;u&gt;Parameters:&lt;/u&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; accesskey&lt;/b&gt;: A valid MAM session token.&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; processId&lt;/b&gt;: The DMGUID of the main process. All child processes are read from main process P_CHILD_PROCESSES and their status (lifecycle, progress etc.) are updated to their main process.&lt;br/&gt;&lt;u&gt;Exceptions:&lt;/u&gt;&lt;br&gt;&lt;b&gt;InvalidParameterException&lt;/b&gt;: Parameters are invalid.&lt;br&gt;&lt;b&gt;ArgumentNullException&lt;/b&gt;: Parameters are empty (e.g. empty).&lt;br&gt;&lt;b&gt;InternalError&lt;/b&gt;: If an unexpected error occurred.&lt;br/&gt;&lt;br/&gt;</wsdl:documentation>
+            <wsdl:input message="tns:SyncProcessStatusHttpPostIn" />
+            <wsdl:output message="tns:SyncProcessStatusHttpPostOut" />
+        </wsdl:operation>
+        <wsdl:operation name="IncreaseProcessProgress">
+            <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Increases the process progress (P_PROCESS_PROGRESS) of the given process object by the given amount.&lt;br/&gt;The value of the process progress is capped at 100.0.&lt;br/&gt;The access to this method is synchronized on a process object level.&lt;br/&gt;&lt;br/&gt;&lt;u&gt;Parameters:&lt;/u&gt;&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; accesskey&lt;/b&gt;: A valid MAM access token&lt;br/&gt;&lt;b&gt;&lt;i&gt;string&lt;/i&gt; processGuid&lt;/b&gt;: The GUID of the process object.&lt;br/&gt;&lt;b&gt;&lt;i&gt;float&lt;/i&gt; amountToIncrease&lt;/b&gt;: The amount the process progress will be increased.&lt;br/&gt;&lt;br/&gt;&lt;u&gt;Exceptions:&lt;/u&gt;&lt;br&gt;&lt;b&gt;Client.WorkflowLibraryWS.InvalidParameter&lt;/b&gt;: Parameters are invalid (e.g. empty).&lt;br&gt;&lt;b&gt;Server.WorkflowLibraryWS.InternalError&lt;/b&gt;: If an unexpected error occurred.&lt;br/&gt;&lt;br/&gt;&lt;u&gt;Workflow declaration&lt;/u&gt;: &lt;i&gt;declare void IncreaseProcessProgress(accesskey, processGuid, amountToIncrease);&lt;/i&gt;</wsdl:documentation>
+            <wsdl:input message="tns:IncreaseProcessProgressHttpPostIn" />
+            <wsdl:output message="tns:IncreaseProcessProgressHttpPostOut" />
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="BPMProcessSoap" type="tns:BPMProcessSoap">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+        <wsdl:operation name="StartProcess">
+            <soap:operation soapAction="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess/StartProcess" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="GetProcessStatus">
+            <soap:operation soapAction="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess/GetProcessStatus" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="GetProcessesStatus">
+            <soap:operation soapAction="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess/GetProcessesStatus" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="SyncProcessStatus">
+            <soap:operation soapAction="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess/SyncProcessStatus" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="IncreaseProcessProgress">
+            <soap:operation soapAction="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess/IncreaseProcessProgress" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="BPMProcessSoap12" type="tns:BPMProcessSoap">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+        <wsdl:operation name="StartProcess">
+            <soap12:operation soapAction="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess/StartProcess" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="GetProcessStatus">
+            <soap12:operation soapAction="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess/GetProcessStatus" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="GetProcessesStatus">
+            <soap12:operation soapAction="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess/GetProcessesStatus" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="SyncProcessStatus">
+            <soap12:operation soapAction="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess/SyncProcessStatus" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="IncreaseProcessProgress">
+            <soap12:operation soapAction="http://www.blue-order.com/ma/workflowlibraryws/bpmprocess/IncreaseProcessProgress" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="BPMProcessHttpGet" type="tns:BPMProcessHttpGet">
+        <http:binding verb="GET" />
+        <wsdl:operation name="GetProcessStatus">
+            <http:operation location="/GetProcessStatus" />
+            <wsdl:input>
+                <http:urlEncoded />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:mimeXml part="Body" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="GetProcessesStatus">
+            <http:operation location="/GetProcessesStatus" />
+            <wsdl:input>
+                <http:urlEncoded />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:mimeXml part="Body" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="SyncProcessStatus">
+            <http:operation location="/SyncProcessStatus" />
+            <wsdl:input>
+                <http:urlEncoded />
+            </wsdl:input>
+            <wsdl:output />
+        </wsdl:operation>
+        <wsdl:operation name="IncreaseProcessProgress">
+            <http:operation location="/IncreaseProcessProgress" />
+            <wsdl:input>
+                <http:urlEncoded />
+            </wsdl:input>
+            <wsdl:output />
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="BPMProcessHttpPost" type="tns:BPMProcessHttpPost">
+        <http:binding verb="POST" />
+        <wsdl:operation name="GetProcessStatus">
+            <http:operation location="/GetProcessStatus" />
+            <wsdl:input>
+                <mime:content type="application/x-www-form-urlencoded" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:mimeXml part="Body" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="GetProcessesStatus">
+            <http:operation location="/GetProcessesStatus" />
+            <wsdl:input>
+                <mime:content type="application/x-www-form-urlencoded" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:mimeXml part="Body" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="SyncProcessStatus">
+            <http:operation location="/SyncProcessStatus" />
+            <wsdl:input>
+                <mime:content type="application/x-www-form-urlencoded" />
+            </wsdl:input>
+            <wsdl:output />
+        </wsdl:operation>
+        <wsdl:operation name="IncreaseProcessProgress">
+            <http:operation location="/IncreaseProcessProgress" />
+            <wsdl:input>
+                <mime:content type="application/x-www-form-urlencoded" />
+            </wsdl:input>
+            <wsdl:output />
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="BPMProcess">
+        <wsdl:port name="BPMProcessSoap" binding="tns:BPMProcessSoap">
+            <soap:address location="http://win-pa6n293ucm0:9900/WorkflowLibraryWS/BPMProcess.asmx" />
+        </wsdl:port>
+        <wsdl:port name="BPMProcessSoap12" binding="tns:BPMProcessSoap12">
+            <soap12:address location="http://win-pa6n293ucm0:9900/WorkflowLibraryWS/BPMProcess.asmx" />
+        </wsdl:port>
+        <wsdl:port name="BPMProcessHttpGet" binding="tns:BPMProcessHttpGet">
+            <http:address location="http://win-pa6n293ucm0:9900/WorkflowLibraryWS/BPMProcess.asmx" />
+        </wsdl:port>
+        <wsdl:port name="BPMProcessHttpPost" binding="tns:BPMProcessHttpPost">
+            <http:address location="http://win-pa6n293ucm0:9900/WorkflowLibraryWS/BPMProcess.asmx" />
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>
