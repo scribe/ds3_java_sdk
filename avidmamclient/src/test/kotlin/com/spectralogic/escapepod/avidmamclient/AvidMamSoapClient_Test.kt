@@ -13,4 +13,27 @@
  *  ****************************************************************************
  */
 
-include 'api', 'avidmamclient', 'localcache', 'hazelcast', 'restclientutils', 'util', 'gui', 'planner', 'runner', 'bpclient', 'scheduler', 'divaclient', 'flashnetclient', 'migrate', 'xoduspersistence', 'mongopersistence', 'httpservice', 'metadatasearch'
+package com.spectralogic.escapepod.avidmamclient
+
+import com.spectralogic.escapepod.avidmamclient.soap.bpmprocess.BPMProcessLocator
+import org.junit.Test
+
+internal class AvidMamSoapClient_Test {
+    @Test
+    fun basicTest() {
+        val bpmProcessLocator = BPMProcessLocator()
+
+        val endpoint = "10.85.41.233:9900"
+
+        val endpointUrl = "http://$endpoint/WorkflowLibraryWS/BPMProcess.asmx"
+
+        bpmProcessLocator.setEndpointAddress("BPMProcessSoap12", endpointUrl)
+        val soapClient = bpmProcessLocator.bpmProcessSoap12
+        val startProcess = soapClient.startProcess("", "", null, null, null)
+
+        val processStatus = soapClient.getProcessStatus("", startProcess)
+
+        println("Progress ${processStatus.progress}")
+
+    }
+}
