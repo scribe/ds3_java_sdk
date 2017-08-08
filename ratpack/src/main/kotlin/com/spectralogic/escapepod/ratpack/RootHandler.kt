@@ -13,18 +13,26 @@
  *  ****************************************************************************
  */
 
-package com.spectra.escapepod.http
+package com.spectralogic.escapepod.ratpack
 
-import com.google.inject.AbstractModule
-import com.google.inject.Singleton
-import com.spectralogic.escapepod.api.WebServiceProvider
-import ratpack.server.RatpackServerSpec
+import io.opentracing.Tracer
+import ratpack.func.Action
+import ratpack.handling.Chain
+import javax.inject.Inject
 
-internal class HttpGuiceModule : AbstractModule() {
-    override fun configure() {
-        bind(WebServiceProvider::class.java).to(HttpProvider::class.java).`in`(Singleton::class.java)
-        bind(RootHandler::class.java).`in`(Singleton::class.java)
-        bind(ClusterHandlerChain::class.java).`in`(Singleton::class.java)
-        bind(ModuleHandler::class.java).`in`(Singleton::class.java)
+internal class RootHandler
+@Inject constructor(
+        private val moduleHandler: ModuleHandler,
+        private val clusterHandlerChain: ClusterHandlerChain,
+        private val tracer : Tracer
+) : Action<Chain> {
+
+    override fun execute(chain: Chain) {
+        chain.all(TracerHandler(tracer))
+        chain.get("modules", moduleHandler)
+        chain.prefix("cluster", clusterHandlerChain)
+        chain.get { ctx ->
+            ctx.response.status(404).send("Handler not found")
+        }
     }
 }

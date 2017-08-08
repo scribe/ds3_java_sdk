@@ -176,7 +176,7 @@ project(":runner") {
         compile project(":scheduler")
         compile project(":xoduspersistence")
 	compile project(":metadatasearch")
-	compile project(":httpservice")
+	compile project(":ratpack")
     }
 }
 
@@ -196,5 +196,12 @@ project(":metadatasearch") {
 project(":httpservice") {
     dependencies {
         compile project(":api")
+    }
+}
+
+project(":ratpack") {
+    dependencies {
+        compile project(":api")
+        compile project(":httpservice")
     }
 }

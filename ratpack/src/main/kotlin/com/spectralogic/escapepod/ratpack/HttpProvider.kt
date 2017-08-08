@@ -13,31 +13,32 @@
  *  ****************************************************************************
  */
 
-package com.spectra.escapepod.http
+package com.spectralogic.escapepod.ratpack
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
 import com.spectralogic.escapepod.api.ClusterEvent
 import com.spectralogic.escapepod.api.ClusterLeftEvent
-import com.spectralogic.escapepod.api.WebService
-import com.spectralogic.escapepod.api.WebServiceProvider
+import com.spectralogic.escapepod.httpservice.HttpRouter
+import com.spectralogic.escapepod.httpservice.HttpService
+import com.spectralogic.escapepod.httpservice.HttpServiceProvider
 import io.reactivex.Completable
 import org.slf4j.LoggerFactory
 import ratpack.handling.Handler
 import ratpack.server.RatpackServer
 
-internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootHandler : RootHandler) : WebServiceProvider {
+internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootHandler : RootHandler) : HttpServiceProvider {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(HttpProvider::class.java)
     }
 
     var server : RatpackServer? = null
-    val httpRouter : HttpRouter = HttpRouter()
+    val ratpackHttpRouter: RatpackHttpRouter = RatpackHttpRouter()
 
     override fun shutdown(): Completable {
         return Completable.create { emitter ->
-            LOG.info("Stopping http server")
+            LOG.info("Stopping ratpack server")
             server?.stop()
             emitter.onComplete()
         }
@@ -45,7 +46,7 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
 
     override fun startService(): Completable {
         return Completable.create { emitter ->
-            LOG.info("Starting http server")
+            LOG.info("Starting ratpack server")
             server = RatpackServer.start { server ->
                 server.serverConfig {
                     it.port(port)
@@ -65,14 +66,18 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
         }
     }
 
-    override fun getService(): WebService {
+    override fun getService(): HttpService {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
 
 }
 
-internal class HttpRouter {
+internal class RatpackHttpRouter : HttpRouter {
+    override fun registerHandler(prefix: String, handler: Handler) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     private val list : MutableList<Handler> = ArrayList()
     fun register(handler: Handler) {
         list.add(handler )

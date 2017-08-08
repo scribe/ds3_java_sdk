@@ -13,7 +13,7 @@
  *  ****************************************************************************
  */
 
-package com.spectra.escapepod.http
+package com.spectralogic.escapepod.ratpack
 
 import com.google.inject.AbstractModule
 import com.spectralogic.escapepod.api.ClusterServiceProvider

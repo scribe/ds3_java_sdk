@@ -13,14 +13,17 @@
  *  ****************************************************************************
  */
 
-package com.spectra.escapepod.http
+package com.spectralogic.escapepod.ratpack
 
-import ratpack.handling.Context
-import ratpack.handling.Handler
+import com.google.inject.AbstractModule
+import com.google.inject.Singleton
+import com.spectralogic.escapepod.httpservice.HttpServiceProvider
 
-internal class ModuleHandler : Handler {
-    override fun handle(ctx: Context) {
-        ctx.render("All registered modules: <module list>")
+internal class HttpGuiceModule : AbstractModule() {
+    override fun configure() {
+        bind(HttpServiceProvider::class.java).to(HttpProvider::class.java).`in`(Singleton::class.java)
+        bind(RootHandler::class.java).`in`(Singleton::class.java)
+        bind(ClusterHandlerChain::class.java).`in`(Singleton::class.java)
+        bind(ModuleHandler::class.java).`in`(Singleton::class.java)
     }
-
 }

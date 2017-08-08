@@ -13,4 +13,4 @@
 #  ****************************************************************************
 #
 
-com.spectra.escapepod.http.HttpModuleRegistration
+com.spectralogic.escapepod.ratpack.HttpModuleRegistration

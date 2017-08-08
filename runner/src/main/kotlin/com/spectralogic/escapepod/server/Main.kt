@@ -16,10 +16,12 @@
 package com.spectralogic.escapepod.server
 
 import com.google.inject.Guice
+import com.spectralogic.escapepod.api.Module
 import com.spectralogic.escapepod.api.ModuleRegistration
 
 import com.spectralogic.escapepod.util.collections.toImmutableList
 import io.reactivex.Completable
+import org.slf4j.LoggerFactory
 
 fun main(arg: Array<String>) {
 
@@ -27,11 +29,15 @@ fun main(arg: Array<String>) {
 
     val loadedModules = moduleLoader.loadModules()
 
+    val LOG = LoggerFactory.getLogger("Main")
+
     val injector = Guice.createInjector(loadedModules.map(ModuleRegistration<*>::guiceModule).asIterable())
 
     val moduleInstances = loadedModules.map(ModuleRegistration<*>::module).map { injector.getInstance(it) }.toImmutableList()
 
     Runtime.getRuntime().addShutdownHook(ShutdownHook(moduleInstances))
+
+    LOG.info("Loading modules: {}", moduleInstances.joinToString(", ") { it.name })
 
     // 2 stage loading of the modules
     Completable.merge(moduleInstances.map { it.loadModule()}).subscribe()

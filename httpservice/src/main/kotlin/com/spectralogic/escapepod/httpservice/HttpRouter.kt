@@ -13,8 +13,10 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.api
+package com.spectralogic.escapepod.httpservice
 
-interface WebServiceProvider : ServiceProvider<WebService>
+import ratpack.handling.Handler
 
-interface WebService
+interface HttpRouter {
+    fun registerHandler(prefix: String, handler: Handler)
+}
