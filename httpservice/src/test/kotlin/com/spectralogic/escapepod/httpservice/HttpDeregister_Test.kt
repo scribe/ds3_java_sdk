@@ -45,6 +45,20 @@ class HttpDeregister_Test {
         assertThat(registration1.registered).isFalse()
         assertThat(registration2.registered).isFalse()
     }
+
+    @Test
+    fun clearAfterDeregister() {
+        val aggregator = HttpDeregistrationAggregator()
+
+        val registration = ThrowingAfterDeregistrationStub()
+
+        aggregator.addDeregistration(registration)
+
+        aggregator.deregister()
+        aggregator.deregister()
+
+        assertThat(registration.registered).isFalse()
+    }
 }
 
 class HttpDeregistrationStub : HttpHandlerDeregistration {
@@ -54,4 +68,20 @@ class HttpDeregistrationStub : HttpHandlerDeregistration {
     override fun deregister() {
         registered = false
     }
+}
+
+class ThrowingAfterDeregistrationStub : HttpHandlerDeregistration {
+    var registered = true
+    private set
+
+    /**
+     * Non-conforming implementation to test that the Deregistrations are removed from the Aggregator after deregister is called
+     */
+    override fun deregister() {
+        if (!registered) {
+            throw Exception("This should not be called twice")
+        }
+        registered = false
+    }
+
 }
