@@ -17,14 +17,12 @@ package com.spectralogic.escapepod.httpservice
 
 import ratpack.func.Action
 import ratpack.handling.Chain
-import ratpack.handling.Handler
 
 /**
  * The HttpRouter is used to register RatPack handlers with the Http Module so that
  * any module in the system can expose their own Http handlers.
  */
 interface HttpRouter {
-    fun register(prefix: String, handler: Handler) : HttpHandlerDeregistration
     fun register(prefix: String, action: Action<Chain>) : HttpHandlerDeregistration
 }
 

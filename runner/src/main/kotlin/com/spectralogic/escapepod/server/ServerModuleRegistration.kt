@@ -18,17 +18,32 @@ package com.spectralogic.escapepod.server
 import com.google.inject.AbstractModule
 import com.spectralogic.escapepod.api.Module
 import com.spectralogic.escapepod.api.ModuleRegistration
+import com.spectralogic.escapepod.httpservice.HttpDeregistrationAggregator
+import com.spectralogic.escapepod.httpservice.HttpRouter
 import io.reactivex.Completable
+import javax.inject.Inject
 
-internal class ServerModule : Module {
+internal class ServerModule @Inject constructor (private val httpRouter: HttpRouter, private val handler: ModuleHandler) : Module {
+
+    private val deregistrationAggregator = HttpDeregistrationAggregator()
+
     override val name: String = "Runner"
 
     override fun loadModule(): Completable = Completable.complete()
 
 
-    override fun startModule(): Completable = Completable.complete()
+    override fun startModule(): Completable  {
+        return Completable.create { emitter ->
+            deregistrationAggregator.addDeregistration(httpRouter.register("modules", handler))
+            emitter.onComplete()
+        }
+    }
 
-    override fun shutdownModule(): Completable = Completable.complete()
+    override fun shutdownModule(): Completable {
+        return Completable.create {
+            deregistrationAggregator.deregister()
+        }
+    }
 
 }
 

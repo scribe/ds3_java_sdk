@@ -13,13 +13,25 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.ratpack
+package com.spectralogic.escapepod.server
 
+import org.slf4j.LoggerFactory
+import ratpack.func.Action
+import ratpack.handling.Chain
 import ratpack.handling.Context
-import ratpack.handling.Handler
 
-internal class ModuleHandler : Handler {
-    override fun handle(ctx: Context) {
+internal class ModuleHandler : Action<Chain> {
+
+    private companion object {
+        private val LOG = LoggerFactory.getLogger(ModuleHandler::class.java)
+    }
+
+    override fun execute(t: Chain) {
+        LOG.info("Got a module api call")
+        t.get(this::handleGet)
+    }
+
+    private fun handleGet(ctx: Context) {
         ctx.render("All registered modules: <module list>")
     }
 

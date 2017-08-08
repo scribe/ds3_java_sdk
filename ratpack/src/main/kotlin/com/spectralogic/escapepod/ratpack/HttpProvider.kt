@@ -19,15 +19,10 @@ import com.google.inject.Inject
 import com.google.inject.name.Named
 import com.spectralogic.escapepod.api.ClusterEvent
 import com.spectralogic.escapepod.api.ClusterLeftEvent
-import com.spectralogic.escapepod.httpservice.HttpHandlerDeregistration
-import com.spectralogic.escapepod.httpservice.HttpRouter
 import com.spectralogic.escapepod.httpservice.HttpService
 import com.spectralogic.escapepod.httpservice.HttpServiceProvider
 import io.reactivex.Completable
 import org.slf4j.LoggerFactory
-import ratpack.func.Action
-import ratpack.handling.Chain
-import ratpack.handling.Handler
 import ratpack.server.RatpackServer
 
 internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootHandler : RootHandler) : HttpServiceProvider {
@@ -37,7 +32,6 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
     }
 
     var server : RatpackServer? = null
-    val ratpackHttpRouter: RatpackHttpRouter = RatpackHttpRouter()
 
     override fun shutdown(): Completable {
         return Completable.create { emitter ->
@@ -72,22 +66,4 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
     override fun getService(): HttpService {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
-
-
-}
-
-internal class RatpackHttpRouter : HttpRouter {
-    override fun register(prefix: String, handler: Handler): HttpHandlerDeregistration {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun register(prefix: String, action: Action<Chain>): HttpHandlerDeregistration {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    private val list : MutableList<Handler> = ArrayList()
-    fun register(handler: Handler) {
-        list.add(handler )
-    }
-
 }
