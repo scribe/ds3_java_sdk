@@ -24,6 +24,6 @@ class TestReadFromResources {
     @Test
     fun testReadFromResources() {
         val expected = "{\"test\" : \"test\"}"
-        assertThat(ReadFileFromResources.readFile("test.json")).isEqualTo(expected)
+        assertThat(ReadFileFromResources.readFile("test.json").blockingGet()).isEqualTo(expected)
     }
 }
