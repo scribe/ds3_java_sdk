@@ -33,6 +33,10 @@ interface HttpRouter {
  * that has been registered with the HttpRouter
  */
 interface HttpHandlerDeregistration {
+    /**
+     * When called, the Handler(s) associated with this Deregistration will be removed, and should no longer be served.
+     * This call should be idempotent and calling deregister multiple times should succeed.
+     */
     fun deregister()
 }
 
@@ -45,9 +49,16 @@ class HttpDeregistrationAggregator : HttpHandlerDeregistration {
     private val deregistrations: MutableList<HttpHandlerDeregistration> = ArrayList()
 
     fun addDeregistration(deregistration: HttpHandlerDeregistration) : HttpDeregistrationAggregator {
-        deregistrations.add(deregistration)
+        synchronized(this) {
+            deregistrations.add(deregistration)
+        }
         return this
     }
 
-    override fun deregister() = deregistrations.forEach(HttpHandlerDeregistration::deregister)
+    override fun deregister() {
+        synchronized(this) {
+            deregistrations.forEach(HttpHandlerDeregistration::deregister)
+            deregistrations.clear()
+        }
+    }
 }
