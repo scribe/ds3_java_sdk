@@ -20,11 +20,11 @@ import org.junit.Test
 
 class HttpDeregister_Test {
     @Test
-    fun singleRegister() {
-        val deregister = HttpDeregister()
-        val registration = HttpRegistrationStub()
+    fun singleDeregistration() {
+        val deregister = HttpDeregistrationAggregator()
+        val registration = HttpDeregistrationStub()
 
-        deregister.addRegistration(registration)
+        deregister.addDeregistration(registration)
 
         deregister.deregister()
 
@@ -32,13 +32,13 @@ class HttpDeregister_Test {
     }
 
     @Test
-    fun multiRegister() {
-        val deregister = HttpDeregister()
-        val registration1 = HttpRegistrationStub()
-        val registration2 = HttpRegistrationStub()
+    fun multiDeregistrations() {
+        val deregister = HttpDeregistrationAggregator()
+        val registration1 = HttpDeregistrationStub()
+        val registration2 = HttpDeregistrationStub()
 
-        deregister.addRegistration(registration1)
-        deregister.addRegistration(registration2)
+        deregister.addDeregistration(registration1)
+        deregister.addDeregistration(registration2)
 
         deregister.deregister()
 
@@ -47,7 +47,7 @@ class HttpDeregister_Test {
     }
 }
 
-class HttpRegistrationStub : HttpRouterRegistration {
+class HttpDeregistrationStub : HttpHandlerDeregistration {
     var registered = true
     private set
 

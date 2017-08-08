@@ -24,15 +24,15 @@ import ratpack.handling.Handler
  * any module in the system can expose their own Http handlers.
  */
 interface HttpRouter {
-    fun register(prefix: String, handler: Handler) : HttpRouterRegistration
-    fun register(prefix: String, action: Action<Chain>) : HttpRouterRegistration
+    fun register(prefix: String, handler: Handler) : HttpHandlerDeregistration
+    fun register(prefix: String, action: Action<Chain>) : HttpHandlerDeregistration
 }
 
 /**
  * This interface allows a consumer of the HttpRouter to remove deregister a handler
  * that has been registered with the HttpRouter
  */
-interface HttpRouterRegistration {
+interface HttpHandlerDeregistration {
     fun deregister()
 }
 
@@ -40,11 +40,14 @@ interface HttpRouterRegistration {
  * This is a convenience class to aggregate multiple HttpRouterRegistrations so that they are all tracked together
  * and can be de-registered together
  */
-class HttpDeregister {
+class HttpDeregistrationAggregator : HttpHandlerDeregistration {
 
-    private val registrations: MutableList<HttpRouterRegistration> = ArrayList()
+    private val deregistrations: MutableList<HttpHandlerDeregistration> = ArrayList()
 
-    fun addRegistration(registration: HttpRouterRegistration) = registrations.add(registration)
+    fun addDeregistration(deregistration: HttpHandlerDeregistration) : HttpDeregistrationAggregator {
+        deregistrations.add(deregistration)
+        return this
+    }
 
-    fun deregister() = registrations.forEach(HttpRouterRegistration::deregister)
+    override fun deregister() = deregistrations.forEach(HttpHandlerDeregistration::deregister)
 }
