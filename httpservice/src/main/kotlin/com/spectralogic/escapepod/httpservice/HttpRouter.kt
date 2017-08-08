@@ -15,8 +15,39 @@
 
 package com.spectralogic.escapepod.httpservice
 
+import ratpack.func.Action
+import ratpack.handling.Chain
 import ratpack.handling.Handler
 
+/**
+ * The HttpRouter is used to register RatPack handlers with the Http Module so that
+ * any module in the system can expose their own Http handlers.
+ */
 interface HttpRouter {
-    fun registerHandler(prefix: String, handler: Handler)
+    fun register(prefix: String, handler: Handler) : HttpHandlerDeregistration
+    fun register(prefix: String, action: Action<Chain>) : HttpHandlerDeregistration
+}
+
+/**
+ * This interface allows a consumer of the HttpRouter to remove deregister a handler
+ * that has been registered with the HttpRouter
+ */
+interface HttpHandlerDeregistration {
+    fun deregister()
+}
+
+/**
+ * This is a convenience class to aggregate multiple HttpRouterRegistrations so that they are all tracked together
+ * and can be de-registered together
+ */
+class HttpDeregistrationAggregator : HttpHandlerDeregistration {
+
+    private val deregistrations: MutableList<HttpHandlerDeregistration> = ArrayList()
+
+    fun addDeregistration(deregistration: HttpHandlerDeregistration) : HttpDeregistrationAggregator {
+        deregistrations.add(deregistration)
+        return this
+    }
+
+    override fun deregister() = deregistrations.forEach(HttpHandlerDeregistration::deregister)
 }
