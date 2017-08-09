@@ -16,17 +16,10 @@
 package com.spectralogic.escapepod.flashnetclient.responses
 
 import io.reactivex.Observable
-import org.simpleframework.xml.core.Persister
 
 class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
-    companion object {
+    private companion object {
         const val SUCCESS_VALUE = "Passed"
-
-        fun fromResponsePayload(responsePayload: String): FlashNetReply {
-            val serializer = Persister()
-            val reply = serializer.read(Reply::class.java, responsePayload)
-            return FlashNetReplyImpl(reply)
-        }
     }
 
     override val Version: String?

@@ -54,7 +54,7 @@ class Responses_Test {
         val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
         val xmlResponseString = clientSocket.readResponse()
 
-        val reply = FlashNetReplyImpl.fromResponsePayload(xmlResponseString)
+        val reply = FlashNetReplyFactory.fromResponsePayload(xmlResponseString)
 
         assertEquals(reply.Error, "No error")
         assertEquals(reply.RequestId, 1067)
@@ -91,7 +91,7 @@ class Responses_Test {
         val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
         val xmlResponseString = clientSocket.readResponse()
 
-        val reply = FlashNetReplyImpl.fromResponsePayload(xmlResponseString)
+        val reply = FlashNetReplyFactory.fromResponsePayload(xmlResponseString)
 
         assertEquals(reply.Error, "No error")
         assertEquals(reply.RequestId, null)
@@ -107,7 +107,7 @@ class Responses_Test {
 
         var priority : Int = -1
 
-        FlashNetReplyImpl
+        FlashNetReplyFactory
                 .fromResponsePayload(statusReplyText)
                 .toStatusInfo()
                 .subscribe({ (Priority) ->
