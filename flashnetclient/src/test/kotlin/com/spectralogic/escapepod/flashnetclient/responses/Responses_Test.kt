@@ -105,10 +105,15 @@ class Responses_Test {
                 "<StatusInfo Priority.DWD=\"4\"></StatusInfo>" +
                 "</Reply>"
 
-        val statusReply = FlashNetReplyImpl()
+        var priority : Int = -1
+
+        FlashNetReplyImpl()
                 .fromResponsePayload(statusReplyText)
                 .toStatusInfo()
+                .subscribe({ (Priority) ->
+                    priority = Priority!!
+                })
 
-        assertEquals(4, statusReply?.Priority)
+        assertEquals(4, priority)
     }
 }

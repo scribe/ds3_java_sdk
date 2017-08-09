@@ -15,6 +15,7 @@
 
 package com.spectralogic.escapepod.flashnetclient.responses
 
+import io.reactivex.Observable
 import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Element
 
@@ -39,7 +40,14 @@ data class Reply(@field:Attribute(name = "Version", required = false)
                  @param:Element(name = "StatusInfo", required = false)
                  val StatusInfo : StatusInfo?)
 {
-    fun toStatusInfo() : StatusInfo? {
-        return StatusInfo
+    fun toStatusInfo() : Observable<StatusInfo> {
+        return Observable.create( { emitter ->
+            try {
+                emitter.onNext(StatusInfo!!)
+                emitter.onComplete()
+            } catch (throwable : Throwable) {
+                emitter.onError(throwable)
+            }
+        })
     }
 }
