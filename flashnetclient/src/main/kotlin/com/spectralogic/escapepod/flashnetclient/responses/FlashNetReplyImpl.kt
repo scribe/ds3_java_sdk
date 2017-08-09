@@ -19,7 +19,7 @@ import io.reactivex.Observable
 
 class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
     private companion object {
-        const val SUCCESS_VALUE = "Passed"
+        const val SUCCESS_VALUE = "passed"
     }
 
     override val Version: String?
@@ -49,6 +49,6 @@ class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
     }
 
     private fun failed() : Boolean {
-        return reply.Status != SUCCESS_VALUE
+        return reply.Status?.toLowerCase() != SUCCESS_VALUE
     }
 }

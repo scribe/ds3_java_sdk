@@ -17,9 +17,8 @@ package com.spectralogic.escapepod.flashnetclient.responses
 
 import com.spectralogic.escapepod.flashnetclient.bindToUnusedPort
 import com.spectralogic.escapepod.flashnetclient.transport.SocketTransportImpl
+import org.junit.Assert.*
 import org.junit.Test
-import org.junit.Assert.assertEquals
-import org.junit.Assert.fail
 import java.io.BufferedWriter
 import java.io.OutputStreamWriter
 import java.util.concurrent.CountDownLatch
@@ -115,5 +114,29 @@ class Responses_Test {
                 })
 
         assertEquals(4, priority)
+    }
+
+    @Test
+    fun testParsingFailedStatusResponse() {
+        val statusReplyText = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <Reply Version=\"6.3.00.0\" Status=\"Failed\" >" +
+                "</Reply>"
+
+        var priority : Int = -1
+        var replyException : Throwable? = null
+
+        FlashNetReplyFactory
+                .fromResponsePayload(statusReplyText)
+                .toStatusInfo()
+                .subscribe(
+                        { (Priority) ->
+                            priority = Priority!!
+                        },
+                        { throwable ->
+                            replyException = throwable
+                        }
+                )
+
+        assertNotNull(replyException)
+        assertEquals(-1, priority)
     }
 }
