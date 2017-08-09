@@ -105,14 +105,21 @@ class Responses_Test {
                 "</Reply>"
 
         var priority : Int = -1
+        var replyException : Throwable? = null
 
         FlashNetReplyFactory
                 .fromResponsePayload(statusReplyText)
                 .toStatusReply()
-                .subscribe({ (Priority) ->
-                    priority = Priority!!
-                })
+                .subscribe(
+                        { (Priority) ->
+                            priority = Priority!!
+                        },
+                        { throwable ->
+                            replyException = throwable
+                        }
+                )
 
+        assertNull(replyException)
         assertEquals(4, priority)
     }
 
@@ -153,6 +160,7 @@ class Responses_Test {
                 "</GroupDetails> </Reply>"
 
         var groupDetails : GroupDetails? = null
+        var replyException : Throwable? = null
 
         FlashNetReplyFactory
                 .fromResponsePayload(listGroupReplyText)
@@ -160,9 +168,13 @@ class Responses_Test {
                 .subscribe(
                         { details ->
                             groupDetails = details
+                        },
+                        { throwable ->
+                            replyException = throwable
                         }
                 )
 
+        assertNull(replyException)
         assertEquals(2, groupDetails?.groupCount)
         assertNotNull(groupDetails?.groups)
         assertEquals(2, groupDetails?.groups?.size)
@@ -170,5 +182,29 @@ class Responses_Test {
         assertEquals(groupName2, groupDetails!!.groups[1].GroupName)
         assertEquals(groupAge, groupDetails!!.groups[0].GroupAge)
         assertEquals(groupAge, groupDetails!!.groups[1].GroupAge)
+    }
+
+    @Test
+    fun testThatNullPayloadErrors() {
+        val statusReplyText = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <Reply Version=\"6.3.00.0\" Status=\"Passed\" >" +
+                "</Reply>"
+
+        var priority : Int = -1
+        var replyException : Throwable? = null
+
+        FlashNetReplyFactory
+                .fromResponsePayload(statusReplyText)
+                .toStatusReply()
+                .subscribe(
+                        { (Priority) ->
+                            priority = Priority!!
+                        },
+                        { throwable ->
+                            replyException = throwable
+                        }
+                )
+
+        assertNotNull(replyException)
+        assertEquals(-1, priority)
     }
 }

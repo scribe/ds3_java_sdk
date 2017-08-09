@@ -45,17 +45,17 @@ class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
 
         var flashNetReply : T? = null
 
-        when (replyType) {
-            StatusInfo::class -> flashNetReply = reply.StatusInfo as T
-            GroupDetails::class -> flashNetReply = reply.GroupDetails as T
-        }
-
         return Observable.create( { emitter ->
             try {
+                when (replyType) {
+                    StatusInfo::class -> flashNetReply = reply.StatusInfo as T
+                    GroupDetails::class -> flashNetReply = reply.GroupDetails as T
+                }
+
                 emitter.onNext(flashNetReply!!)
                 emitter.onComplete()
             } catch (throwable : Throwable) {
-                emitter.onError(throwable)
+                emitter.onError(FlashNetResponseException(throwable.message ?: ""))
             }
         })
     }
