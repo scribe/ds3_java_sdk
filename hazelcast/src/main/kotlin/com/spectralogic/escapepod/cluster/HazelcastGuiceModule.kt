@@ -32,5 +32,6 @@ internal class HazelcastGuiceModule : AbstractModule() {
         bind(ClusterModule::class.java)
         bind(ClusterConfigService::class.java).to(ClusterConfigServiceImpl::class.java).`in`(Singleton::class.java)
         bind(object : TypeLiteral<Resource<ClusterConfigProto.ClusterConfig>>(){} ).to(ClusterConfigResource::class.java).`in`(Singleton::class.java)
+        bind(ClusterHandlerChain::class.java).`in`(Singleton::class.java)
     }
 }

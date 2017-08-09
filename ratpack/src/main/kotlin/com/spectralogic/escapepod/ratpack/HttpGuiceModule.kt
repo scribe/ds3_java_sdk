@@ -24,7 +24,6 @@ internal class HttpGuiceModule : AbstractModule() {
     override fun configure() {
         bind(HttpServiceProvider::class.java).to(HttpProvider::class.java).`in`(Singleton::class.java)
         bind(RootHandler::class.java).`in`(Singleton::class.java)
-        bind(ClusterHandlerChain::class.java).`in`(Singleton::class.java)
         bind(RatpackHttpRouter::class.java).`in`(Singleton::class.java)
         bind(HttpRouter::class.java).to(RatpackHttpRouter::class.java).`in`(Singleton::class.java)
     }
