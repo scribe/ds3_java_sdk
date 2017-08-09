@@ -38,3 +38,8 @@ data class Reply(@field:Attribute(name = "Version", required = false)
                  @field:Element(name = "StatusInfo", required = false)
                  @param:Element(name = "StatusInfo", required = false)
                  val StatusInfo : StatusInfo?)
+{
+    fun toStatusInfo() : StatusInfo? {
+        return StatusInfo
+    }
+}

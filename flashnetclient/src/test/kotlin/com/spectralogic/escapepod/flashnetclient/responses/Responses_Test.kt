@@ -107,9 +107,7 @@ class Responses_Test {
 
         val statusReply = FlashNetReplyImpl()
                 .fromResponsePayload(statusReplyText)
-                .StatusInfo
-                // .Version
-                // .toStatusReply()
+                .toStatusInfo()
 
         assertEquals(4, statusReply?.Priority)
     }
