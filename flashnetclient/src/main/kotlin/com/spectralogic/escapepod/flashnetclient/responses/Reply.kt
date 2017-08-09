@@ -16,6 +16,7 @@
 package com.spectralogic.escapepod.flashnetclient.responses
 
 import org.simpleframework.xml.Attribute
+import org.simpleframework.xml.Element
 
 data class Reply(@field:Attribute(name = "Version", required = false)
                  @param:Attribute(name = "Version", required = false)
@@ -32,4 +33,8 @@ data class Reply(@field:Attribute(name = "Version", required = false)
 
                  @field:Attribute(name = "RequestId", required = false)
                  @param:Attribute(name = "RequestId", required = false)
-                 val RequestId : Int?)
+                 val RequestId : Int?,
+
+                 @field:Element(name = "StatusInfo", required = false)
+                 @param:Element(name = "StatusInfo", required = false)
+                 val StatusInfo : StatusInfo?)

@@ -98,4 +98,19 @@ class Responses_Test {
         assertEquals(reply.Status, "Passed")
         assertEquals(reply.Version, null)
     }
+
+    @Test
+    fun testParsingStatusResponse() {
+        val statusReplyText = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <Reply Version=\"6.3.00.0\" Status=\"Passed\" >" +
+                "<StatusInfo Priority.DWD=\"4\"></StatusInfo>" +
+                "</Reply>"
+
+        val statusReply = FlashNetReplyImpl()
+                .fromResponsePayload(statusReplyText)
+                .StatusInfo
+                // .Version
+                // .toStatusReply()
+
+        assertEquals(4, statusReply?.Priority)
+    }
 }
