@@ -17,6 +17,8 @@ package com.spectralogic.escapepod.cluster
 
 import com.google.inject.AbstractModule
 import com.spectralogic.escapepod.api.*
+import com.spectralogic.escapepod.httpservice.HttpDeregistrationAggregator
+import com.spectralogic.escapepod.httpservice.HttpRouter
 import io.reactivex.Completable
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
@@ -27,11 +29,13 @@ class ClusterModuleRegistration : ModuleRegistration<ClusterModule> {
     override fun guiceModule(): AbstractModule = HazelcastGuiceModule()
 }
 
-class ClusterModule @Inject constructor(private val clusterServiceProvider: ClusterServiceProvider) : Module {
+class ClusterModule @Inject constructor(private val clusterServiceProvider: ClusterServiceProvider, private val httpRouter: HttpRouter, private val clusterHandler: ClusterHandlerChain) : Module {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(ClusterModule::class.java)
     }
+
+    private val deregistrationAggregator = HttpDeregistrationAggregator()
 
     override val name: String = "Cluster"
 
@@ -55,8 +59,13 @@ class ClusterModule @Inject constructor(private val clusterServiceProvider: Clus
 
     override fun startModule(): Completable {
         LOG.info("Starting the cluster module")
-        return clusterServiceProvider.startService()
+        return clusterServiceProvider.startService().doOnComplete {
+            deregistrationAggregator.addDeregistration(httpRouter.register("cluster", clusterHandler))
+        }
     }
 
-    override fun shutdownModule(): Completable = clusterServiceProvider.shutdown()
+    override fun shutdownModule(): Completable {
+        deregistrationAggregator.deregister()
+        return clusterServiceProvider.shutdown()
+    }
 }

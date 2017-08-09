@@ -13,7 +13,7 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.ratpack
+package com.spectralogic.escapepod.cluster
 
 import com.spectralogic.escapepod.api.ClusterServiceProvider
 import io.reactivex.Scheduler

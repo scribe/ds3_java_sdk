@@ -33,6 +33,7 @@ class ServerGuiceModule : AbstractModule() {
     private val workers: ExecutorService = ForkJoinPool.commonPool()
 
     override fun configure() {
+        bind(ModuleHandler::class.java).`in`(Singleton::class.java)
     }
 
 
