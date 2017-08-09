@@ -27,7 +27,6 @@ data class Reply(@field:Attribute(name = "Version", required = false)
                  @param:Attribute(name = "Status", required = false)
                  val Status : String?,
 
-
                  @field:Attribute(name = "Error", required = false)
                  @param:Attribute(name = "Error", required = false)
                  val Error : String?,
@@ -40,7 +39,17 @@ data class Reply(@field:Attribute(name = "Version", required = false)
                  @param:Element(name = "StatusInfo", required = false)
                  val StatusInfo : StatusInfo?)
 {
+    private companion object {
+        const val SUCCESS_VALUE = "Passed"
+    }
+
     fun toStatusInfo() : Observable<StatusInfo> {
+        if (failed()) {
+            return Observable.create { emitter ->
+                emitter.onError(FlashNetResponseException(Error ?: ""))
+            }
+        }
+
         return Observable.create( { emitter ->
             try {
                 emitter.onNext(StatusInfo!!)
@@ -49,5 +58,9 @@ data class Reply(@field:Attribute(name = "Version", required = false)
                 emitter.onError(throwable)
             }
         })
+    }
+
+    fun failed() : Boolean {
+        return Status == SUCCESS_VALUE
     }
 }
