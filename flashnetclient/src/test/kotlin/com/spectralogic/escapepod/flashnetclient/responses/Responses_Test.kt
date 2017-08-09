@@ -142,15 +142,19 @@ class Responses_Test {
 
     @Test
     fun testGettingListGroupsResponse() {
+        val groupName1 = "2008/Sport"
+        val groupName2 = "2008/Films/Comedy"
+        val groupAge = 9999
+
         val listGroupReplyText = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <Reply Version=\"6.3.00.0\" Status=\"Passed\" >" +
                 "<GroupDetails GroupCount.DWD=\"2\">" +
-                "<Group GroupName=\"2008/Sport\" GroupAge.DWD=\"9999\" />" +
-                "<Group GroupName=\"2008/Films/Comedy\" GroupAge.DWD=\"9999\" />" +
+                "<Group GroupName=\"" + groupName1 + "\" GroupAge.DWD=\"" + groupAge + "\" />" +
+                "<Group GroupName=\"" + groupName2 + "\" GroupAge.DWD=\"" + groupAge + "\" />" +
                 "</GroupDetails> </Reply>"
 
         var groupDetails : GroupDetails? = null
 
-        val listGroupReply = FlashNetReplyFactory
+        FlashNetReplyFactory
                 .fromResponsePayload(listGroupReplyText)
                 .toListGroupReply()
                 .subscribe(
@@ -162,5 +166,9 @@ class Responses_Test {
         assertEquals(2, groupDetails?.groupCount)
         assertNotNull(groupDetails?.groups)
         assertEquals(2, groupDetails?.groups?.size)
+        assertEquals(groupName1, groupDetails!!.groups[0].GroupName)
+        assertEquals(groupName2, groupDetails!!.groups[1].GroupName)
+        assertEquals(groupAge, groupDetails!!.groups[0].GroupAge)
+        assertEquals(groupAge, groupDetails!!.groups[1].GroupAge)
     }
 }

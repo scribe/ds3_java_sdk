@@ -16,6 +16,7 @@
 package com.spectralogic.escapepod.flashnetclient.responses
 
 import io.reactivex.Observable
+import kotlin.reflect.KClass
 
 class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
     private companion object {
@@ -32,15 +33,26 @@ class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
         get() = reply.RequestId
 
     override fun toStatusReply() : Observable<StatusInfo> {
+        return toFlashNetReply(StatusInfo::class)
+    }
+
+    private fun <T : Any> toFlashNetReply(replyType : KClass<T>) : Observable<T> {
         if (failed()) {
             return Observable.create { emitter ->
                 emitter.onError(FlashNetResponseException(reply.Error ?: ""))
             }
         }
 
+        var flashNetReply : T? = null
+
+        when (replyType) {
+            StatusInfo::class -> flashNetReply = reply.StatusInfo as T
+            GroupDetails::class -> flashNetReply = reply.GroupDetails as T
+        }
+
         return Observable.create( { emitter ->
             try {
-                emitter.onNext(reply.StatusInfo!!)
+                emitter.onNext(flashNetReply!!)
                 emitter.onComplete()
             } catch (throwable : Throwable) {
                 emitter.onError(throwable)
@@ -53,19 +65,6 @@ class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
     }
 
     override fun toListGroupReply(): Observable<GroupDetails> {
-        if (failed()) {
-            return Observable.create { emitter ->
-                emitter.onError(FlashNetResponseException(reply.Error ?: ""))
-            }
-        }
-
-        return Observable.create( { emitter ->
-            try {
-                emitter.onNext(reply.GroupDetails!!)
-                emitter.onComplete()
-            } catch (throwable : Throwable) {
-                emitter.onError(throwable)
-            }
-        })
+        return toFlashNetReply(GroupDetails::class)
     }
 }
