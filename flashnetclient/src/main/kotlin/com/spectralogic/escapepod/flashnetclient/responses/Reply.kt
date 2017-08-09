@@ -37,5 +37,9 @@ data class Reply(
 
         @field:Element(name = "StatusInfo", required = false)
         @param:Element(name = "StatusInfo", required = false)
-        val StatusInfo : StatusInfo?
+        val StatusInfo : StatusInfo?,
+
+        @field:Element(name = "GroupDetails", required = false)
+        @param:Element(name = "GroupDetails", required = false)
+        val GroupDetails : GroupDetails?
 )

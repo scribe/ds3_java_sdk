@@ -108,7 +108,7 @@ class Responses_Test {
 
         FlashNetReplyFactory
                 .fromResponsePayload(statusReplyText)
-                .toStatusInfo()
+                .toStatusReply()
                 .subscribe({ (Priority) ->
                     priority = Priority!!
                 })
@@ -126,7 +126,7 @@ class Responses_Test {
 
         FlashNetReplyFactory
                 .fromResponsePayload(statusReplyText)
-                .toStatusInfo()
+                .toStatusReply()
                 .subscribe(
                         { (Priority) ->
                             priority = Priority!!
@@ -138,5 +138,29 @@ class Responses_Test {
 
         assertNotNull(replyException)
         assertEquals(-1, priority)
+    }
+
+    @Test
+    fun testGettingListGroupsResponse() {
+        val listGroupReplyText = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <Reply Version=\"6.3.00.0\" Status=\"Passed\" >" +
+                "<GroupDetails GroupCount.DWD=\"2\">" +
+                "<Group GroupName=\"2008/Sport\" GroupAge.DWD=\"9999\" />" +
+                "<Group GroupName=\"2008/Films/Comedy\" GroupAge.DWD=\"9999\" />" +
+                "</GroupDetails> </Reply>"
+
+        var groupDetails : GroupDetails? = null
+
+        val listGroupReply = FlashNetReplyFactory
+                .fromResponsePayload(listGroupReplyText)
+                .toListGroupReply()
+                .subscribe(
+                        { details ->
+                            groupDetails = details
+                        }
+                )
+
+        assertEquals(2, groupDetails?.groupCount)
+        assertNotNull(groupDetails?.groups)
+        assertEquals(2, groupDetails?.groups?.size)
     }
 }

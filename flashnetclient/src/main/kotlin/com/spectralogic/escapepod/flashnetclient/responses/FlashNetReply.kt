@@ -23,5 +23,6 @@ interface FlashNetReply {
     val Error : String?
     val RequestId : Int?
 
-    fun toStatusInfo() : Observable<StatusInfo>
+    fun toStatusReply() : Observable<StatusInfo>
+    fun toListGroupReply() : Observable<GroupDetails>
 }

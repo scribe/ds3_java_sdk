@@ -31,7 +31,7 @@ class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
     override val RequestId: Int?
         get() = reply.RequestId
 
-    override fun toStatusInfo() : Observable<StatusInfo> {
+    override fun toStatusReply() : Observable<StatusInfo> {
         if (failed()) {
             return Observable.create { emitter ->
                 emitter.onError(FlashNetResponseException(reply.Error ?: ""))
@@ -50,5 +50,22 @@ class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
 
     private fun failed() : Boolean {
         return reply.Status?.toLowerCase() != SUCCESS_VALUE
+    }
+
+    override fun toListGroupReply(): Observable<GroupDetails> {
+        if (failed()) {
+            return Observable.create { emitter ->
+                emitter.onError(FlashNetResponseException(reply.Error ?: ""))
+            }
+        }
+
+        return Observable.create( { emitter ->
+            try {
+                emitter.onNext(reply.GroupDetails!!)
+                emitter.onComplete()
+            } catch (throwable : Throwable) {
+                emitter.onError(throwable)
+            }
+        })
     }
 }
