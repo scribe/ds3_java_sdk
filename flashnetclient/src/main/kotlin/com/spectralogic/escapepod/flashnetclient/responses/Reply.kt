@@ -15,52 +15,27 @@
 
 package com.spectralogic.escapepod.flashnetclient.responses
 
-import io.reactivex.Observable
 import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Element
 
-data class Reply(@field:Attribute(name = "Version", required = false)
-                 @param:Attribute(name = "Version", required = false)
-                 val Version : String?,
+data class Reply(
+        @field:Attribute(name = "Version", required = false)
+        @param:Attribute(name = "Version", required = false)
+        val Version : String?,
 
-                 @field:Attribute(name = "Status", required = false)
-                 @param:Attribute(name = "Status", required = false)
-                 val Status : String?,
+        @field:Attribute(name = "Status", required = false)
+        @param:Attribute(name = "Status", required = false)
+        val Status : String?,
 
-                 @field:Attribute(name = "Error", required = false)
-                 @param:Attribute(name = "Error", required = false)
-                 val Error : String?,
+        @field:Attribute(name = "Error", required = false)
+        @param:Attribute(name = "Error", required = false)
+        val Error : String?,
 
-                 @field:Attribute(name = "RequestId", required = false)
-                 @param:Attribute(name = "RequestId", required = false)
-                 val RequestId : Int?,
+        @field:Attribute(name = "RequestId", required = false)
+        @param:Attribute(name = "RequestId", required = false)
+        val RequestId : Int?,
 
-                 @field:Element(name = "StatusInfo", required = false)
-                 @param:Element(name = "StatusInfo", required = false)
-                 val StatusInfo : StatusInfo?)
-{
-    private companion object {
-        const val SUCCESS_VALUE = "Passed"
-    }
-
-    fun toStatusInfo() : Observable<StatusInfo> {
-        if (failed()) {
-            return Observable.create { emitter ->
-                emitter.onError(FlashNetResponseException(Error ?: ""))
-            }
-        }
-
-        return Observable.create( { emitter ->
-            try {
-                emitter.onNext(StatusInfo!!)
-                emitter.onComplete()
-            } catch (throwable : Throwable) {
-                emitter.onError(throwable)
-            }
-        })
-    }
-
-    fun failed() : Boolean {
-        return Status == SUCCESS_VALUE
-    }
-}
+        @field:Element(name = "StatusInfo", required = false)
+        @param:Element(name = "StatusInfo", required = false)
+        val StatusInfo : StatusInfo?
+)
