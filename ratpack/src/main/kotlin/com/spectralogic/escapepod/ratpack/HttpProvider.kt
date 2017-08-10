@@ -22,6 +22,7 @@ import com.spectralogic.escapepod.api.ClusterLeftEvent
 import com.spectralogic.escapepod.httpservice.HttpService
 import com.spectralogic.escapepod.httpservice.HttpServiceProvider
 import io.reactivex.Completable
+import io.reactivex.Single
 import org.slf4j.LoggerFactory
 import ratpack.server.RatpackServer
 
@@ -63,7 +64,7 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
         }
     }
 
-    override fun getService(): HttpService {
+    override fun getService(): Single<HttpService> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

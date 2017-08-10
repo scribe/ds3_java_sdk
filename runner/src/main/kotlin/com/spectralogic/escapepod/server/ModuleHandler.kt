@@ -26,9 +26,9 @@ internal class ModuleHandler : Action<Chain> {
         private val LOG = LoggerFactory.getLogger(ModuleHandler::class.java)
     }
 
-    override fun execute(t: Chain) {
+    override fun execute(chain: Chain) {
         LOG.info("Got a module api call")
-        t.get(this::handleGet)
+        chain.get(this::handleGet)
     }
 
     private fun handleGet(ctx: Context) {

@@ -56,6 +56,7 @@ subprojects {
 
     dependencies {
         compile 'io.reactivex.rxjava2:rxjava:2.1.0'
+        compile 'io.reactivex.rxjava2:rxjava:2.1.0'
         compile 'io.reactivex.rxjava2:rxkotlin:2.0.0'
         compile 'com.google.guava:guava:21.0'
         compile "com.google.inject:guice:$guiceVersion"
@@ -118,6 +119,7 @@ project(":planner") {
 project(":xoduspersistence") {
     dependencies {
         compile project(":api")
+        compile project(":util")
     }
 }
 

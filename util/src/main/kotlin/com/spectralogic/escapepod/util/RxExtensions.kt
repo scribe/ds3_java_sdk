@@ -13,4 +13,24 @@
  *  ****************************************************************************
  */
 
-include 'api', 'avidmamclient', 'localcache', 'hazelcast', 'restclientutils', 'util', 'gui', 'planner', 'runner', 'bpclient', 'scheduler', 'divaclient', 'flashnetclient', 'migrate', 'xoduspersistence', 'mongopersistence', 'ratpack', 'httpservice', 'metadatasearch', 'deviceregistry'
+package com.spectralogic.escapepod.util
+
+import io.reactivex.Maybe
+import io.reactivex.Single
+
+fun <T> maybeOfNullable(item: T?, exceptionFactory: () -> Exception) : Maybe<T>  {
+    return if (item == null) {
+        Maybe.error(exceptionFactory())
+    } else {
+        Maybe.just(item)
+    }
+}
+
+fun <T> singleOfNullable(item: T?, exceptionFactory: () -> Exception) : Single<T>  {
+    return if (item == null) {
+        Single.error(exceptionFactory())
+    } else {
+        Single.just(item)
+    }
+}
+

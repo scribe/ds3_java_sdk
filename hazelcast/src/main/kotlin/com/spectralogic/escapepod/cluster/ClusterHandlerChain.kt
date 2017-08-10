@@ -15,6 +15,7 @@
 
 package com.spectralogic.escapepod.cluster
 
+import com.spectralogic.escapepod.api.ClusterService
 import com.spectralogic.escapepod.api.ClusterServiceProvider
 import io.reactivex.Scheduler
 import io.reactivex.schedulers.Schedulers
@@ -36,24 +37,22 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
     override fun execute(chain: Chain) {
 
         chain.get("members") { ctx ->
-            try {
-                clusterServiceProvider.getService().clusterNodes().toList().doOnSuccess { clusterList ->
-                    ctx.render(clusterList.joinToString(", ") { it.ip + ":" + it.port })
-                }.observeOn(scheduler).subscribe()
-            } catch( e : RuntimeException) {
-                ctx.response.status(400).send("Encountered an error with the cluster: " + e.message)
-            }
+            clusterServiceProvider.getService().flatMapObservable(ClusterService::clusterNodes).toList().doOnSuccess { clusterList ->
+                ctx.render(clusterList.joinToString(", ") { it.ip + ":" + it.port })
+            }.doOnError{
+                ctx.response.status(400).send("Encountered an error with the cluster: " + it.message)
+            }.observeOn(scheduler).subscribe()
         }
 
         chain.all { ctx -> ctx.byMethod {
 
             it.get {
 
-                clusterServiceProvider.getService().name().doOnSuccess { name ->
+                clusterServiceProvider.getService().map(ClusterService::name).doOnSuccess { name ->
                     ctx.render(name)
                 }.doOnError { t ->
                     LOG.error("Failed to get cluster name", t)
-                    ctx.response.status(400).send("The cluster is not responding")
+                    ctx.response.status(400).send("The cluster is not responding: ${t.message}")
                 }.observeOn(scheduler).subscribe()
             }
 

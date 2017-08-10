@@ -20,6 +20,7 @@ import com.hazelcast.config.Config
 import com.hazelcast.core.*
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.cluster.config.ClusterConfigService
+import com.spectralogic.escapepod.util.singleOfNullable
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -82,14 +83,18 @@ internal class ClusterServiceProviderImpl
         return Completable.complete()
     }
 
-    override fun getService(): ClusterService {
-        throwIfNotInCluster(NOT_IN_CLUSTER)
-        return clusterService!!
+    override fun getService(): Single<ClusterService> = singleOfNullable(clusterService) {
+        ClusterException(NOT_IN_CLUSTER)
     }
 
-    override fun leaveCluster() : Completable {
-        throwIfNotInCluster(NOT_IN_CLUSTER)
+    override fun leaveCluster() : Completable
+    {
         return Completable.create { emitter ->
+
+            if (clusterService == null) {
+                emitter.onError(ClusterException(NOT_IN_CLUSTER))
+                return@create
+            }
             LOG.info("Attempting leaving cluster")
 
             clusterService.ifNotNull {
@@ -107,7 +112,10 @@ internal class ClusterServiceProviderImpl
     }
 
     override fun createCluster(name: String) : Completable {
-        throwIfInCluster(CANNOT_JOIN_NEW_CLUSTER)
+
+        if (clusterService != null) {
+            return Completable.error(ClusterException(CANNOT_JOIN_NEW_CLUSTER))
+        }
 
         return innerCreateCluster(name).doOnComplete {
             clusterLifecycleEvents.onNext(ClusterCreatedEvent(name))
@@ -129,7 +137,9 @@ internal class ClusterServiceProviderImpl
     }
 
     override fun joinCluster(endpoint: String) : Single<String> {
-        throwIfInCluster(CANNOT_JOIN_NEW_CLUSTER)
+        if (clusterService != null) {
+            return Single.error(ClusterException(CANNOT_JOIN_NEW_CLUSTER))
+        }
 
        return innerJoinCluster(endpoint).doOnSuccess { name ->
            clusterLifecycleEvents.onNext(ClusterJoinedEvent(name))
@@ -229,16 +239,6 @@ internal class ClusterServiceProviderImpl
         }
 
         return hazelcastClusterService
-    }
-
-    private fun throwIfNotInCluster(message: String) = throwClusterExceptionIf(message) { clusterService == null }
-
-    private fun throwIfInCluster(message: String) = throwClusterExceptionIf(message) { clusterService != null }
-
-    private fun throwClusterExceptionIf(message: String, condition : () -> Boolean) {
-        if (condition.invoke()) {
-            throw ClusterException(message)
-        }
     }
 }
 

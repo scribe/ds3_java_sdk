@@ -59,9 +59,11 @@ class ClusterModule @Inject constructor(private val clusterServiceProvider: Clus
 
     override fun startModule(): Completable {
         LOG.info("Starting the cluster module")
-        return clusterServiceProvider.startService().doOnComplete {
+
+        return Completable.create { emitter ->
             deregistrationAggregator.addDeregistration(httpRouter.register("cluster", clusterHandler))
-        }
+            emitter.onComplete()
+        }.mergeWith(clusterServiceProvider.startService())
     }
 
     override fun shutdownModule(): Completable {
