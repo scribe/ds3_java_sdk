@@ -19,10 +19,10 @@ import com.spectralogic.escapepod.api.ClusterService
 import com.spectralogic.escapepod.api.ClusterServiceProvider
 import com.spectralogic.escapepod.api.MetadataSearchServiceConfigFile
 import io.reactivex.Completable
-import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.functions.Function4
+import io.reactivex.functions.Function5
 import org.slf4j.LoggerFactory
+import java.io.BufferedWriter
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Path
@@ -46,25 +46,28 @@ internal class ElasticSearchConfigFile
 
         val configFile = elasticSearchConfigDir.resolve("elasticsearch.yml")
 
-        Files.newBufferedWriter(configFile, Charset.forName("UTF-8"),
-                StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE, StandardOpenOption.WRITE).use { fileWriter ->
+        try {
 
-            val service = clusterServiceProvider.getService()
+            val fileWriterSingle: Single<BufferedWriter> = createFileSingle(configFile)
 
-            val clusterName: Single<String> = service.flatMap(ClusterService::name)
-            val instanceName: Single<String> = service.flatMap(ClusterService::instanceName)
-            val clusterNodeCount: Single<Long> = service.flatMap{ clusterService ->
+            val serviceSingle = clusterServiceProvider.getService()
+
+            val clusterNameSingle: Single<String> = serviceSingle.flatMap(ClusterService::name)
+            val instanceNameSingle: Single<String> = serviceSingle.flatMap(ClusterService::instanceName)
+            val clusterNodeCountSingle: Single<Long> = serviceSingle.flatMap{ clusterService ->
                 clusterService.clusterNodes().count()
             }
-            val endpoints: Single<String> = service.flatMapObservable {
-                Observable.fromIterable(it.getDistributedSet<ElasticSearchNode>(ElasticSearchServiceProvider.ELASTICSEARCH_CLUSTER_ENDPOINT))
-            }.map {
-                "\"${it.ip}:${it.port}\""
-            }.toList()
-                    .map { it.joinToString(",") }
 
-            return Single.zip(clusterName, instanceName, clusterNodeCount, endpoints, Function4<String, String, Long, String, ClusterVariables>(::ClusterVariables))
-                    .flatMapCompletable {
+            val endpoints: Single<String> = serviceSingle.map { clusterService ->
+                clusterService.getDistributedSet<ElasticSearchNode>(ElasticSearchServiceProvider.ELASTICSEARCH_CLUSTER_ENDPOINT).joinToString(",") { elasticNode ->
+                    "\"${elasticNode.ip}:${elasticNode.port}\"" }
+            }
+
+            return Single.zip(clusterNameSingle, instanceNameSingle, clusterNodeCountSingle, endpoints, fileWriterSingle, Function5<String, String, Long, String, BufferedWriter, ClusterVariables>(::ClusterVariables))
+                    .doFinally {
+                    }.flatMapCompletable {
+
+                        val fileWriter = it.fileWriter
 
                         fileWriter.write("cluster.name: ${it.clusterName}\n")
 
@@ -81,8 +84,25 @@ internal class ElasticSearchConfigFile
                         fileWriter.write("cluster.routing.allocation.disk.threshold_enabled: false\n")
                         Completable.complete()
                     }
+        } catch (e: Throwable) {
+
+            return Completable.error(e)
         }
+    }
+
+    /**
+     * This creates a BufferedWriter that can be included in javarx chains and includes logic to close the resource after
+     * the chain has been processed.
+     */
+    private fun createFileSingle(configFile: Path): Single<BufferedWriter> {
+        val bufferedWriter = Files.newBufferedWriter(configFile, Charset.forName("UTF-8"),
+                StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+        val fileWriterSingle: Single<BufferedWriter> = Single.just(bufferedWriter)
+        fileWriterSingle.doFinally {
+            bufferedWriter.close()
+        }
+        return fileWriterSingle
     }
 }
 
-private data class ClusterVariables(val clusterName: String, val instanceName: String, val nodeCount: Long, val endpoints: String)
+private data class ClusterVariables(val clusterName: String, val instanceName: String, val nodeCount: Long, val endpoints: String, val fileWriter: BufferedWriter)
