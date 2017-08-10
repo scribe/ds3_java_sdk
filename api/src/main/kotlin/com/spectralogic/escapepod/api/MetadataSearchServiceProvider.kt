@@ -28,7 +28,7 @@ interface MetadataSearchServiceProvider : ServiceProvider<MetadataSearchService>
 }
 
 interface MetadataSearchServiceConfigFile {
-    fun createConfigFile()
+    fun createConfigFile(): Completable
 }
 
 interface MetadataSearchService {

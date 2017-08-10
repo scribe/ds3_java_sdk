@@ -16,8 +16,9 @@
 package com.spectralogic.escapepod.api
 
 import io.reactivex.Completable
+import io.reactivex.Single
 
 interface ServiceProvider<out T> : Shutdownable {
     fun startService() : Completable
-    fun getService() : T
+    fun getService() : Single<out T>
 }

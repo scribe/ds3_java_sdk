@@ -16,8 +16,10 @@
 package com.spectralogic.escapepod.metadatasearch
 
 import com.spectralogic.escapepod.api.*
+import com.spectralogic.escapepod.util.singleOfNullable
 import io.reactivex.Completable
 import io.reactivex.Single
+import io.reactivex.functions.BiFunction
 import org.apache.http.HttpHost
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -50,19 +52,19 @@ internal class ElasticSearchServiceProvider
 
     override fun createNewMetadataSearchCluster(): Completable {
         // TODO add check to make sure we are not already in a cluster
-        return startElasticSearch(true).doOnComplete(this::createElasticSearchService)
+        return startElasticSearch(true).andThen(createElasticSearchService())
     }
 
     override fun joinMetadataSearchCluster(): Completable {
         // TODO add check to make sure we are not already in a cluster
-        return startElasticSearch(true).doOnComplete(this::createElasticSearchService)
+        return startElasticSearch(true).andThen(createElasticSearchService())
     }
 
     override fun metadataSearchNodeJoinedEvent(): Completable {
         closeElasticSearchProcess()
         LOG.info("Closed ElasticSearch Process")
 
-        return startElasticSearch(false).doOnComplete(this::createElasticSearchService)
+        return startElasticSearch(false).andThen(createElasticSearchService())
     }
 
     override fun leaveMetadataSearchCluster(): Completable {
@@ -155,70 +157,62 @@ internal class ElasticSearchServiceProvider
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun getService(): MetadataSearchService {
-        return elasticSearchService
+    override fun getService(): Single<MetadataSearchService> {
+        return singleOfNullable(elasticSearchService) {
+            Exception("The metadata service has not been started")
+        }
     }
 
-    private fun createElasticSearchService() {
+    private fun createElasticSearchService() : Completable {
         val clusterService = clusterServiceProvider.getService()
-        val distributedSet = clusterService.getDistributedSet<ElasticSearchNode>(ELASTICSEARCH_CLUSTER_ENDPOINT)
+        val distributedSet = clusterService.map {  it.getDistributedSet<ElasticSearchNode>(ELASTICSEARCH_CLUSTER_ENDPOINT) }
 
-        LOG.info("creating ElasticSearch client")
-        elasticSearchService = ElasticSearchService(distributedSet.map { HttpHost(it.ip, it.port) })
+        return distributedSet.flatMapCompletable {
+            LOG.info("creating ElasticSearch client")
+            elasticSearchService = ElasticSearchService(it.map { HttpHost(it.ip, it.port) })
+            Completable.complete()
+        }
     }
 
     private fun startElasticSearch(newNode: Boolean): Completable {
-        return Completable.create { emitter ->
 
-            try {
-                LOG.info("Starting ElasticSearch node")
-
-                val clusterService = clusterServiceProvider.getService()
-                createElasticSearchNodeProcess().doOnSuccess { process ->
-
-                    elasticSearchProcess = process
-
-                    if (!elasticSearchProcess.isAlive) {
-                        emitter.onError(Exception("Failed to start ElasticSearch node"))
-                    } else {
-                        if (newNode) {
-                            val distributedSet =
-                                    clusterService.getDistributedSet<ElasticSearchNode>(ELASTICSEARCH_CLUSTER_ENDPOINT)
-                            distributedSet.add(ElasticSearchNode(interfaceIp, elasticSearchPort))
-                        }
-                        LOG.info("Started ElasticSearch node")
-                        emitter.onComplete()
-                    }
-                }.subscribe()
-
-            } catch (t: Throwable) {
-                emitter.onError(t)
+        return Single.zip(clusterServiceProvider.getService(),
+                createElasticSearchNodeProcess(),
+                BiFunction<ClusterService, Process, Pair<ClusterService, Process>> { t1, t2 -> Pair(t1, t2) }
+        ).map {
+            if (!it.second.isAlive) throw Exception("Failed to start ElasticSearch node")
+            it.first
+        }.flatMapCompletable { clusterService ->
+            if (!newNode) {
+                val distributedSet = clusterService.getDistributedSet<ElasticSearchNode>(ELASTICSEARCH_CLUSTER_ENDPOINT)
+                distributedSet.add(ElasticSearchNode(interfaceIp, elasticSearchPort))
             }
+            Completable.complete()
+        }.doOnComplete {
+            LOG.info("Started ElasticSearch node")
         }
     }
 
     private fun createElasticSearchNodeProcess(): Single<Process> {
-        return Single.create { emitter ->
-            //Create the configuration file before starting elasticSearch node
-            elasticSearchConfigFile.createConfigFile()
+        //Create the configuration file before starting elasticSearch node
 
-            val pidFile = elasticSearchBinDir.toString() + SLASH + "pid"
-            val process: Process
+        val pidFile = elasticSearchBinDir.toString() + SLASH + "pid"
+        return elasticSearchConfigFile.createConfigFile()
+                .andThen(runProcess(elasticSearchBinDir.toString() + SLASH + ELASTIC_SEARCH_EXE, "-d", "-p", pidFile))
 
-            process = runProcess(elasticSearchBinDir.toString() + SLASH + ELASTIC_SEARCH_EXE, "-d", "-p", pidFile)
-            emitter.onSuccess(process)
-        }
     }
 
     //TODO use as a until function
-    private fun runProcess(vararg args: String): Process {
-        val processBuilder = ProcessBuilder(*args)
+    private fun runProcess(vararg args: String): Single<Process> {
+        return Single.create { emitter ->
+            val processBuilder = ProcessBuilder(*args)
 
-        LOG.info("Starting command: {}", processBuilder.command().joinToString(" "))
+            LOG.info("Starting command: {}", processBuilder.command().joinToString(" "))
 
-        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
-        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-        return processBuilder.start()
+            processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
+            processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
+            emitter.onSuccess(processBuilder.start())
+        }
     }
 }
 

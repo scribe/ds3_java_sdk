@@ -15,9 +15,13 @@
 
 package com.spectralogic.escapepod.metadatasearch
 
-import com.google.common.base.Joiner
+import com.spectralogic.escapepod.api.ClusterService
 import com.spectralogic.escapepod.api.ClusterServiceProvider
 import com.spectralogic.escapepod.api.MetadataSearchServiceConfigFile
+import io.reactivex.Completable
+import io.reactivex.Observable
+import io.reactivex.Single
+import io.reactivex.functions.Function4
 import org.slf4j.LoggerFactory
 import java.nio.charset.Charset
 import java.nio.file.Files
@@ -37,46 +41,48 @@ internal class ElasticSearchConfigFile
         private val LOG = LoggerFactory.getLogger(ElasticSearchConfigFile::class.java)
     }
 
-    override fun createConfigFile() {
+    override fun createConfigFile() : Completable {
         LOG.debug("Writing elasticSearch cluster config")
 
         val configFile = elasticSearchConfigDir.resolve("elasticsearch.yml")
 
         Files.newBufferedWriter(configFile, Charset.forName("UTF-8"),
-                StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE, StandardOpenOption.WRITE).use {
-            val fileWriter = it
+                StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE, StandardOpenOption.WRITE).use { fileWriter ->
 
-            clusterServiceProvider.getService().name().doOnSuccess {
-                name ->
-                fileWriter.write("cluster.name: $name\n")
-            }.subscribe()
+            val service = clusterServiceProvider.getService()
 
-            clusterServiceProvider.getService().instanceName().doOnSuccess {
-                instanceName ->
-                fileWriter.write("node.name: $instanceName\n")
-            }.subscribe()
+            val clusterName: Single<String> = service.flatMap(ClusterService::name)
+            val instanceName: Single<String> = service.flatMap(ClusterService::instanceName)
+            val clusterNodeCount: Single<Long> = service.flatMap{ clusterService ->
+                clusterService.clusterNodes().count()
+            }
+            val endpoints: Single<String> = service.flatMapObservable {
+                Observable.fromIterable(it.getDistributedSet<ElasticSearchNode>(ElasticSearchServiceProvider.ELASTICSEARCH_CLUSTER_ENDPOINT))
+            }.map {
+                "\"${it.ip}:${it.port}\""
+            }.toList()
+                    .map { it.joinToString(",") }
 
-            fileWriter.write("network.host: $interfaceIp\n")
-            fileWriter.write("http.port: $elasticSearchPort\n")
+            return Single.zip(clusterName, instanceName, clusterNodeCount, endpoints, Function4<String, String, Long, String, ClusterVariables>(::ClusterVariables))
+                    .flatMapCompletable {
 
-            fileWriter.write("discovery.zen.ping.unicast.hosts: [")
-            val strings: HashSet<String> = HashSet()
-            clusterServiceProvider.getService()
-                    .getDistributedSet<ElasticSearchNode>(ElasticSearchServiceProvider.ELASTICSEARCH_CLUSTER_ENDPOINT)
-                    .forEach {
-                        strings.add("\"${it.ip}:${it.port}\"")
+                        fileWriter.write("cluster.name: ${it.clusterName}\n")
+
+                        fileWriter.write("node.name: ${it.instanceName}\n")
+
+                        fileWriter.write("network.host: $interfaceIp\n")
+                        fileWriter.write("http.port: $elasticSearchPort\n")
+
+                        fileWriter.write("discovery.zen.ping.unicast.hosts: [")
+                        fileWriter.write(it.endpoints)
+                        fileWriter.write("]\n")
+
+                        fileWriter.write("discovery.zen.minimum_master_nodes: ${(it.nodeCount / 2) + 1}\n")
+                        fileWriter.write("cluster.routing.allocation.disk.threshold_enabled: false\n")
+                        Completable.complete()
                     }
-            fileWriter.write(Joiner.on(",").join(strings))
-            fileWriter.write("]\n")
-
-            clusterServiceProvider.getService().clusterNodes().count().doOnSuccess {
-                size ->
-                fileWriter.write("discovery.zen.minimum_master_nodes: ${(size / 2) + 1}\n")
-            }.subscribe()
-
-            //TODO delete this
-            fileWriter.write("cluster.routing.allocation.disk.threshold_enabled: false\n")
         }
     }
-
 }
+
+private data class ClusterVariables(val clusterName: String, val instanceName: String, val nodeCount: Long, val endpoints: String)

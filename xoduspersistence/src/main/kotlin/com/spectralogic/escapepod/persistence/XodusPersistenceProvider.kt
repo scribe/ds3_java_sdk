@@ -16,11 +16,12 @@
 package com.spectralogic.escapepod.persistence
 
 import com.spectralogic.escapepod.api.*
+import com.spectralogic.escapepod.util.singleOfNullable
 import io.reactivex.Completable
+import io.reactivex.Single
 import jetbrains.exodus.entitystore.PersistentEntityStore
 import jetbrains.exodus.entitystore.PersistentEntityStores
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -70,7 +71,9 @@ internal class XodusPersistenceProvider
         TODO("not implemented")
     }
 
-    override fun getService(): PersistenceService = xodusService as PersistenceService
+    override fun getService(): Single<PersistenceService> = singleOfNullable(xodusService) {
+        Exception("The persistence layer has not been configured")
+    }
 
     override fun createNewPersistenceCluster(name: String, port: Int): Completable {
         TODO("not implemented")
