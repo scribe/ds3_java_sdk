@@ -43,15 +43,9 @@ class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
             }
         }
 
-        var flashNetReply : T? = null
-
         return Observable.create( { emitter ->
             try {
-                when (replyType) {
-                    StatusInfo::class -> flashNetReply = reply.StatusInfo as T
-                    GroupDetails::class -> flashNetReply = reply.GroupDetails as T
-                }
-
+                val flashNetReply : T? = replyForType(replyType)
                 emitter.onNext(flashNetReply!!)
                 emitter.onComplete()
             } catch (throwable : Throwable) {
@@ -62,6 +56,14 @@ class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
 
     private fun failed() : Boolean {
         return reply.Status?.toLowerCase() != SUCCESS_VALUE
+    }
+
+    private fun <T : Any> replyForType(replyType : KClass<T>) : T? {
+        when (replyType) {
+            StatusInfo::class -> return reply.StatusInfo as T
+            GroupDetails::class -> return reply.GroupDetails as T
+            else -> return null
+        }
     }
 
     override fun toListGroupReply(): Observable<GroupDetails> {
