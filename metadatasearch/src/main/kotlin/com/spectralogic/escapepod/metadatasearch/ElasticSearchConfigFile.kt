@@ -64,8 +64,7 @@ internal class ElasticSearchConfigFile
             }
 
             return Single.zip(clusterNameSingle, instanceNameSingle, clusterNodeCountSingle, endpoints, fileWriterSingle, Function5<String, String, Long, String, BufferedWriter, ClusterVariables>(::ClusterVariables))
-                    .doFinally {
-                    }.flatMapCompletable {
+                    .flatMapCompletable {
 
                         val fileWriter = it.fileWriter
 
