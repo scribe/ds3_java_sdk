@@ -47,8 +47,8 @@ internal class ElasticSearchServiceProvider
         val ELASTICSEARCH_CLUSTER_ENDPOINT = "elasticSearchClusterEndpoint"
     }
 
-    private lateinit var elasticSearchProcess: Process
-    private lateinit var elasticSearchService: ElasticSearchService
+    private var elasticSearchProcess: Process? = null
+    private var elasticSearchService: ElasticSearchService? = null
 
     override fun createNewMetadataSearchCluster(): Completable {
         // TODO add check to make sure we are not already in a cluster
@@ -105,7 +105,7 @@ internal class ElasticSearchServiceProvider
                             LOG.error("Failed to join existing ElasticSearch cluster after restart", t)
                         }.subscribe()
             }
-            else -> LOG.error("Got an unhandled event: $event")
+            else -> LOG.warn("Got an unhandled event: $event")
         }
     }
 
@@ -113,7 +113,7 @@ internal class ElasticSearchServiceProvider
         return Completable.create { emitter ->
             try {
 
-                elasticSearchService.closeConnection()
+                elasticSearchService?.closeConnection()
                 LOG.info("Closed ElasticSearch Service")
 
                 closeElasticSearchProcess()
@@ -128,7 +128,7 @@ internal class ElasticSearchServiceProvider
 
     private fun closeElasticSearchProcess() {
         killElasticSearchProcess()
-        elasticSearchProcess.destroy()
+        elasticSearchProcess?.destroy()
     }
 
     private fun killElasticSearchProcess() {
@@ -154,7 +154,8 @@ internal class ElasticSearchServiceProvider
     }
 
     override fun startService(): Completable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        LOG.warn("Metadata start service not implemented")
+        return Completable.complete()
     }
 
     override fun getService(): Single<MetadataSearchService> {

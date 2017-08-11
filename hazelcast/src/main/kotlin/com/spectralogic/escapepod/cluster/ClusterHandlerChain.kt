@@ -69,6 +69,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
                     ctx.response.status(204).send("Successfully removed from cluster")
                 }
                 .doOnError {
+                    LOG.error("Could not remove the system from the cluster", it)
                     ctx.response.status(400).send("Failed to remove system from cluster")
                 }
                 .observeOn(scheduler).subscribe()

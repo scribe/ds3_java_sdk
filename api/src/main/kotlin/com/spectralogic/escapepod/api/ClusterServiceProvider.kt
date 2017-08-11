@@ -86,7 +86,8 @@ class ClusterStartupEvent : ClusterEvent()
 class ClusterShutdownEvent : ClusterEvent()
 
 /**
- * This event is thrown when the current node leaves the cluster
+ * This event is thrown when the current node leaves the cluster, where leaving means the current node is no longer a
+ * member of the cluster
  */
 class ClusterLeftEvent: ClusterEvent()
 
