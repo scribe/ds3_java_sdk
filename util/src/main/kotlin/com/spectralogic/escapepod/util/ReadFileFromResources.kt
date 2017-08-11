@@ -19,6 +19,7 @@ import io.reactivex.Single
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import java.io.IOException
+import java.nio.charset.Charset
 
 object ReadFileFromResources {
     private val LOG = LoggerFactory.getLogger(ReadFileFromResources::class.java)
@@ -29,7 +30,7 @@ object ReadFileFromResources {
             try {
                 classLoader.getResourceAsStream(fileName).use {
                     resourceAsStream ->
-                    emitter.onSuccess(IOUtils.toString(resourceAsStream))
+                    emitter.onSuccess(IOUtils.toString(resourceAsStream, Charset.forName("UTF-8")))
                 }
             } catch (e: IOException) {
                 LOG.error("Failed to read xml from resource", e)
