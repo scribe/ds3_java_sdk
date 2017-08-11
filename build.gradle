@@ -123,12 +123,6 @@ project(":xoduspersistence") {
     }
 }
 
-project(":mongopersistence") {
-    dependencies {
-        compile project(":api")
-    }
-}
-
 project(":hazelcast") {
     dependencies {
         compile project(":api")
