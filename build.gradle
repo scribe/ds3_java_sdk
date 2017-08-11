@@ -95,6 +95,12 @@ subprojects {
     compileTestKotlin.dependsOn 'generateTestProto'
 }
 
+task unit(dependsOn: [':util:test', ':api:test', ':xoduspersistence:test', ':runner:test', ':ratpack:test', ':deviceregistry:test']) {
+    doLast {
+        println "Finished processing unit tests"
+    }
+}
+
 task wrapper(type: Wrapper) {
     gradleVersion = '4.1'
 }
