@@ -22,9 +22,10 @@ import io.reactivex.Single
 import io.reactivex.functions.BiFunction
 import org.apache.http.HttpHost
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.io.Serializable
+import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
@@ -144,8 +145,13 @@ internal class ElasticSearchServiceProvider
     private fun getElasticSearchProcessPid(): Single<Long> {
         return Single.create { emitter ->
             try {
-                val scanner = Scanner(File(elasticSearchBinDir.toString() + SLASH + "pid"))
-                emitter.onSuccess(scanner.nextLong())
+
+                val pidFilePath = Paths.get(elasticSearchBinDir.toString() + SLASH + "pid")
+
+                if (Files.exists(pidFilePath))
+                Scanner(pidFilePath.toFile()).use {
+                    emitter.onSuccess(it.nextLong())
+                }
             } catch (e: Exception) {
                 LOG.error("Failed to read ElasticSearch pid file", e)
                 emitter.onError(e)
@@ -182,9 +188,11 @@ internal class ElasticSearchServiceProvider
                 BiFunction<ClusterService, Process, Pair<ClusterService, Process>> { t1, t2 -> Pair(t1, t2) }
         ).map {
             if (!it.second.isAlive) throw Exception("Failed to start ElasticSearch node")
+            LOG.info("Started ElasticSearch")
             it.first
         }.flatMapCompletable { clusterService ->
-            if (!newNode) {
+            if (newNode) {
+                LOG.info("Adding ElasticSearch node to distributed cluster list")
                 val distributedSet = clusterService.getDistributedSet<ElasticSearchNode>(ELASTICSEARCH_CLUSTER_ENDPOINT)
                 distributedSet.add(ElasticSearchNode(interfaceIp, elasticSearchPort))
             }
@@ -199,7 +207,10 @@ internal class ElasticSearchServiceProvider
 
         val pidFile = elasticSearchBinDir.toString() + SLASH + "pid"
         return elasticSearchConfigFile.createConfigFile()
-                .andThen(runProcess(elasticSearchBinDir.toString() + SLASH + ELASTIC_SEARCH_EXE, "-d", "-p", pidFile))
+                .andThen(runProcess(elasticSearchBinDir.toString() + SLASH + ELASTIC_SEARCH_EXE, "-d", "-p", pidFile)
+                        .doOnSuccess {
+                            elasticSearchProcess = it
+                })
 
     }
 

@@ -48,7 +48,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
 
             it.get {
 
-                clusterServiceProvider.getService().map(ClusterService::name).doOnSuccess { name ->
+                clusterServiceProvider.getService().flatMap(ClusterService::name).doOnSuccess { name ->
                     ctx.render(name)
                 }.doOnError { t ->
                     LOG.error("Failed to get cluster name", t)

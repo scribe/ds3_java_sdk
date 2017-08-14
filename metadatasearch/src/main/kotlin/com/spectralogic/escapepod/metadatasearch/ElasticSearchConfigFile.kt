@@ -81,6 +81,7 @@ internal class ElasticSearchConfigFile
 
                         fileWriter.write("discovery.zen.minimum_master_nodes: ${(it.nodeCount / 2) + 1}\n")
                         fileWriter.write("cluster.routing.allocation.disk.threshold_enabled: false\n")
+                        fileWriter.close()
                         Completable.complete()
                     }
         } catch (e: Throwable) {
@@ -94,10 +95,12 @@ internal class ElasticSearchConfigFile
      * the chain has been processed.
      */
     private fun createFileSingle(configFile: Path): Single<BufferedWriter> {
+        LOG.info("Creating elastic search config file")
         val bufferedWriter = Files.newBufferedWriter(configFile, Charset.forName("UTF-8"),
                 StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
         val fileWriterSingle: Single<BufferedWriter> = Single.just(bufferedWriter)
         fileWriterSingle.doFinally {
+            LOG.info("Closing elastic search config file")
             bufferedWriter.close()
         }
         return fileWriterSingle

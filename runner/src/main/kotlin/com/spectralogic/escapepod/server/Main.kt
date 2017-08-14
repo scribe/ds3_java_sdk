@@ -16,7 +16,6 @@
 package com.spectralogic.escapepod.server
 
 import com.google.inject.Guice
-import com.spectralogic.escapepod.api.Module
 import com.spectralogic.escapepod.api.ModuleRegistration
 
 import com.spectralogic.escapepod.util.collections.toImmutableList
@@ -42,8 +41,8 @@ fun main(arg: Array<String>) {
 
     try {
         // 2 stage loading of the modules
-        Completable.merge(moduleInstances.map { it.loadModule() }).doOnError(::exitOnError).subscribe()
-        Completable.merge(moduleInstances.map { it.startModule() }).doOnError(::exitOnError).subscribe()
+        Completable.merge(moduleInstances.map { it.loadModule() }).doOnError(::exitOnError).andThen(
+        Completable.merge(moduleInstances.map { it.startModule() })).subscribe()
     } catch (t: Throwable) {
         exitOnError(t)
     }
