@@ -19,7 +19,12 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.Socket
 
-class SocketTransportImpl(private val hostNameOrIpAddress : String, private val portNumber : Int) : SocketTransport {
+class SocketTransportImpl(private val hostNameOrIpAddress : String, private val portNumber : Int) : SocketTransport
+{
+    private companion object {
+        const val BEGIN_DELIMETER = '<'
+    }
+
     override fun readResponse(): String {
         var socket : Socket?
 
@@ -56,7 +61,7 @@ class SocketTransportImpl(private val hostNameOrIpAddress : String, private val 
         do {
             c = bufferedReader.read().toChar()
             buffer.append(c)
-        } while (c != '<')
+        } while (c != BEGIN_DELIMETER)
 
         return buffer.toString()
     }
@@ -66,7 +71,7 @@ class SocketTransportImpl(private val hostNameOrIpAddress : String, private val 
 
         read(bufferedReader, xmlString)
 
-        return xmlString.joinToString(separator = "", prefix = "<")
+        return xmlString.joinToString(separator = "", prefix = BEGIN_DELIMETER.toString())
     }
 
     private fun read(bufferedReader: BufferedReader, buffer : CharArray) {
