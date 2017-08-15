@@ -216,3 +216,9 @@ project(":ratpack") {
         compile project(":httpservice")
     }
 }
+
+project(":deviceregistry") {
+    dependencies {
+        compile project(":api")
+    }
+}
