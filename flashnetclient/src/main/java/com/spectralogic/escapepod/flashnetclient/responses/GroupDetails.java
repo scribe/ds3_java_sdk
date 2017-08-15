@@ -21,6 +21,10 @@ import org.simpleframework.xml.Root;
 
 import java.util.List;
 
+/**
+ * This is a java class, because the SimpleXML annotations you need to get
+ * lists serialized in kotlin are mind bending.
+ */
 @Root(strict = false)
 public class GroupDetails {
     @Attribute(name = "GroupCount.DWD", required = false)
