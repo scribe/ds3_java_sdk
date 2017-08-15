@@ -27,7 +27,7 @@ import org.simpleframework.xml.stream.NodeMap
 import org.simpleframework.xml.stream.OutputNode
 import java.io.ByteArrayOutputStream
 
-class FlashNetRequestImpl @Inject constructor(private val flashNetConfig: FlashNetConfig) : FlashNetRequest
+class FlashNetRequestFactoryImpl @Inject constructor(private val flashNetConfig: FlashNetConfig) : FlashNetRequestFactory
 {
     private companion object {
         const val xmlNodeClassTag = "class"

@@ -15,7 +15,7 @@
 
 package com.spectralogic.escapepod.flashnetclient.requests
 
-interface FlashNetRequest {
+interface FlashNetRequestFactory {
     fun toMigrateAssetsRequest(migrate: Migrate) : String
     fun toStatusRequest(status: Status) : String
 }

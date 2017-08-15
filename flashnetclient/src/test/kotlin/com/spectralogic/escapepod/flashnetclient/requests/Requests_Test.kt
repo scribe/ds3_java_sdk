@@ -65,7 +65,7 @@ class Requests_Test {
     @Test
     fun testSerializingMigrateRequest() {
         val migrateRequest = Migrate(SourceVolume = "source volume", SourceArchive = 1, DestVolume = "destination volume", MoveAssets = 0)
-        val flashNetRequest = FlashNetRequestImpl(FlashNetConfigImpl())
+        val flashNetRequest = FlashNetRequestFactoryImpl(FlashNetConfigImpl())
         val migrationRequest = flashNetRequest.toMigrateAssetsRequest(migrateRequest)
 
         assertEquals("FlashNet XML 343 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.0\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"MigrateAssets\">\n" +
@@ -76,7 +76,7 @@ class Requests_Test {
     @Test
     fun testSerializingStatusRequest() {
         val statusRequest = Status(RequestId = 85, Guid = "A guid")
-        val flashNetRequest = FlashNetRequestImpl(FlashNetConfigImpl())
+        val flashNetRequest = FlashNetRequestFactoryImpl(FlashNetConfigImpl())
         val statusRequestPayload = flashNetRequest.toStatusRequest(statusRequest)
 
         assertEquals("FlashNet XML 266 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.0\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"Status\">\n" +
