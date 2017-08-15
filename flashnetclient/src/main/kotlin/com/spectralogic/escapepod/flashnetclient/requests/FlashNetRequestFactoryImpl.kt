@@ -32,6 +32,7 @@ class FlashNetRequestFactoryImpl @Inject constructor(private val flashNetConfig:
     private companion object {
         const val xmlNodeClassTag = "class"
         const val requestSpecificXmlNodeTag = "requestSpecificElement"
+        const val utf8 = "UTF-8"
 
         /**
          * An implementation of xml persister that allows us to replace parts of the generated xml tree
@@ -72,11 +73,11 @@ class FlashNetRequestFactoryImpl @Inject constructor(private val flashNetConfig:
                 requestType, requestSpecificPayload)
 
         ByteArrayOutputStream().use { byteArrayOutputStream ->
-            byteArrayOutputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".toByteArray())
+            byteArrayOutputStream.write(Joiner.on("").join("<?xml version=\"1.0\" encoding=\"", utf8, "\"?>").toByteArray())
 
-            xmlPersister.write(request, byteArrayOutputStream)
+            xmlPersister.write(request, byteArrayOutputStream, utf8)
 
-            val requestPayload = byteArrayOutputStream.toString()
+            val requestPayload = byteArrayOutputStream.toString(utf8)
             return Joiner.on(" ").join("FlashNet XML", requestPayload.length, requestPayload)
         }
     }
