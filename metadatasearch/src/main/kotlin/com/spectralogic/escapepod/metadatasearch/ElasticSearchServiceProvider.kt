@@ -22,9 +22,10 @@ import io.reactivex.Single
 import io.reactivex.functions.BiFunction
 import org.apache.http.HttpHost
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.io.Serializable
+import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
@@ -47,8 +48,8 @@ internal class ElasticSearchServiceProvider
         val ELASTICSEARCH_CLUSTER_ENDPOINT = "elasticSearchClusterEndpoint"
     }
 
-    private lateinit var elasticSearchProcess: Process
-    private lateinit var elasticSearchService: ElasticSearchService
+    private var elasticSearchProcess: Process? = null
+    private var elasticSearchService: ElasticSearchService? = null
 
     override fun createNewMetadataSearchCluster(): Completable {
         // TODO add check to make sure we are not already in a cluster
@@ -105,7 +106,7 @@ internal class ElasticSearchServiceProvider
                             LOG.error("Failed to join existing ElasticSearch cluster after restart", t)
                         }.subscribe()
             }
-            else -> LOG.error("Got an unhandled event: $event")
+            else -> LOG.warn("Got an unhandled event: $event")
         }
     }
 
@@ -113,7 +114,7 @@ internal class ElasticSearchServiceProvider
         return Completable.create { emitter ->
             try {
 
-                elasticSearchService.closeConnection()
+                elasticSearchService?.closeConnection()
                 LOG.info("Closed ElasticSearch Service")
 
                 closeElasticSearchProcess()
@@ -128,7 +129,7 @@ internal class ElasticSearchServiceProvider
 
     private fun closeElasticSearchProcess() {
         killElasticSearchProcess()
-        elasticSearchProcess.destroy()
+        elasticSearchProcess?.destroy()
     }
 
     private fun killElasticSearchProcess() {
@@ -144,8 +145,13 @@ internal class ElasticSearchServiceProvider
     private fun getElasticSearchProcessPid(): Single<Long> {
         return Single.create { emitter ->
             try {
-                val scanner = Scanner(File(elasticSearchBinDir.toString() + SLASH + "pid"))
-                emitter.onSuccess(scanner.nextLong())
+
+                val pidFilePath = Paths.get(elasticSearchBinDir.toString() + SLASH + "pid")
+
+                if (Files.exists(pidFilePath))
+                Scanner(pidFilePath.toFile()).use {
+                    emitter.onSuccess(it.nextLong())
+                }
             } catch (e: Exception) {
                 LOG.error("Failed to read ElasticSearch pid file", e)
                 emitter.onError(e)
@@ -154,7 +160,8 @@ internal class ElasticSearchServiceProvider
     }
 
     override fun startService(): Completable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        LOG.warn("Metadata start service not implemented")
+        return Completable.complete()
     }
 
     override fun getService(): Single<MetadataSearchService> {
@@ -181,9 +188,11 @@ internal class ElasticSearchServiceProvider
                 BiFunction<ClusterService, Process, Pair<ClusterService, Process>> { t1, t2 -> Pair(t1, t2) }
         ).map {
             if (!it.second.isAlive) throw Exception("Failed to start ElasticSearch node")
+            LOG.info("Started ElasticSearch")
             it.first
         }.flatMapCompletable { clusterService ->
-            if (!newNode) {
+            if (newNode) {
+                LOG.info("Adding ElasticSearch node to distributed cluster list")
                 val distributedSet = clusterService.getDistributedSet<ElasticSearchNode>(ELASTICSEARCH_CLUSTER_ENDPOINT)
                 distributedSet.add(ElasticSearchNode(interfaceIp, elasticSearchPort))
             }
@@ -198,7 +207,10 @@ internal class ElasticSearchServiceProvider
 
         val pidFile = elasticSearchBinDir.toString() + SLASH + "pid"
         return elasticSearchConfigFile.createConfigFile()
-                .andThen(runProcess(elasticSearchBinDir.toString() + SLASH + ELASTIC_SEARCH_EXE, "-d", "-p", pidFile))
+                .andThen(runProcess(elasticSearchBinDir.toString() + SLASH + ELASTIC_SEARCH_EXE, "-d", "-p", pidFile)
+                        .doOnSuccess {
+                            elasticSearchProcess = it
+                })
 
     }
 

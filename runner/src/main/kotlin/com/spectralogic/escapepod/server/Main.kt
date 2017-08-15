@@ -16,20 +16,20 @@
 package com.spectralogic.escapepod.server
 
 import com.google.inject.Guice
-import com.spectralogic.escapepod.api.Module
 import com.spectralogic.escapepod.api.ModuleRegistration
 
 import com.spectralogic.escapepod.util.collections.toImmutableList
 import io.reactivex.Completable
 import org.slf4j.LoggerFactory
 
+
+private val LOG = LoggerFactory.getLogger("Main")
+
 fun main(arg: Array<String>) {
 
     val moduleLoader = ModuleLoaderImpl()
 
     val loadedModules = moduleLoader.loadModules()
-
-    val LOG = LoggerFactory.getLogger("Main")
 
     val injector = Guice.createInjector(loadedModules.map(ModuleRegistration<*>::guiceModule).asIterable())
 
@@ -39,10 +39,17 @@ fun main(arg: Array<String>) {
 
     LOG.info("Loading modules: {}", moduleInstances.joinToString(", ") { it.name })
 
-    // 2 stage loading of the modules
-    Completable.merge(moduleInstances.map { it.loadModule()}).subscribe()
-    Completable.merge(moduleInstances.map { it.startModule() }).subscribe()
+    try {
+        // 2 stage loading of the modules
+        Completable.merge(moduleInstances.map { it.loadModule() }).doOnError(::exitOnError).andThen(
+        Completable.merge(moduleInstances.map { it.startModule() })).subscribe()
+    } catch (t: Throwable) {
+        exitOnError(t)
+    }
 
 }
 
-
+fun exitOnError(t: Throwable) {
+    LOG.error("Failed to start server", t)
+    System.exit(1)
+}

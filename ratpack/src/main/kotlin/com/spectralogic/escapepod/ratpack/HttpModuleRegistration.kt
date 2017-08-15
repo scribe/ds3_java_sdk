@@ -28,16 +28,11 @@ class HttpModuleRegistration : ModuleRegistration<HttpModule> {
     override fun guiceModule(): AbstractModule = HttpGuiceModule()
 }
 
-class HttpModule @Inject internal constructor(private val clusterServiceProvider: ClusterServiceProvider, private val httpServiceProvider: HttpProvider): Module {
+class HttpModule @Inject internal constructor(private val httpServiceProvider: HttpProvider): Module {
 
     override val name: String = "Http"
 
-    override fun loadModule(): Completable {
-        return Completable.create { emitter ->
-            clusterServiceProvider.clusterLifecycleEvents().subscribe(httpServiceProvider::clusterHandler)
-            emitter.onComplete()
-        }
-    }
+    override fun loadModule(): Completable = Completable.complete()
 
     override fun startModule(): Completable = httpServiceProvider.startService()
 

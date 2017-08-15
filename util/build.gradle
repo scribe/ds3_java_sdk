@@ -19,7 +19,7 @@ dependencies {
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:$jacksonVersion"
     compile group: 'org.apache.commons', name: 'commons-lang3', version: "$commonslang3Version"
-    compile group: 'commons-io', name: 'commons-io', version: '2.4'
+    compile group: 'commons-io', name: 'commons-io', version: "$iocommonsVersion"
 }
 
 clean.doFirst {

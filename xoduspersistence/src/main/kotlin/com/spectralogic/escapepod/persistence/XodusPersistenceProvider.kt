@@ -68,7 +68,8 @@ internal class XodusPersistenceProvider
     }
 
     override fun joinPersistenceCluster(name: String, port: Int): Completable {
-        TODO("not implemented")
+        LOG.warn("joining existing persistence cluster not implemented")
+        return Completable.complete()
     }
 
     override fun getService(): Single<PersistenceService> = singleOfNullable(xodusService) {
@@ -76,11 +77,13 @@ internal class XodusPersistenceProvider
     }
 
     override fun createNewPersistenceCluster(name: String, port: Int): Completable {
-        TODO("not implemented")
+        LOG.warn("create new persistence cluster not implemented")
+        return Completable.complete()
     }
 
     override fun leavePersistenceCluster(): Completable {
-        TODO("not implemented")
+        LOG.warn("leave persistence cluster not implemented")
+        return Completable.complete()
     }
 
     fun clusterHandler(event: ClusterEvent) {
@@ -100,6 +103,7 @@ internal class XodusPersistenceProvider
                         }.subscribe()
             }
             is ClusterLeftEvent -> {
+                // TODO add cleanup code to remove the existing persistence database
                 shutdown().subscribe()
             }
         }

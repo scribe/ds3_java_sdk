@@ -58,12 +58,6 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
         }
     }
 
-    fun clusterHandler(event: ClusterEvent) {
-        when(event) {
-            is ClusterLeftEvent -> shutdown().subscribe()
-        }
-    }
-
     override fun getService(): Single<HttpService> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }

@@ -48,7 +48,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
 
             it.get {
 
-                clusterServiceProvider.getService().map(ClusterService::name).doOnSuccess { name ->
+                clusterServiceProvider.getService().flatMap(ClusterService::name).doOnSuccess { name ->
                     ctx.render(name)
                 }.doOnError { t ->
                     LOG.error("Failed to get cluster name", t)
@@ -69,6 +69,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
                     ctx.response.status(204).send("Successfully removed from cluster")
                 }
                 .doOnError {
+                    LOG.error("Could not remove the system from the cluster", it)
                     ctx.response.status(400).send("Failed to remove system from cluster")
                 }
                 .observeOn(scheduler).subscribe()

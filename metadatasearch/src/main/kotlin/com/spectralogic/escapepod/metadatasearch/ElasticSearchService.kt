@@ -41,7 +41,7 @@ import java.util.stream.Collectors
 
 class ElasticSearchService : ElasticSearchMetadataService {
 
-    var restClient: RestClient
+    private val restClient: RestClient
 
     private companion object {
         private var PRETTY_TRUE: MutableMap<String, String> = Collections.singletonMap("pretty", "true")
