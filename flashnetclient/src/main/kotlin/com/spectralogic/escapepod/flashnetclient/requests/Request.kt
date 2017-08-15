@@ -19,6 +19,11 @@ import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.Root
 
+/**
+ * Use the envelope / letter pattern to construct an xml payload correct for the kind of request we want to
+ * make.  requestSpecificElement gets replaced with an xml node whose content is right for a given
+ * type of request.
+ */
 @Root(name = "FlashNetXML")
 data class Request<out T>(
         @field:Attribute(name = "APIVersion")
