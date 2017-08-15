@@ -35,9 +35,9 @@ class FlashNetRequestFactoryImpl @Inject constructor(private val flashNetConfig:
 
         /**
          * An implementation of xml persister that allows us to replace parts of the generated xml tree
-         * with out own content.  What we're using this for is to inject request-type-specific nodes into
+         * with our own content.  What we're using this for is to inject request-type-specific nodes into
          * a request envelope.  Since all requests are contained in an outer request envelope, this allows
-         * is to inject the right kind of request node into a generic envelope.
+         * is to inject the right kind of request node -- a letter -- into a generic envelope.
          */
         val xmlPersister = Persister(VisitorStrategy(object : Visitor {
             @Throws(Exception::class)
