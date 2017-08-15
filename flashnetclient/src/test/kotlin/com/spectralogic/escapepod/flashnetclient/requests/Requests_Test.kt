@@ -37,7 +37,7 @@ class Requests_Test {
 
     @Test
     fun testSerializingBaseRequest() {
-        val requestEnvelope = Request(APIVersion = "1.0", SourceServer = "source server", UserName = "Gracie", CallingApplication = "escape pod", Operation = "MigrateAssets", Migrate = null)
+        val requestEnvelope = Request(APIVersion = "1.0", SourceServer = "source server", UserName = "Gracie", CallingApplication = "escape pod", Operation = "MigrateAssets", requestSpecificElement = null)
 
         val serializer = Persister()
         val memoryWriter = MemoryWriter()
@@ -56,5 +56,16 @@ class Requests_Test {
         assertEquals("FlashNet XML 343 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.0\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"MigrateAssets\">\n" +
                 "   <Migrate SourceVolume=\"source volume\" SourceArchive.DWD=\"1\" DestVolume=\"destination volume\" MoveAssets.DWD=\"0\"/>\n" +
                 "</FlashNetXML>", migrationRequest)
+    }
+
+    @Test
+    fun testSerializingStatusRequest() {
+        val statusRequest = Status(RequestId = 85, Guid = "A guid")
+        val flashNetRequest = FlashNetRequestImpl(FlashNetConfigImpl())
+        val statusRequestPayload = flashNetRequest.toStatusRequest(statusRequest)
+
+        assertEquals("FlashNet XML 266 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.0\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"Status\">\n" +
+                "   <Status RequestId.DWD=\"85\" Guid=\"A guid\"/>\n" +
+                "</FlashNetXML>", statusRequestPayload)
     }
 }

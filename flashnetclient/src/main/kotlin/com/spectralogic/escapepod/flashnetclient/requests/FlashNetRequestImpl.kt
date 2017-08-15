@@ -4,30 +4,69 @@ import com.google.common.base.Joiner
 import com.google.inject.Inject
 import com.spectralogic.escapepod.flashnetclient.FlashNetConfig
 import org.simpleframework.xml.core.Persister
+import org.simpleframework.xml.strategy.Type
+import org.simpleframework.xml.strategy.Visitor
+import org.simpleframework.xml.strategy.VisitorStrategy
+import org.simpleframework.xml.stream.InputNode
+import org.simpleframework.xml.stream.NodeMap
+import org.simpleframework.xml.stream.OutputNode
 import java.io.ByteArrayOutputStream
 
 class FlashNetRequestImpl @Inject constructor(private val flashNetConfig: FlashNetConfig) : FlashNetRequest
 {
+    private companion object {
+        const val xmlNodeClassTag = "class"
+        const val requestSpecificXmlNodeTag = "requestSpecificElement"
+
+        /**
+         * An implementation of xml persister that allows us to replace parts of the generated xml tree
+         * with out own content.  What we're using this for is to inject request-type-specific nodes into
+         * a request envelope.  Since all requests are contained in an outer request envelope, this allows
+         * is to inject the right kind of request node into a generic envelope.
+         */
+        val xmlPersister = Persister(VisitorStrategy(object : Visitor {
+            @Throws(Exception::class)
+            override fun read(type: Type, node: NodeMap<InputNode>) {
+                // Intentionally not implemented
+            }
+
+            @Throws(Exception::class)
+            override fun write(type: Type, node: NodeMap<OutputNode>) {
+                if (node.name == requestSpecificXmlNodeTag) {
+                    node.node.name = node
+                            .node
+                            .attributes[xmlNodeClassTag]
+                            .value
+                            .replaceBeforeLast(delimiter = '.', replacement = "", missingDelimiterValue = "")
+                            .replace(".", "")
+                    node.remove(xmlNodeClassTag)
+                }
+            }
+        }))
+    }
+
     override fun toMigrateAssetsRequest(migrate: Migrate): String {
+        return makeFlashNetRequestPayload(requestType = "MigrateAssets", requestSpecificPayload = migrate)
+    }
+
+    private fun<T> makeFlashNetRequestPayload(requestType : String, requestSpecificPayload : T) : String {
         val request = Request(flashNetConfig.flashNetApiVersion(),
                 flashNetConfig.flashNetSourceServer(),
                 flashNetConfig.flashNetUserName(),
                 flashNetConfig.flashNetCallingApplication(),
-                "MigrateAssets",
-                Migrate = migrate)
-        return makeFlashNetRequestPayload(request)
+                requestType, requestSpecificPayload)
+
+        ByteArrayOutputStream().use { byteArrayOutputStream ->
+            byteArrayOutputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".toByteArray())
+
+            xmlPersister.write(request, byteArrayOutputStream)
+
+            val requestPayload = byteArrayOutputStream.toString()
+            return Joiner.on(" ").join("FlashNet XML", requestPayload.length, requestPayload)
+        }
     }
 
-    private fun makeFlashNetRequestPayload(request : Request) : String {
-        val byteArrayOutputStream = ByteArrayOutputStream()
-
-        byteArrayOutputStream.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".toByteArray())
-
-        val xmlPersister = Persister()
-        xmlPersister.write(request, byteArrayOutputStream)
-
-        val requestPayload = byteArrayOutputStream.toString()
-
-        return Joiner.on(" ").join("FlashNet XML", requestPayload.length, requestPayload)
+    override fun toStatusRequest(status: Status): String {
+        return makeFlashNetRequestPayload(requestType = "Status", requestSpecificPayload = status)
     }
 }

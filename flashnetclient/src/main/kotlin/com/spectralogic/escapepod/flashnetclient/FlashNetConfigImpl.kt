@@ -2,7 +2,7 @@ package com.spectralogic.escapepod.flashnetclient
 
 class FlashNetConfigImpl : FlashNetConfig {
     override fun portNumber(flashNetHost: String): Int? {
-        return 49152;
+        return 49152
     }
 
     override fun flashNetApiVersion(): String {

@@ -5,7 +5,7 @@ import org.simpleframework.xml.Element
 import org.simpleframework.xml.Root
 
 @Root(name = "FlashNetXML")
-data class Request(
+data class Request<out T>(
         @field:Attribute(name = "APIVersion")
         @param:Attribute(name = "APIVersion")
         val APIVersion : String,
@@ -26,7 +26,7 @@ data class Request(
         @param:Attribute(name = "Operation")
         val Operation : String,
 
-        @field:Element(name = "Migrate", required = false)
-        @param:Element(name = "Migrate", required = false)
-        val Migrate : Migrate?
+        @field:Element(name = "requestSpecificElement", required = false)
+        @param:Element(name = "requestSpecificElement", required = false)
+        val requestSpecificElement : T?
 )
