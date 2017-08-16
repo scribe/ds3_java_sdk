@@ -106,7 +106,7 @@ subprojects {
     compileTestKotlin.dependsOn 'generateTestProto'
 }
 
-task unit(dependsOn: [':util:test', ':api:test', ':xoduspersistence:test', ':runner:test', ':ratpack:test', ':deviceregistry:test']) {
+task unit(dependsOn: [':util:test', ':api:test', ':xoduspersistence:test', ':runner:test', ':ratpack:test', ':deviceregistry:test', ':xoduspersistence:test']) {
     doLast {
         println "Finished processing unit tests"
     }
@@ -223,5 +223,6 @@ project(":ratpack") {
 project(":deviceregistry") {
     dependencies {
         compile project(":api")
+        compile project(":util")
     }
 }

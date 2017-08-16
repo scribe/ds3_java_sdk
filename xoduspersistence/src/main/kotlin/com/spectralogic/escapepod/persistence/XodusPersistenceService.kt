@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMultimap
 import com.spectralogic.escapepod.api.PersistenceEntity
 import com.spectralogic.escapepod.api.PersistenceID
 import com.spectralogic.escapepod.api.PersistenceService
-import com.spectralogic.escapepod.util.collections.GuavaCollectors
+import com.spectralogic.escapepod.util.collections.immutableListCollector
 import jetbrains.exodus.entitystore.Entity
 import jetbrains.exodus.entitystore.EntityId
 import jetbrains.exodus.entitystore.PersistentEntityId
@@ -42,7 +42,7 @@ internal class XodusPersistenceService(private val entityStore: PersistentEntity
             entities.toList()
                     .stream()
                     .map(Entity::toPersistenceEntity)
-                    .collect(GuavaCollectors.immutableList())
+                    .collect(immutableListCollector())
         }.asSequence()
     }
 
@@ -52,7 +52,7 @@ internal class XodusPersistenceService(private val entityStore: PersistentEntity
             entities.toList()
                     .stream()
                     .map(Entity::toPersistenceEntity)
-                    .collect(GuavaCollectors.immutableList())
+                    .collect(immutableListCollector())
         }.asSequence()
     }
 
