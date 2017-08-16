@@ -15,6 +15,7 @@
 
 package com.spectralogic.escapepod.flashnetclient
 
+import java.io.BufferedReader
 import java.net.ServerSocket
 
 data class SocketPortTuple(val socket: ServerSocket?, val boundPort: Int)
@@ -31,4 +32,20 @@ fun bindToUnusedPort() : SocketPortTuple {
     }
 
     return SocketPortTuple(null, 0)
+}
+
+fun read(bufferedReader: BufferedReader, buffer : CharArray) {
+    var numBytesRemaining = buffer.size
+    var offset = 0
+
+    while (numBytesRemaining > 0) {
+        val numBytesRead = bufferedReader.read(buffer, offset, numBytesRemaining)
+
+        if (numBytesRead == -1) {
+            break
+        }
+
+        numBytesRemaining -= numBytesRead
+        offset += numBytesRead
+    }
 }

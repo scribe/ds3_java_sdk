@@ -15,13 +15,19 @@
 
 package com.spectralogic.escapepod.flashnetclient.transport
 
+import com.spectralogic.escapepod.flashnetclient.FlashNetConfigImpl
 import com.spectralogic.escapepod.flashnetclient.bindToUnusedPort
+import com.spectralogic.escapepod.flashnetclient.read
+import com.spectralogic.escapepod.flashnetclient.requests.FlashNetRequestFactoryImpl
+import com.spectralogic.escapepod.flashnetclient.requests.Status
 
 import org.junit.Test
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
+import java.io.BufferedReader
 
 import java.io.BufferedWriter
+import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.util.concurrent.CountDownLatch
 
@@ -31,7 +37,7 @@ class SocketTransport_Test {
         val socketPortTuple = bindToUnusedPort()
 
         if (socketPortTuple.socket == null) {
-            fail("Could not bind a server socket.")
+            fail("Could not bind a socket.")
         }
 
         val countDownLatch = CountDownLatch(1)
@@ -49,7 +55,7 @@ class SocketTransport_Test {
 
         val requestPayload = " FlashNet XML " + originalXmlString.length + " " + originalXmlString
 
-        kotlin.concurrent.thread(start = true, isDaemon = false, contextClassLoader = null, name = "Server Socket", priority = -1,
+        kotlin.concurrent.thread(start = true, isDaemon = false, contextClassLoader = null, name = "Writer Socket", priority = -1,
                 block = {
                     countDownLatch.countDown()
                     val newSocket = socketPortTuple.socket?.accept()
@@ -67,14 +73,12 @@ class SocketTransport_Test {
         assertEquals(originalXmlString, xmlResponseString)
     }
 
-
-
     @Test
-    fun testTransferringALongString() {
+    fun testReadingALongString() {
         val socketPortTuple = bindToUnusedPort()
 
         if (socketPortTuple.socket == null) {
-            fail("Could not bind a server socket.")
+            fail("Could not bind a socket.")
         }
         val countDownLatch = CountDownLatch(1)
 
@@ -91,7 +95,7 @@ class SocketTransport_Test {
 
         val requestPayload = " FlashNet XML $originalXmlStringLength $originalXmlString "
 
-        kotlin.concurrent.thread(start = true, isDaemon = false, contextClassLoader = null, name = "Server Socket", priority = -1,
+        kotlin.concurrent.thread(start = true, isDaemon = false, contextClassLoader = null, name = "Writer Socket", priority = -1,
                 block = {
                     countDownLatch.countDown()
                     val newSocket = socketPortTuple.socket?.accept()
@@ -107,5 +111,83 @@ class SocketTransport_Test {
         val xmlResponseString = clientSocket.readResponse()
 
         assertEquals(originalXmlString, xmlResponseString)
+    }
+
+    @Test
+    fun testWritingALongString() {
+        val socketPortTuple = bindToUnusedPort()
+
+        if (socketPortTuple.socket == null) {
+            fail("Could not bind a socket.")
+        }
+
+        val countDownLatch = CountDownLatch(1)
+
+        val stringBuilder = StringBuilder()
+
+        for (i in 0..4096 * 10) {
+            stringBuilder.append(i)
+        }
+
+        val originalString = stringBuilder.toString()
+
+        val charsReadFromSocket = CharArray(originalString.length)
+
+        kotlin.concurrent.thread(start = true, isDaemon = false, contextClassLoader = null, name = "Reader Socket", priority = -1,
+                block = {
+                    countDownLatch.countDown()
+                    val newSocket = socketPortTuple.socket?.accept()
+                    BufferedReader(InputStreamReader(newSocket?.getInputStream())).use {
+                        socketReader -> read(socketReader, charsReadFromSocket)
+                    }
+                }
+        )
+
+        countDownLatch.await()
+
+        val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
+        clientSocket.writeRequest(originalString)
+
+        assertEquals(originalString, String(charsReadFromSocket))
+    }
+
+    @Test
+    fun testWritingStatusRequest() {
+        val socketPortTuple = bindToUnusedPort()
+
+        if (socketPortTuple.socket == null) {
+            fail("Could not bind a socket.")
+        }
+
+        val readyToReadLatch = CountDownLatch(1)
+        val doneReadingLatch = CountDownLatch(1)
+
+        val statusRequest = Status(RequestId = 85, Guid = "A guid")
+        val flashNetRequest = FlashNetRequestFactoryImpl(FlashNetConfigImpl())
+        val statusRequestPayload = flashNetRequest.toStatusRequest(statusRequest)
+
+        val charsReadFromSocket = CharArray(statusRequestPayload.length)
+
+        kotlin.concurrent.thread(start = true, isDaemon = false, contextClassLoader = null, name = "Reader Socket", priority = -1,
+                block = {
+                    readyToReadLatch.countDown()
+                    val newSocket = socketPortTuple.socket?.accept()
+                    BufferedReader(InputStreamReader(newSocket?.getInputStream())).use {
+                        socketReader -> read(socketReader, charsReadFromSocket)
+                    }
+                    doneReadingLatch.countDown()
+                }
+        )
+
+        readyToReadLatch.await()
+
+        val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
+        clientSocket.writeRequest(statusRequestPayload)
+
+        doneReadingLatch.await()
+
+        assertEquals("FlashNet XML 266 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.0\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"Status\">\n" +
+                "   <Status RequestId.DWD=\"85\" Guid=\"A guid\"/>\n" +
+                "</FlashNetXML>", String(charsReadFromSocket))
     }
 }

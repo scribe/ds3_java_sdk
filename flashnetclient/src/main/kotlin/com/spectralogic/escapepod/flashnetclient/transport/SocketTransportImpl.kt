@@ -15,18 +15,24 @@
 
 package com.spectralogic.escapepod.flashnetclient.transport
 
+import org.slf4j.Logger
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.Socket
 
+import org.slf4j.LoggerFactory
+import java.io.BufferedWriter
+import java.io.OutputStreamWriter
+
 class SocketTransportImpl(private val hostNameOrIpAddress : String, private val portNumber : Int) : SocketTransport
 {
     private companion object {
-        const val BEGIN_DELIMETER = '<'
+        val LOG : Logger = LoggerFactory.getLogger(SocketTransportImpl::class.java)
+        const val BEGIN_DELIMITER = '<'
     }
 
     override fun readResponse(): String {
-        var socket : Socket?
+        val socket : Socket?
 
         try {
             socket = Socket(hostNameOrIpAddress, portNumber)
@@ -39,7 +45,7 @@ class SocketTransportImpl(private val hostNameOrIpAddress : String, private val 
                 }
             }
         } catch (throwable : Throwable) {
-            throwable.printStackTrace()
+            LOG.error("Error reading response.", throwable)
         }
 
         return String()
@@ -61,7 +67,7 @@ class SocketTransportImpl(private val hostNameOrIpAddress : String, private val 
         do {
             c = bufferedReader.read().toChar()
             buffer.append(c)
-        } while (c != BEGIN_DELIMETER)
+        } while (c != BEGIN_DELIMITER)
 
         return buffer.toString()
     }
@@ -71,7 +77,7 @@ class SocketTransportImpl(private val hostNameOrIpAddress : String, private val 
 
         read(bufferedReader, xmlString)
 
-        return xmlString.joinToString(separator = "", prefix = BEGIN_DELIMETER.toString())
+        return xmlString.joinToString(separator = "", prefix = BEGIN_DELIMITER.toString())
     }
 
     private fun read(bufferedReader: BufferedReader, buffer : CharArray) {
@@ -91,6 +97,16 @@ class SocketTransportImpl(private val hostNameOrIpAddress : String, private val 
     }
 
     override fun writeRequest(request: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val socket : Socket?
+
+        try {
+            socket = Socket(hostNameOrIpAddress, portNumber)
+
+            BufferedWriter(OutputStreamWriter(socket.getOutputStream())).use {
+                bufferedWriter -> bufferedWriter.write(request)
+            }
+        } catch (throwable : Throwable) {
+            LOG.error("Error writing request.", throwable)
+        }
     }
 }
