@@ -15,12 +15,16 @@
 
 package com.spectralogic.escapepod.deviceregistry
 
-import com.google.inject.AbstractModule
 import com.spectralogic.escapepod.api.DeviceRegistryModule
-import com.spectralogic.escapepod.api.ModuleRegistration
+import io.reactivex.Completable
 
-class DeviceRegistryModuleRegistration : ModuleRegistration<DeviceRegistryModule> {
-    override fun module(): Class<DeviceRegistryModule> = DeviceRegistryModule::class.java
+class DeviceRegistryModuleImpl : DeviceRegistryModule {
+    override val name: String = "Device Registry"
 
-    override fun guiceModule(): AbstractModule  = DeviceRegistryGuiceModule()
+    override fun loadModule(): Completable = Completable.complete()
+
+    override fun startModule(): Completable = Completable.complete()
+
+    override fun shutdownModule(): Completable = Completable.complete()
+
 }

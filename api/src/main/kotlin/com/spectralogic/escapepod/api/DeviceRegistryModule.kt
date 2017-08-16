@@ -13,17 +13,19 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.deviceregistry
+package com.spectralogic.escapepod.api
 
-import com.spectralogic.escapepod.api.DeviceRegistryServiceProvider
 import io.reactivex.Completable
+import io.reactivex.Single
 
-class DeviceRegistryServiceProviderImpl : DeviceRegistryServiceProvider {
-    override val name: String = "Device Registry"
+interface DeviceRegistryModule : Module
 
-    override fun loadModule(): Completable = Completable.complete()
-
-    override fun startModule(): Completable = Completable.complete()
-
-    override fun shutdownModule(): Completable = Completable.complete()
+interface DeviceRegistry {
+    fun registerDevice(credentials: ManagementCredentials): Single<DeviceRegistration>
+    fun deviceRegistration(endpoint: String): Single<DeviceRegistration>
+    fun removeRegistration(endpoint: String): Completable
 }
+
+data class ManagementCredentials(val endpoint: String, val username: String, val password: String)
+data class DeviceRegistration(val endpoint: String, val users: Sequence<SpectraUser>)
+data class SpectraUser(val userName: String, val fullName: String)

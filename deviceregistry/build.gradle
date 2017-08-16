@@ -13,14 +13,7 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.deviceregistry
-
-import com.google.inject.AbstractModule
-import com.spectralogic.escapepod.api.DeviceRegistryModule
-import com.spectralogic.escapepod.api.ModuleRegistration
-
-class DeviceRegistryModuleRegistration : ModuleRegistration<DeviceRegistryModule> {
-    override fun module(): Class<DeviceRegistryModule> = DeviceRegistryModule::class.java
-
-    override fun guiceModule(): AbstractModule  = DeviceRegistryGuiceModule()
+dependencies {
+    compile "com.spectralogic.ds3:bp-mgmt-client:$bpmgmtVersion"
+    compile "com.spectralogic.ds3:ds3-sdk:$bpclientVersion"
 }

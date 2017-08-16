@@ -15,53 +15,67 @@
 
 package com.spectralogic.escapepod.persistence
 
+import com.google.common.collect.ImmutableMap
+import com.spectralogic.escapepod.api.PersistenceEntity
+import com.spectralogic.escapepod.api.PersistenceID
 import com.spectralogic.escapepod.api.PersistenceService
 import jetbrains.exodus.entitystore.Entity
-import jetbrains.exodus.entitystore.EntityIterable
+import jetbrains.exodus.entitystore.EntityId
+import jetbrains.exodus.entitystore.PersistentEntityId
 import jetbrains.exodus.entitystore.PersistentEntityStore
-import jetbrains.exodus.entitystore.StoreTransaction
 
-internal class XodusPersistenceService(val entityStore: PersistentEntityStore) : PersistenceService {
+internal class XodusPersistenceService(private val entityStore: PersistentEntityStore) : PersistenceService {
 
-    //These are just examples of things a persistence service could provide, we need to finalize what it should do.
-    enum class NodeTypes {
-        CLUSTER,
-        BLACK_PEARL
-    }
-
-    enum class LinkType {
-        HAS
-    }
-
-    fun get(node:NodeTypes): EntityIterable = get(node.toString())
-
-    fun get(node:String): EntityIterable {
-        val tx:StoreTransaction = entityStore.beginReadonlyTransaction()
-        val entities:EntityIterable = tx.getAll(node)
+    override fun get(nodeType: String): Sequence<PersistenceEntity> {
+        val tx = entityStore.beginReadonlyTransaction()
+        val entities = tx.getAll(nodeType)
         tx.commit()
-        return entities
+        return entities.asSequence().map(Entity::toPersistenceEntity)
     }
 
-    fun get(nodeType:NodeTypes, property:String, value:Comparable<Any?>): EntityIterable {
-        val tx:StoreTransaction = entityStore.beginReadonlyTransaction()
-        val entities:EntityIterable = tx.find(nodeType.name, property, value)
+    override fun get(nodeType: String, property: String, value: Comparable<Any?>): Sequence<PersistenceEntity> {
+        val tx = entityStore.beginReadonlyTransaction()
+        val entities = tx.find(nodeType, property, value)
         tx.commit()
-        return entities
+        return entities.asSequence().map(Entity::toPersistenceEntity)
     }
 
-    fun addNode(node:NodeTypes, properties:Map<String,Comparable<Any?>> = mapOf()): Entity {
-        val tx:StoreTransaction = entityStore.beginTransaction()
-        val e:Entity = tx.newEntity(node.toString())
+    override fun addNode(nodeType: String, properties: Map<String, Comparable<Any?>>): PersistenceEntity {
+        val tx = entityStore.beginTransaction()
+        val e: Entity = tx.newEntity(nodeType)
         for((k,v) in properties) {
             e.setProperty(k, v)
         }
         tx.commit()
-        return e
+        return e.toPersistenceEntity()
     }
 
-    fun link(source:Entity, link:LinkType, destination:Entity): Unit {
+    override fun link(source: PersistenceID, link: String, destination: PersistenceID) {
         entityStore.executeInTransaction {
-            source.addLink(link.name, destination)
+            entityStore.getEntity(source.toEntityId())
+                    .addLink(link, entityStore.getEntity(destination.toEntityId()))
         }
     }
+}
+
+private fun Entity.toPersistenceEntity(): PersistenceEntity {
+    return PersistenceEntity(this.id.toPersistenceId(), this.properties())
+}
+
+private fun Entity.properties(): ImmutableMap<String, Comparable<Any?>> {
+    val propertiesBuilder: ImmutableMap.Builder<String, Comparable<Any?>> = ImmutableMap.builder<String, Comparable<Any?>>()
+
+    this.propertyNames.forEach { propertyName ->
+        propertiesBuilder.put(propertyName, this.getProperty(propertyName))
+    }
+
+    return propertiesBuilder.build()
+}
+
+private fun PersistenceID.toEntityId(): EntityId {
+    return PersistentEntityId(this.typeId, this.localId)
+}
+
+private fun EntityId.toPersistenceId(): PersistenceID {
+    return PersistenceID(this.typeId, this.localId)
 }

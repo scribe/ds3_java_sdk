@@ -13,8 +13,14 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.api
+package com.spectralogic.escapepod.deviceregistry
 
-interface DeviceRegistryServiceProvider : Module {
+import org.junit.Test
 
+class DeviceRegistry_Test {
+
+    @Test
+    fun registerDevice() {
+
+    }
 }

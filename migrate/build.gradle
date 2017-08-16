@@ -17,9 +17,6 @@ repositories {
     maven {
         url "https://dl.bintray.com/spectralogic/tpfr/"
     }
-    maven {
-        url 'http://dl.bintray.com/spectralogic/ds3'
-    }
 }
 
 dependencies {

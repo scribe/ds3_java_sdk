@@ -52,6 +52,9 @@ subprojects {
         maven {
             url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1'
         }
+        maven {
+            url 'http://dl.bintray.com/spectralogic/ds3'
+        }
         mavenCentral()
         jcenter()
     }
