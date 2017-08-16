@@ -21,6 +21,6 @@ class DeviceRegistry_Test {
 
     @Test
     fun registerDevice() {
-
+        // TODO need to finish the persistence layer implementation before these tests can be written
     }
 }
