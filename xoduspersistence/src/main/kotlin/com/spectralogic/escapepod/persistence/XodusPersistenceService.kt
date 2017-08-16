@@ -16,9 +16,11 @@
 package com.spectralogic.escapepod.persistence
 
 import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableMultimap
 import com.spectralogic.escapepod.api.PersistenceEntity
 import com.spectralogic.escapepod.api.PersistenceID
 import com.spectralogic.escapepod.api.PersistenceService
+import com.spectralogic.escapepod.util.collections.GuavaCollectors
 import jetbrains.exodus.entitystore.Entity
 import jetbrains.exodus.entitystore.EntityId
 import jetbrains.exodus.entitystore.PersistentEntityId
@@ -26,40 +28,58 @@ import jetbrains.exodus.entitystore.PersistentEntityStore
 
 internal class XodusPersistenceService(private val entityStore: PersistentEntityStore) : PersistenceService {
 
-    override fun get(nodeType: String): Sequence<PersistenceEntity> {
-        val tx = entityStore.beginReadonlyTransaction()
-        val entities = tx.getAll(nodeType)
-        tx.commit()
-        return entities.asSequence().map(Entity::toPersistenceEntity)
+    override fun get(id: PersistenceID): PersistenceEntity {
+        return entityStore.computeInReadonlyTransaction {
+            val entity = it.getEntity(id.toEntityId())
+
+            entity.toPersistenceEntity()
+        }
     }
 
-    override fun get(nodeType: String, property: String, value: Comparable<Any?>): Sequence<PersistenceEntity> {
-        val tx = entityStore.beginReadonlyTransaction()
-        val entities = tx.find(nodeType, property, value)
-        tx.commit()
-        return entities.asSequence().map(Entity::toPersistenceEntity)
+    override fun get(nodeType: String): Sequence<PersistenceEntity> {
+        return entityStore.computeInReadonlyTransaction {
+            val entities = it.getAll(nodeType)
+            entities.toList()
+                    .stream()
+                    .map(Entity::toPersistenceEntity)
+                    .collect(GuavaCollectors.immutableList())
+        }.asSequence()
+    }
+
+    override fun find(nodeType: String, property: String, value: Comparable<Any?>): Sequence<PersistenceEntity> {
+        return entityStore.computeInReadonlyTransaction {
+            val entities = it.find(nodeType, property, value)
+            entities.toList()
+                    .stream()
+                    .map(Entity::toPersistenceEntity)
+                    .collect(GuavaCollectors.immutableList())
+        }.asSequence()
     }
 
     override fun addNode(nodeType: String, properties: Map<String, Comparable<Any?>>): PersistenceEntity {
-        val tx = entityStore.beginTransaction()
-        val e: Entity = tx.newEntity(nodeType)
-        for((k,v) in properties) {
-            e.setProperty(k, v)
+        return entityStore.computeInTransaction {
+            val e: Entity = it.newEntity(nodeType)
+
+            for((k,v) in properties) {
+                e.setProperty(k, v)
+            }
+
+            e.toPersistenceEntity()
         }
-        tx.commit()
-        return e.toPersistenceEntity()
     }
 
     override fun link(source: PersistenceID, link: String, destination: PersistenceID) {
+
         entityStore.executeInTransaction {
-            entityStore.getEntity(source.toEntityId())
-                    .addLink(link, entityStore.getEntity(destination.toEntityId()))
+            val entity = it.getEntity(source.toEntityId())
+
+            entity.addLink(link, it.getEntity(destination.toEntityId()))
         }
     }
 }
 
 private fun Entity.toPersistenceEntity(): PersistenceEntity {
-    return PersistenceEntity(this.id.toPersistenceId(), this.properties())
+    return PersistenceEntity(this.id.toPersistenceId(), this.properties(), this.linkIdList())
 }
 
 private fun Entity.properties(): ImmutableMap<String, Comparable<Any?>> {
@@ -70,6 +90,18 @@ private fun Entity.properties(): ImmutableMap<String, Comparable<Any?>> {
     }
 
     return propertiesBuilder.build()
+}
+
+private fun Entity.linkIdList(): ImmutableMultimap<String, PersistenceID> {
+    val linkBuilder: ImmutableMultimap.Builder<String, PersistenceID> = ImmutableMultimap.builder<String, PersistenceID>()
+
+    this.linkNames.forEach {
+        val entityIterable = this.getLinks(it)
+
+        linkBuilder.putAll(it, entityIterable.map(Entity::getId).map(EntityId::toPersistenceId))
+    }
+
+    return linkBuilder.build()
 }
 
 private fun PersistenceID.toEntityId(): EntityId {
