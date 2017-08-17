@@ -12,3 +12,20 @@
  *    specific language governing permissions and limitations under the License.
  *  ****************************************************************************
  */
+
+package com.spectralogic.escapepod.api
+
+import io.reactivex.Completable
+import io.reactivex.Single
+
+interface DeviceRegistryModule : Module
+
+interface DeviceRegistry {
+    fun registerDevice(credentials: ManagementCredentials): Single<DeviceRegistration>
+    fun deviceRegistration(endpoint: String): Single<DeviceRegistration>
+    fun removeRegistration(endpoint: String): Completable
+}
+
+data class ManagementCredentials(val endpoint: String, val username: String, val password: String)
+data class DeviceRegistration(val endpoint: String, val users: Sequence<SpectraUser>)
+data class SpectraUser(val userName: String, val fullName: String)

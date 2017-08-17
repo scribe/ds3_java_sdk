@@ -15,6 +15,8 @@
 
 package com.spectralogic.escapepod.api
 
+import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableMultimap
 import io.reactivex.Completable
 
 interface PersistenceServiceProvider : ServiceProvider<PersistenceService> {
@@ -23,6 +25,15 @@ interface PersistenceServiceProvider : ServiceProvider<PersistenceService> {
     fun leavePersistenceCluster() : Completable
 }
 
-interface PersistenceService
+interface PersistenceService {
+    fun link(source: PersistenceID, link: String, destination: PersistenceID)
+    fun addNode(nodeType: String, properties: Map<String, Comparable<Any?>> = emptyMap()): PersistenceEntity
+    fun find(nodeType: String, property: String, value: Comparable<Any?>): Sequence<PersistenceEntity>
+    fun get(nodeType: String): Sequence<PersistenceEntity>
+    fun get(id: PersistenceID): PersistenceEntity
+}
+
+data class PersistenceID(val typeId: Int, val localId: Long)
+data class PersistenceEntity(val id: PersistenceID, val properties: ImmutableMap<String, Comparable<Any?>>, val links: ImmutableMultimap<String, PersistenceID>)
 
 class PersistenceException(message : String) : RuntimeException(message)

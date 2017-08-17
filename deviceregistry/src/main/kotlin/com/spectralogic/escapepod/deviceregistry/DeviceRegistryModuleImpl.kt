@@ -12,3 +12,19 @@
  *    specific language governing permissions and limitations under the License.
  *  ****************************************************************************
  */
+
+package com.spectralogic.escapepod.deviceregistry
+
+import com.spectralogic.escapepod.api.DeviceRegistryModule
+import io.reactivex.Completable
+
+class DeviceRegistryModuleImpl : DeviceRegistryModule {
+    override val name: String = "Device Registry"
+
+    override fun loadModule(): Completable = Completable.complete()
+
+    override fun startModule(): Completable = Completable.complete()
+
+    override fun shutdownModule(): Completable = Completable.complete()
+
+}

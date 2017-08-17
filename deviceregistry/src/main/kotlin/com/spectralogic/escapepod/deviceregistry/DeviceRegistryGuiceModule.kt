@@ -12,3 +12,12 @@
  *    specific language governing permissions and limitations under the License.
  *  ****************************************************************************
  */
+
+package com.spectralogic.escapepod.deviceregistry
+
+import com.google.inject.AbstractModule
+
+class DeviceRegistryGuiceModule : AbstractModule() {
+    override fun configure() {
+    }
+}
