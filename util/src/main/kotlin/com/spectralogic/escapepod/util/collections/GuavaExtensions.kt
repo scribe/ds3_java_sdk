@@ -21,13 +21,6 @@ import java.util.function.BiConsumer
 import java.util.function.BinaryOperator
 import java.util.stream.Collector
 
-/**
- * public static <T> Collector<T, ImmutableList.Builder<T>, ImmutableList<T>> immutableList() {
-    return Collector.of(ImmutableList.Builder::new, ImmutableList.Builder::add,
-        (l, r) -> l.addAll(r.build()), ImmutableList.Builder<T>::build);
-  }
- */
-
 fun <T> immutableListCollector(): Collector<T, ImmutableList.Builder<T>, ImmutableList<T>> {
 
     return Collector.of(
@@ -43,7 +36,5 @@ fun <T> immutableListCollector(): Collector<T, ImmutableList.Builder<T>, Immutab
                     ImmutableList.of()
                 }
             }
-
-
     )
 }
