@@ -18,6 +18,7 @@ package com.spectralogic.escapepod.metadatasearch
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.util.singleOfNullable
 import io.reactivex.Completable
+import io.reactivex.Maybe
 import io.reactivex.Single
 import io.reactivex.functions.BiFunction
 import org.apache.http.HttpHost
@@ -111,35 +112,37 @@ internal class ElasticSearchServiceProvider
     }
 
     override fun shutdown(): Completable {
-        return Completable.create { emitter ->
-            try {
-
-                elasticSearchService?.closeConnection()
-                LOG.info("Closed ElasticSearch Service")
-
-                closeElasticSearchProcess()
-                LOG.info("Closed ElasticSearch Process")
-
-                emitter.onComplete()
-            } catch (t: Throwable) {
-                emitter.onError(t)
-            }
-        }
-    }
-
-    private fun closeElasticSearchProcess() {
-        killElasticSearchProcess()
-        elasticSearchProcess?.destroy()
-    }
-
-    private fun killElasticSearchProcess() {
-        getElasticSearchProcessPid()
-                .doOnSuccess { pid ->
-                    LOG.debug("About to kill elasticSearch pid $pid")
-                    val rt = Runtime.getRuntime()
-                    rt.exec(KILL + pid)
+        return Maybe.just(elasticSearchService).flatMapCompletable {
+            it.closeConnection()
+        }.doOnError{
+            LOG.error("Elastic Search Service is not running", it)
+        }.doOnComplete {
+            LOG.info("Closed ElasticSearch Service")
+        }.onErrorComplete()
+                .andThen(closeElasticSearchProcess())
+                .doOnComplete {
+                    LOG.info("Closed ElasticSearch Process")
                 }
-                .subscribe()
+    }
+
+    private fun closeElasticSearchProcess() : Completable {
+        return killElasticSearchProcess().andThen(Maybe.just(elasticSearchProcess)).flatMapCompletable {
+            it.destroy()
+            Completable.complete()
+        }.doOnError {
+            LOG.error("Failed to destroy elastic search process", it)
+        }.onErrorComplete()
+    }
+
+    private fun killElasticSearchProcess() : Completable {
+        return getElasticSearchProcessPid().flatMapCompletable { pid ->
+            LOG.debug("About to kill elasticSearch pid $pid")
+            val rt = Runtime.getRuntime()
+            rt.exec(KILL + pid)
+            Completable.complete()
+        }.doOnError {
+            LOG.error("Failed to kill elastic search process", it)
+        }.onErrorComplete()
     }
 
     private fun getElasticSearchProcessPid(): Single<Long> {
