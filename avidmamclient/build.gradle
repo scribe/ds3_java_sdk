@@ -23,7 +23,7 @@ dependencies {
 task generateSoapClients(type:JavaExec) {
     workingDir "$projectDir/src/main/java"
 
-    classpath = files(file("$projectDir/tools/axis/lib/*"))
+    classpath = files(fileTree("$projectDir/tools/axis/lib/"))
 
     main = 'org.apache.axis.wsdl.WSDL2Java'
 
