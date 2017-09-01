@@ -17,6 +17,9 @@ dependencies {
     compile "com.microsoft.sqlserver:mssql-jdbc:$mssqljdbcVersion"
     compile group: 'javax.xml', name: 'jaxrpc-api', version: '1.1'
     compile group: 'org.apache.axis', name: 'axis', version: '1.4'
+    compile "commons-logging:commons-logging:1.2"
+    compile "commons-discovery:commons-discovery:0.5"
+    compile "wsdl4j:wsdl4j:1.6.3"
 }
 
 
@@ -28,4 +31,24 @@ task generateSoapClients(type:JavaExec) {
     main = 'org.apache.axis.wsdl.WSDL2Java'
 
     args '-p', 'com.spectralogic.escapepod.avidmamclient.soap.bpmprocess', '../resources/wsdl/BPMProcess.wsdl'
+}
+
+task generateWSClientsPart1(type:JavaExec) {
+    workingDir "$projectDir/src/main/java"
+
+    classpath = files(fileTree("$projectDir/tools/axis/lib/"))
+
+    main = 'org.apache.axis.wsdl.WSDL2Java'
+
+    args '-p', 'com.spectralogic.escapepod.avidpamclient.soap.ws', '../resources/wsdl/Assets.wsdl'
+}
+
+task generateWSClientsPart2(type:JavaExec) {
+    workingDir "$projectDir/src/main/java"
+
+    classpath = files(fileTree("$projectDir/tools/axis/lib/"))
+
+    main = 'org.apache.axis.wsdl.WSDL2Java'
+
+    args '-p', 'com.spectralogic.escapepod.avidpamclient.soap.ws', '../resources/wsdl/Jobs.wsdl'
 }
