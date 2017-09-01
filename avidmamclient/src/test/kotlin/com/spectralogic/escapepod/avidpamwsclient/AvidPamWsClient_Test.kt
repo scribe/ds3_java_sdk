@@ -5,7 +5,7 @@ import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
 
-internal class AvidPamWsSoapClient_Test {
+internal class AvidPamWsClient_Test {
 
     companion object {
 
@@ -13,12 +13,12 @@ internal class AvidPamWsSoapClient_Test {
         private val PASSWORD = ""
         private val ENDPOINT = "10.1.2.164:80"
 
-        private lateinit var avidPamWsSoapClient: AvidPamWsSoapClient
+        private lateinit var avidPamWsClient: AvidPamWsClient
 
         @BeforeClass
         @JvmStatic
         fun beforeClass() {
-            avidPamWsSoapClient = AvidPamWsSoapClient(USERNAME, PASSWORD, ENDPOINT)
+            avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT)
         }
 
         @AfterClass
@@ -31,7 +31,7 @@ internal class AvidPamWsSoapClient_Test {
     @Test
     fun getChildren_Test() {
         val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1/sharon"
-        val res = avidPamWsSoapClient.getChildren(interplayURI).blockingGet()
+        val res = avidPamWsClient.getChildren(interplayURI).blockingGet()
 
         res.errors.ifNotNull {
             for (e in it) {
@@ -159,7 +159,7 @@ internal class AvidPamWsSoapClient_Test {
         val services = arrayOf("com.avid.dms.restore")
         val showParameters = true
 
-        val res = avidPamWsSoapClient.getProfiles(workgroupURI, services, showParameters).blockingGet()
+        val res = avidPamWsClient.getProfiles(workgroupURI, services, showParameters).blockingGet()
 
         res.errors.ifNotNull {
             for (e in it) {
@@ -215,7 +215,7 @@ internal class AvidPamWsSoapClient_Test {
         val interplayURI =
                 "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49873e5275f80-060e2b347f7f-2a80"
 
-        val res = avidPamWsSoapClient.restore(service, profile, interplayURI).blockingGet()
+        val res = avidPamWsClient.restore(service, profile, interplayURI).blockingGet()
 
         res.errors.ifNotNull {
             for (e in it) {
@@ -239,7 +239,7 @@ internal class AvidPamWsSoapClient_Test {
                 "interplay://AvidWorkgroup/DMS?jobid=1504199639770.1",
                 "interplay://AvidWorkgroup/DMS?jobid=1504207567867.1")
 
-        val res = avidPamWsSoapClient.jobStatus(jobURIs).blockingGet()
+        val res = avidPamWsClient.jobStatus(jobURIs).blockingGet()
 
 
         res.errors.ifNotNull {

@@ -9,18 +9,18 @@ interface AvidPamWsClient {
     fun jobStatus(jobURIs: Array<String>): Single<JobStatusResponse>
 }
 
-data class GetChildrenResponse(val results: Array<GetChildrenResult>?, val errors: Array<WsError>?)
+data class GetChildrenResponse(val results: Sequence<GetChildrenResult>, val errors: Sequence<WsError>)
 
 data class WsError(val interplayURI: String, val message: String, val details: String)
 
 data class GetChildrenResult(val interplayURI: String, val attributes: Map<String, String>)
 
-data class GetProfilesResponse(val results: Array<GetProfilesResult>?, val errors: Array<WsError>?)
+data class GetProfilesResponse(val results: Sequence<GetProfilesResult>, val errors: Sequence<WsError>)
 
 data class GetProfilesResult(val name: String, val service: String, val parameters: Map<String, String>)
 
-data class RestoreResponse(val jobURI: String, val errors: Array<WsError>?)
+data class RestoreResponse(val jobURI: String, val errors: Sequence<WsError>?)
 
-data class JobStatusResponse(val results: Array<JobStatus>?, val errors: Array<WsError>?)
+data class JobStatusResponse(val results: Sequence<JobStatus>, val errors: Sequence<WsError>)
 
 data class JobStatus(val jobURI: String, val jobStatus: String, val percentComplete: Int?)

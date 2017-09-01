@@ -9,51 +9,46 @@ import com.spectralogic.escapepod.avidpamclient.soap.ws.ErrorType
 import com.spectralogic.escapepod.avidpamclient.soap.ws.JobStatusType
 import com.spectralogic.escapepod.avidpamclient.soap.ws.ProfileType
 
-internal class TransformUtils {
-    companion object {
-        fun errorTypeToWsError(errors: Array<ErrorType>?): Array<WsError>? {
-            if (errors == null) {
-                return null
-            }
-
-            return errors.map { it -> WsError(it.interplayURI, it.message, it.details) }.toTypedArray()
+internal object TransformUtils {
+    fun errorTypeToWsError(errors: Array<ErrorType>?): Sequence<WsError> {
+        if (errors == null) {
+            return emptySequence()
         }
 
-        fun assetDescriptionTypeToGetChildrenResult(results: Array<AssetDescriptionType>?):
-                Array<GetChildrenResult>? {
-            if (results == null){
-                return null
-            }
+        return errors.map { it -> WsError(it.interplayURI, it.message, it.details) }.asSequence()
+    }
 
-            return results.map {
-                it ->
-                GetChildrenResult(
-                        it.interplayURI,
-                        it.attributes.associateBy({ it.name }, { it._value }))
-            }.toTypedArray()
+    fun assetDescriptionTypeToGetChildrenResult(results: Array<AssetDescriptionType>?):
+            Sequence<GetChildrenResult> {
+        if (results == null) {
+            return emptySequence()
         }
 
-        fun profileTypeToGetProfileResult(results: Array<ProfileType>?): Array<GetProfilesResult>? {
-            if (results == null) {
-                return null
-            }
+        return results.map { it ->
+            GetChildrenResult(
+                    it.interplayURI,
+                    it.attributes.associateBy({ it.name }, { it._value }))
+        }.asSequence()
+    }
 
-            return results.map {
-                it ->
-                GetProfilesResult(it.name, it.service, it.parameters.associateBy({it.name}, {it._value}))
-            }.toTypedArray()
+    fun profileTypeToGetProfileResult(results: Array<ProfileType>?): Sequence<GetProfilesResult> {
+        if (results == null) {
+            return emptySequence()
         }
 
-        fun jobStatusTypeToJobStatusResult(results: Array<JobStatusType>?): Array<JobStatus>? {
-            if (results == null) {
-                return null
-            }
+        return results.map { it ->
+            GetProfilesResult(it.name, it.service, it.parameters.associateBy({ it.name }, { it._value }))
+        }.asSequence()
+    }
 
-            return results.map {
-                it ->
-                JobStatus(it.jobURI, it.status, it.percentComplete)
-            }.toTypedArray()
+    fun jobStatusTypeToJobStatusResult(results: Array<JobStatusType>?): Sequence<JobStatus> {
+        if (results == null) {
+            return emptySequence()
         }
+
+        return results.map { it ->
+            JobStatus(it.jobURI, it.status, it.percentComplete)
+        }.asSequence()
     }
 }
 
