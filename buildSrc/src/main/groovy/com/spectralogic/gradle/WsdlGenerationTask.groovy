@@ -33,35 +33,3 @@ class WsdlGenerationTask extends JavaExec {
         super.exec()
     }
 }
-
-/*
-task generateSoapClients(type:JavaExec) {
-    workingDir "$projectDir/src/main/java"
-
-    classpath = files(fileTree("$projectDir/tools/axis/lib/"))
-
-    main = 'org.apache.axis.wsdl.WSDL2Java'
-
-    args '-p', 'com.spectralogic.escapepod.avidmamclient.soap.bpmprocess', '../resources/wsdl/BPMProcess.wsdl'
-}
-
-task generateWSClientsPart1(type:JavaExec) {
-    workingDir "$projectDir/src/main/java"
-
-    classpath = files(fileTree("$projectDir/tools/axis/lib/"))
-
-    main = 'org.apache.axis.wsdl.WSDL2Java'
-
-    args '-p', 'com.spectralogic.escapepod.avidpamclient.soap.ws', '../resources/wsdl/Assets.wsdl'
-}
-
-task generateWSClientsPart2(type:JavaExec) {
-    workingDir "$projectDir/src/main/java"
-
-    classpath = files(fileTree("$projectDir/tools/axis/lib/"))
-
-    main = 'org.apache.axis.wsdl.WSDL2Java'
-
-    args '-p', 'com.spectralogic.escapepod.avidpamclient.soap.ws', '../resources/wsdl/Jobs.wsdl'
-}
-*/
