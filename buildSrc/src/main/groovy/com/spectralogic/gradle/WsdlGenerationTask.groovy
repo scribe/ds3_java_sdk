@@ -1,5 +1,3 @@
-import com.spectralogic.gradle.WsdlGenerationTask
-
 /*
  * *****************************************************************************
  *    Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
@@ -15,18 +13,36 @@ import com.spectralogic.gradle.WsdlGenerationTask
  *  ****************************************************************************
  */
 
-dependencies {
-    compile "com.microsoft.sqlserver:mssql-jdbc:$mssqljdbcVersion"
-    compile "javax.xml:jaxrpc-api:$jaxrpcApi"
-    compile "org.apache.axis:axis:$apacheAxis"
-    compile "commons-logging:commons-logging:$commonsLogging"
-    compile "commons-discovery:commons-discovery:$commonsDiscovery"
-    compile "wsdl4j:wsdl4j:$wsdl4j"
+package com.spectralogic.gradle
+
+import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.TaskAction
+
+class WsdlGenerationTask extends JavaExec {
+
+    String packageName
+    String fileLocation
+
+    @TaskAction
+    void exec() {
+        main = 'org.apache.axis.wsdl.WSDL2Java'
+        setWorkingDir("$project.projectDir/src/main/java")
+        setClasspath(project.files(project.fileTree("$project.rootDir/buildSrc/tools/axis/lib")))
+        args = ['-p', packageName, fileLocation]
+
+        super.exec()
+    }
 }
 
-task generateBpmProcessClient(type: WsdlGenerationTask) {
-    packageName = 'com.spectralogic.escapepod.avidmamclient.soap.bpmprocess'
-    fileLocation = '../resources/wsdl/BPMProcess.wsdl'
+/*
+task generateSoapClients(type:JavaExec) {
+    workingDir "$projectDir/src/main/java"
+
+    classpath = files(fileTree("$projectDir/tools/axis/lib/"))
+
+    main = 'org.apache.axis.wsdl.WSDL2Java'
+
+    args '-p', 'com.spectralogic.escapepod.avidmamclient.soap.bpmprocess', '../resources/wsdl/BPMProcess.wsdl'
 }
 
 task generateWSClientsPart1(type:JavaExec) {
@@ -48,3 +64,4 @@ task generateWSClientsPart2(type:JavaExec) {
 
     args '-p', 'com.spectralogic.escapepod.avidpamclient.soap.ws', '../resources/wsdl/Jobs.wsdl'
 }
+*/
