@@ -14,12 +14,9 @@
  */
 
 buildscript {
-    ext.kotlin_version = '1.1.4'
+    ext.kotlin_version = '1.1.4-3'
 
     repositories {
-        maven {
-            url "http://dl.bintray.com/kotlin/kotlin-eap-1.1"
-        }
         maven {
             url "https://plugins.gradle.org/m2/"
         }
@@ -49,9 +46,6 @@ subprojects {
     sourceCompatibility = JavaVersion.VERSION_1_8
 
     repositories {
-        maven {
-            url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1'
-        }
         maven {
             url 'http://dl.bintray.com/spectralogic/ds3'
         }
