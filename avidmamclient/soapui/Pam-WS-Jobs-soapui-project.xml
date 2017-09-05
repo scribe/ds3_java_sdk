@@ -1,0 +1,1091 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:soapui-project id="d41c7a3d-0ec9-4fa7-be66-a0c69262d4d5" activeEnvironment="Default" name="Pam WS Jobs" resourceRoot="" soapui-version="5.3.0" xmlns:con="http://eviware.com/soapui/config"><con:settings/><con:interface xsi:type="con:WsdlInterface" id="d5008482-373c-4951-9837-fcb8ac6c122a" wsaVersion="NONE" name="JobsPortBinding" type="wsdl" bindingName="{http://avid.com/interplay/ws/jobs}JobsPortBinding" soapVersion="1_1" anonymous="optional" definition="file:/C:/Users/sharons/Documents/GitHub/escape_pod/avidmamclient/src/main/resources/wsdl/Jobs.wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings/><con:definitionCache type="TEXT" rootPart="file:\C:\Users\sharons\Documents\GitHub\escape_pod\avidmamclient\src\main\resources\wsdl\Jobs.wsdl"><con:part><con:url>file:\C:\Users\sharons\Documents\GitHub\escape_pod\avidmamclient\src\main\resources\wsdl\Jobs.wsdl</con:url><con:content><![CDATA[<wsdl:definitions name="Archive" targetNamespace="http://avid.com/interplay/ws/jobs" xmlns:comm="http://avid.com/interplay/ws/assets/types" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/jobs" xmlns:types="http://avid.com/interplay/ws/jobs/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+    <xsd:schema>
+      <xsd:import namespace="http://avid.com/interplay/ws/jobs/types" schemaLocation="JobsTypes.xsd"/>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="GetJobStatusResponse">
+    <wsdl:part element="types:GetJobStatusResponse" name="body"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SubmitJobUsingParametersResponse">
+    <wsdl:part element="types:SubmitJobUsingParametersResponse" name="body"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetProfilesResponse">
+    <wsdl:part element="types:GetProfilesResponse" name="body"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="DeleteJobsResponse">
+    <wsdl:part element="types:DeleteJobsResponse" name="body"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="PauseJobsRequest">
+    <wsdl:part element="types:PauseJobs" name="body"></wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="DeleteJobsRequest">
+    <wsdl:part element="types:DeleteJobs" name="body"></wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetProfilesRequest">
+    <wsdl:part element="types:GetProfiles" name="body"></wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SubmitJobUsingProfileResponse">
+    <wsdl:part element="types:SubmitJobUsingProfileResponse" name="body"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CancelJobsRequest">
+    <wsdl:part element="types:CancelJobs" name="body"></wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="RetryJobsResponse">
+    <wsdl:part element="types:RetryJobsResponse" name="body"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="RetryJobsRequest">
+    <wsdl:part element="types:RetryJobs" name="body"></wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="CancelJobsResponse">
+    <wsdl:part element="types:CancelJobsResponse" name="body"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="JobsFault">
+    <wsdl:part element="types:JobsFault" name="fault"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ResumeJobsResponse">
+    <wsdl:part element="types:ResumeJobsResponse" name="body"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SubmitJobUsingProfileRequest">
+    <wsdl:part element="types:SubmitJobUsingProfile" name="body"></wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="ResumeJobsRequest">
+    <wsdl:part element="types:ResumeJobs" name="body"></wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="SubmitJobUsingParametersRequest">
+    <wsdl:part element="types:SubmitJobUsingParameters" name="body"></wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="PauseJobsResponse">
+    <wsdl:part element="types:PauseJobsResponse" name="body"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetJobStatusRequest">
+    <wsdl:part element="types:GetJobStatus" name="body"></wsdl:part>
+    <wsdl:part element="comm:UserCredentials" name="credentialsHeader"></wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="JobsPortType">
+    <wsdl:operation name="CancelJobs">
+      <wsdl:documentation>Cancel a Media Service or Transfer job.
+
+        Since: 2.0</wsdl:documentation>
+      <wsdl:input message="tns:CancelJobsRequest"></wsdl:input>
+      <wsdl:output message="tns:CancelJobsResponse"></wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault"></wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteJobs">
+      <wsdl:documentation>Delete a Media Services job. If called on a Transfer Job, will pause the job and return an error.
+
+        Since: 2.0</wsdl:documentation>
+      <wsdl:input message="tns:DeleteJobsRequest"></wsdl:input>
+      <wsdl:output message="tns:DeleteJobsResponse"></wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault"></wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetJobStatus">
+      <wsdl:documentation>Gets the status of a Media Services or Transfer job.
+
+        Since: 2.0</wsdl:documentation>
+      <wsdl:input message="tns:GetJobStatusRequest"></wsdl:input>
+      <wsdl:output message="tns:GetJobStatusResponse"></wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault"></wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetProfiles">
+      <wsdl:documentation>Gets the configured profiles for a list of services in Media Services.
+
+        Since: 2.0</wsdl:documentation>
+      <wsdl:input message="tns:GetProfilesRequest"></wsdl:input>
+      <wsdl:output message="tns:GetProfilesResponse"></wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault"></wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="PauseJobs">
+      <wsdl:documentation>Pause one or more Transfer jobs. Not supported for Media Services jobs.
+
+        Since: 2.0</wsdl:documentation>
+      <wsdl:input message="tns:PauseJobsRequest"></wsdl:input>
+      <wsdl:output message="tns:PauseJobsResponse"></wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault"></wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="ResumeJobs">
+      <wsdl:documentation>Resume one or more Transfer jobs. Not supported for Media Services.
+
+        Since: 2.0</wsdl:documentation>
+      <wsdl:input message="tns:ResumeJobsRequest"></wsdl:input>
+      <wsdl:output message="tns:ResumeJobsResponse"></wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault"></wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="RetryJobs">
+      <wsdl:documentation>Retry one or more Transfer jobs. Currently not supported for Media Services (expected in future version).
+
+        Since: 2.0</wsdl:documentation>
+      <wsdl:input message="tns:RetryJobsRequest"></wsdl:input>
+      <wsdl:output message="tns:RetryJobsResponse"></wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault"></wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SubmitJobUsingParameters">
+      <wsdl:documentation>Submit a Media Services job using a set of parameters.
+
+        Integrators should note: In order to prevent the Media Services Engine from being overloaded by requests, a
+        threshold has been put in place. No more than 20 jobs per minute may be submitted to the Media Services Engine
+        via Interplay WS. If the limit is exceeded, the submit job request will be rejected with an error saying that
+        the limit has been reached.
+
+        Since: 2.0</wsdl:documentation>
+      <wsdl:input message="tns:SubmitJobUsingParametersRequest"></wsdl:input>
+      <wsdl:output message="tns:SubmitJobUsingParametersResponse"></wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault"></wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SubmitJobUsingProfile">
+      <wsdl:documentation>Submit a Media Services job using a pre-defined profile.
+
+        Integrators should note: In order to prevent the Media Services Engine from being overloaded by requests, a
+        threshold has been put in place. No more than 20 jobs per minute may be submitted to the Media Services Engine
+        via Interplay WS. If the limit is exceeded, the submit job request will be rejected with an error saying that
+        the limit has been reached.
+
+        Since: 2.0</wsdl:documentation>
+      <wsdl:input message="tns:SubmitJobUsingProfileRequest"></wsdl:input>
+      <wsdl:output message="tns:SubmitJobUsingProfileResponse"></wsdl:output>
+      <wsdl:fault message="tns:JobsFault" name="JobsFault"></wsdl:fault>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="JobsPortBinding" type="tns:JobsPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="CancelJobs">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:header message="tns:CancelJobsRequest" part="credentialsHeader" use="literal"></soap:header>
+        <soap:body parts="body" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="DeleteJobs">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:header message="tns:DeleteJobsRequest" part="credentialsHeader" use="literal"></soap:header>
+        <soap:body parts="body" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetJobStatus">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:header message="tns:GetJobStatusRequest" part="credentialsHeader" use="literal"></soap:header>
+        <soap:body parts="body" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetProfiles">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:header message="tns:GetProfilesRequest" part="credentialsHeader" use="literal"></soap:header>
+        <soap:body parts="body" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="PauseJobs">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:header message="tns:PauseJobsRequest" part="credentialsHeader" use="literal"></soap:header>
+        <soap:body parts="body" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="ResumeJobs">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:header message="tns:ResumeJobsRequest" part="credentialsHeader" use="literal"></soap:header>
+        <soap:body parts="body" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="RetryJobs">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:header message="tns:RetryJobsRequest" part="credentialsHeader" use="literal"></soap:header>
+        <soap:body parts="body" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SubmitJobUsingParameters">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:header message="tns:SubmitJobUsingParametersRequest" part="credentialsHeader" use="literal"></soap:header>
+        <soap:body parts="body" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="SubmitJobUsingProfile">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:header message="tns:SubmitJobUsingProfileRequest" part="credentialsHeader" use="literal"></soap:header>
+        <soap:body parts="body" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="JobsFault">
+        <soap:fault name="JobsFault" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Jobs">
+    <wsdl:documentation>The Jobs Service is a SOAP-based entry point into the Avid Interplay Media Services Engine as well as
+      a control interface for Media Services and Transfer jobs.</wsdl:documentation>
+    <wsdl:port binding="tns:JobsPortBinding" name="JobsPort">
+      <soap:address location="http://localhost/services/Jobs"/>
+      <wsp:Policy>
+        <!--This service supports both MTOM-enabled and non-MTOM-enabled clients-->
+        <mtom:OptimizedMimeSerialization wsp:Optional="true"/>
+      </wsp:Policy>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>]]></con:content><con:type>http://schemas.xmlsoap.org/wsdl/</con:type></con:part><con:part><con:url>file:\C:\Users\sharons\Documents\GitHub\escape_pod\avidmamclient\src\main\resources\wsdl\JobsTypes.xsd</con:url><con:content><![CDATA[<xsd:schema elementFormDefault="qualified" targetNamespace="http://avid.com/interplay/ws/jobs/types" version="1.0" xmlns:comm="http://avid.com/interplay/ws/assets/types" xmlns:tns="http://avid.com/interplay/ws/jobs/types" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:import namespace="http://avid.com/interplay/ws/assets/types" schemaLocation="JobsCommon.xsd"/>
+  <xsd:element name="CancelJobs" type="tns:CancelJobsType"/>
+  <xsd:complexType name="CancelJobsType">
+    <xsd:annotation>
+      <xsd:documentation>The parameters for the CancelJobs operation. The only parameter is a list of JobURIs that reference
+        Media Services and Transfer jobs.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURIs" type="tns:JobURIListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="CancelJobsResponse" type="tns:CancelJobsResponseType"/>
+  <xsd:complexType name="CancelJobsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>The response from the CancelJobs operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="DeleteJobs" type="tns:DeleteJobsType"/>
+  <xsd:complexType name="DeleteJobsType">
+    <xsd:annotation>
+      <xsd:documentation>The parameters for the DeleteJobs operation. The only parameter is a list of JobURIs that reference
+        Media Services jobs. If a Transfer job URI is passed in, the job will be paused and an error returned.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURIs" type="tns:JobURIListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="DeleteJobsResponse" type="tns:DeleteJobsResponseType"/>
+  <xsd:complexType name="DeleteJobsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>The response from the DeleteJobs operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="GetJobStatus" type="tns:GetJobStatusType"/>
+  <xsd:complexType name="GetJobStatusType">
+    <xsd:annotation>
+      <xsd:documentation>The parameters for the GetJobStatus operation. The only parameter is a list of JobURIs that reference
+        Media Services and Transfer jobs.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURIs" type="tns:JobURIListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="GetJobStatusResponse" type="tns:GetJobStatusResponseType"/>
+  <xsd:complexType name="GetJobStatusResponseType">
+    <xsd:annotation>
+      <xsd:documentation>The response from the GetJobStatus operation. Returns a list of JobStatusTypes with status information
+        for each JobURI that was passed in. Errors contains a list of errors that occurred. If there are no errors,
+        the Errors element is omitted entirely.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="JobStatusTypes" type="tns:JobStatusListType"/>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="GetProfiles" type="tns:GetProfilesType"/>
+  <xsd:complexType name="GetProfilesType">
+    <xsd:annotation>
+      <xsd:documentation>The parameters for the GetProfiles operation. The WorkgroupURI represents the workgroup to query the
+        Media Services Engine on. Services is a list of services to get profiles for (ex. com.avid.dms.archive).
+        If ShowParameters is true, a list of name/value parameters defining the profile will also be returned.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="WorkgroupURI" type="xsd:string"/>
+      <xsd:element name="Services" type="tns:ServiceListType"/>
+      <xsd:element default="false" minOccurs="0" name="ShowParameters" type="xsd:boolean"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="GetProfilesResponse" type="tns:GetProfilesResponseType"/>
+  <xsd:complexType name="GetProfilesResponseType">
+    <xsd:annotation>
+      <xsd:documentation>The response from the GetProfiles operation. Returns a list of ProfileTypes. Errors contains a list of errors
+        that occurred. If there are no errors, the Errors element is omitted entirely.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType"/>
+      <xsd:element minOccurs="0" name="Results" type="tns:ProfileListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="PauseJobs" type="tns:PauseJobsType"/>
+  <xsd:complexType name="PauseJobsType">
+    <xsd:annotation>
+      <xsd:documentation>The parameters for the PauseJobs operation. The only parameter is a list of JobURIs that reference
+        Transfer jobs.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURIs" type="tns:JobURIListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="PauseJobsResponse" type="tns:PauseJobsResponseType"/>
+  <xsd:complexType name="PauseJobsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>The response from the PauseJobs operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="ResumeJobs" type="tns:ResumeJobsType"/>
+  <xsd:complexType name="ResumeJobsType">
+    <xsd:annotation>
+      <xsd:documentation>The parameters for the ResumeJobs operation. The only parameter is a list of JobURIs that reference
+        Transfer jobs.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURIs" type="tns:JobURIListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="ResumeJobsResponse" type="tns:ResumeJobsResponseType"/>
+  <xsd:complexType name="ResumeJobsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>The response from the ResumeJobs operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="RetryJobs" type="tns:RetryJobsType"/>
+  <xsd:complexType name="RetryJobsType">
+    <xsd:annotation>
+      <xsd:documentation>The parameters for the RetryJobs operation. The only parameter is a list of JobURIs that reference
+        Transfer jobs.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURIs" type="tns:JobURIListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="RetryJobsResponse" type="tns:RetryJobsResponseType"/>
+  <xsd:complexType name="RetryJobsResponseType">
+    <xsd:annotation>
+      <xsd:documentation>The response from the RetryJobs operation. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="SubmitJobUsingParameters" type="tns:SubmitJobUsingParametersType"/>
+  <xsd:complexType name="SubmitJobUsingParametersType">
+    <xsd:annotation>
+      <xsd:documentation>The parameters for the SubmitJobUsingParameters operation. Service represents the service to submit to
+        (ex., com.avid.dms.archive). InterplayURI references the asset to perform the service on. Parameters
+        is the list of name/value parameters that define the job. SourceServerType determines the source server
+        for the asset. Valid values are "Archive" and "Assets" (default).</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Service" type="xsd:string"/>
+      <xsd:element name="InterplayURI" type="xsd:string"/>
+      <xsd:element name="Parameters" type="tns:ProfileParameterType"/>
+      <xsd:element minOccurs="0" name="SourceServerType" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="SubmitJobUsingParametersResponse" type="tns:SubmitJobUsingParametersResponseType"/>
+  <xsd:complexType name="SubmitJobUsingParametersResponseType">
+    <xsd:annotation>
+      <xsd:documentation>The response from the SubmitJobUsingParameters operation. The JobURI represents the job that was submitted
+        and can be used to track and manage the job. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="JobURI" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="SubmitJobUsingProfile" type="tns:SubmitJobUsingProfileType"/>
+  <xsd:complexType name="SubmitJobUsingProfileType">
+    <xsd:annotation>
+      <xsd:documentation>The parameters for the SubmitJobUsingProfile operation. Service represents the service to submit to
+        (ex., com.avid.dms.archive). Profile represents the specific profile to user. InterplayURI references the
+        asset to perform the service on. SourceServerType determines the source server for the asset. Valid values
+        are "Archive" and "Assets" (default).</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Service" type="xsd:string"/>
+      <xsd:element name="Profile" type="xsd:string"/>
+      <xsd:element name="InterplayURI" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="SourceServerType" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="SubmitJobUsingProfileResponse" type="tns:SubmitJobUsingProfileResponseType"/>
+  <xsd:complexType name="SubmitJobUsingProfileResponseType">
+    <xsd:annotation>
+      <xsd:documentation>The response from the SubmitJobUsingProfile operation. The JobURI represents the job that was submitted
+        and can be used to track and manage the job. Errors contains a list of errors that
+        occurred. If there are no errors, the Errors element is omitted entirely. A successful
+        operation does not have any resulting return objects.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="JobURI" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="Errors" type="comm:ErrorListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <!--COMMON TYPES (Alphabetical)-->
+  <xsd:complexType name="JobStatusListType">
+    <xsd:annotation>
+      <xsd:documentation>a list of JobStatusTypes.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="JobStatus" type="tns:JobStatusType"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="JobStatusType">
+    <xsd:annotation>
+      <xsd:documentation>Contain a JobURI, its status (ex. RUNNING), optional Description (usually only provided for errors), and
+        PercentComplete (only valid when RUNNING).</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="JobURI" type="xsd:string"/>
+      <xsd:element name="Status" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="Description" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="PercentComplete" type="xsd:int"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="JobURIListType">
+    <xsd:annotation>
+      <xsd:documentation>interplay:///?jobid=
+        ex. interplay://WGA/DMS?jobid=1260980985656.1
+        ex. interplay://WGA/XFER?jobid=123_wga-tm</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="JobURI" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ProfileListType">
+    <xsd:annotation>
+      <xsd:documentation>A list of ProfileTypes.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Profile" type="tns:ProfileType"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ProfileType">
+    <xsd:annotation>
+      <xsd:documentation>The profile name, service, and parameters for a configured profile.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Name" type="xsd:string"/>
+      <xsd:element name="Service" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="Parameters" type="tns:ProfileParameterType"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ProfileParameterType">
+    <xsd:annotation>
+      <xsd:documentation>A list of parameters used in a profile.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Parameter" type="tns:ParameterType"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ParameterType">
+    <xsd:annotation>
+      <xsd:documentation>A name/value pair representing a parameter for a Media Services job.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:string">
+        <xsd:attribute name="Name" type="xsd:string" use="required"/>
+        <xsd:anyAttribute processContents="lax"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="ServiceListType">
+    <xsd:annotation>
+      <xsd:documentation>A list of service names (ex. com.avid.dms.archive).</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Name" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="JobsFault" type="tns:JobsFaultType"/>
+  <xsd:complexType name="JobsFaultType">
+    <xsd:annotation>
+      <xsd:documentation>A system error that occurred during the processing of a request. The Code is a short string
+        representing a type of error. The Message contains a short description of the error. The
+        Details contains additional information more useful for debugging.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Message" type="xsd:string"/>
+      <xsd:element name="Details" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="Extension" type="comm:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:attribute name="Code" type="xsd:string" use="required"/>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+</xsd:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part><con:part><con:url>file:\C:\Users\sharons\Documents\GitHub\escape_pod\avidmamclient\src\main\resources\wsdl\JobsCommon.xsd</con:url><con:content><![CDATA[<xsd:schema elementFormDefault="qualified" targetNamespace="http://avid.com/interplay/ws/assets/types" version="1.0" xmlns:tns="http://avid.com/interplay/ws/assets/types" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:complexType name="FileLocationDetailsListType">
+    <xsd:annotation>
+      <xsd:documentation>A list of FileLocationDetailsType</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="FileLocationDetails" type="tns:FileLocationDetailsType"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="FileLocationDetailsType">
+    <xsd:annotation>
+      <xsd:documentation>A pairing of an InterplayURI and its corresponding FileLocation types</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURI" type="xsd:string"/>
+      <xsd:element name="FileLocations" type="tns:FileLocationListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="FileLocationListType">
+    <xsd:annotation>
+      <xsd:documentation>A list of FileLocationDetailsTypes.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="FileLocation" type="tns:FileLocationType"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="FileLocationType">
+    <xsd:annotation>
+      <xsd:documentation>The details relating to a media file, such as name, track, status, file path, type, creator, format, and size.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURI" type="xsd:string"/>
+      <xsd:element name="Name" type="xsd:string"/>
+      <xsd:element name="Track" type="xsd:string"/>
+      <xsd:element name="Status" type="xsd:string"/>
+      <xsd:element name="FilePath" type="xsd:string"/>
+      <xsd:element name="Type" type="xsd:string"/>
+      <xsd:element name="CreatedBy" type="xsd:string"/>
+      <xsd:element name="Format" type="xsd:string"/>
+      <xsd:element name="Size" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="AssetDescriptionListType">
+    <xsd:annotation>
+      <xsd:documentation>A list of AssetDescriptions.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="AssetDescription" type="tns:AssetDescriptionType"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="AssetDescriptionType">
+    <xsd:annotation>
+      <xsd:documentation>A pairing of an InterplayURI representing an asset along with a set of attributes
+        describing it.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InterplayURI" type="xsd:string"/>
+      <xsd:element name="Attributes" type="tns:AttributeListType"/>
+      <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:complexType name="AttributeType">
+    <xsd:annotation>
+      <xsd:documentation>Represents an attribute. Can be used as a reference to an attribute by leaving the content
+        empty, or can represent an attribute and its value, with its value being the content of the
+        tag.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:string">
+        <xsd:attribute name="Group" type="xsd:string" use="required"/>
+        <xsd:attribute name="Name" type="xsd:string" use="required"/>
+        <xsd:anyAttribute processContents="lax"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="AttributeListType">
+    <xsd:annotation>
+      <xsd:documentation>A list of attributes.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Attribute" type="tns:AttributeType"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="AttributeConditionType">
+    <xsd:sequence>
+      <xsd:element name="Attribute" type="tns:AttributeType"/>
+      <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:attribute name="Condition" type="xsd:string" use="required"/>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:complexType name="CategoryConditionType">
+    <xsd:attribute name="Category" type="xsd:string" use="required"/>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:complexType name="FileInUseConditionType">
+    <xsd:attribute name="InUse" type="xsd:boolean" use="required"/>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:complexType name="ResolutionConditionType">
+    <xsd:attribute name="Resolution" type="xsd:string" use="required"/>
+    <xsd:attribute name="Condition" type="xsd:string"/>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:complexType name="ErrorType">
+    <xsd:annotation>
+      <xsd:documentation>An error that occurred during the processing of a request. The Code is a short string
+        representing a type of error. The Message contains a short description of the error. The
+        Details contains additional information more useful for debugging. If the error pertained
+        to a particular node, an InterplayURI will be specified.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="InterplayURI" type="xsd:string"/>
+      <xsd:element name="Message" type="xsd:string"/>
+      <xsd:element name="Details" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:attribute name="Code" type="xsd:string" use="required"/>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:complexType name="ErrorListType">
+    <xsd:annotation>
+      <xsd:documentation>A list of Errors.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="Error" type="tns:ErrorType"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ExtensionType">
+    <xsd:annotation>
+      <xsd:documentation>An extension element that allows for compatibility with future versions. This helps
+        allow Avid to extend future versions of the service without breaking existing clients.
+        This pattern is discussed by Dave Orchard in several articles, the best of which are:
+        http://www.pacificspirit.com/Authoring/Compatibility/ExaminingElementWildcardSiblings.html
+        http://www.xml.com/pub/a/2004/10/27/extend.html?page=4</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:any maxOccurs="unbounded" minOccurs="1" namespace="##targetNamespace" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:complexType name="InterplayURIListType">
+    <xsd:annotation>
+      <xsd:documentation>A list of InterplayURIs. An InterplayURI can represent a node by workgroup and path,
+        moniker, or MOBID. An InterplayURI has the following form:
+
+        Path: interplay://$WG/$PATH
+        ex. interplay://WGA3/projects/race08/debate.jpg
+
+        Moniker: interplay://$WG?moniker=$MONIKER
+        ex. interplay://WGA3?moniker=abc123
+
+        Mob ID: interplay://$WG?mobid=$MOBID
+        ex. interplay://WGA3?mobid=060a2b340101010101010f0013-000000-0000000000000032-060e2b347f7f-2a80
+
+        Source ID: interplay://$WG?sourceid=$MOBID
+        interplay://WGA?sourceid=060a2b340101010101010f0013-000000-000000003d40ede1-060e2b347f7f-2a80
+
+        Media Services Job:
+        interplay://WGA/DMS?jobid=1260980985656.1
+
+        Transfer Job:
+        interplay://WGA/XFER?jobid=27_osi-tm
+
+        User: interplay://$WG?username=$USER
+        ex. interplay://WGA3?username=jsmith
+
+        Group: interplay://$WG?group=$GROUP
+        ex. interplay://WGA3?group=journalist
+
+        Workgroup: interplay://$WG
+        ex. interplay://WGA3</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="InterplayURI" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="SearchGroupType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="AttributeCondition" type="tns:AttributeConditionType"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="CategoryCondition" type="tns:CategoryConditionType"/>
+      <xsd:element maxOccurs="1" minOccurs="0" name="FileInUseCondition" type="tns:FileInUseConditionType"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="ResolutionCondition" type="tns:ResolutionConditionType"/>
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="SearchGroup" type="tns:SearchGroupType"/>
+      <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:attribute name="Operator" type="xsd:string" use="required"/>
+    <xsd:attribute name="Negated" type="xsd:boolean" use="optional"/>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+  <xsd:element name="UserCredentials" type="tns:UserCredentialsType"/>
+  <xsd:complexType name="UserCredentialsType">
+    <xsd:annotation>
+      <xsd:documentation>The user credentials are the username and password used to authenticate into the assets
+        server. They must be present with every request as part of the SOAP header. Invalid
+        credentials will result in a returned error.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Username" type="xsd:string"/>
+      <xsd:element name="Password" type="xsd:string"/>
+      <xsd:element minOccurs="0" name="Extension" type="tns:ExtensionType"/>
+      <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xsd:sequence>
+    <xsd:anyAttribute processContents="lax"/>
+  </xsd:complexType>
+</xsd:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part></con:definitionCache><con:endpoints><con:endpoint>http://localhost/services/Jobs</con:endpoint></con:endpoints><con:operation id="ffc2592f-af6a-4a82-9da2-1275d269a857" isOneWay="false" action="" name="CancelJobs" bindingOperationName="CancelJobs" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="0172f5c5-6cc8-4399-aceb-82de65b483fa" name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost/services/Jobs</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://avid.com/interplay/ws/assets/types" xmlns:typ1="http://avid.com/interplay/ws/jobs/types">\r
+   <soapenv:Header>\r
+      <typ:UserCredentials>\r
+         <typ:Username>?</typ:Username>\r
+         <typ:Password>?</typ:Password>\r
+         <!--Optional:-->\r
+         <typ:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ:UserCredentials>\r
+   </soapenv:Header>\r
+   <soapenv:Body>\r
+      <typ1:CancelJobs>\r
+         <typ1:JobURIs>\r
+            <!--Zero or more repetitions:-->\r
+            <typ1:JobURI>?</typ1:JobURI>\r
+         </typ1:JobURIs>\r
+         <!--Optional:-->\r
+         <typ1:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ1:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ1:CancelJobs>\r
+   </soapenv:Body>\r
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/CancelJobsRequest"/></con:call></con:operation><con:operation id="2e3cbca6-c2e5-4d1c-9aa4-86a3a2273201" isOneWay="false" action="" name="DeleteJobs" bindingOperationName="DeleteJobs" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="cdd0829d-f2f4-4c66-9e31-acb979aaab18" name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost/services/Jobs</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://avid.com/interplay/ws/assets/types" xmlns:typ1="http://avid.com/interplay/ws/jobs/types">\r
+   <soapenv:Header>\r
+      <typ:UserCredentials>\r
+         <typ:Username>?</typ:Username>\r
+         <typ:Password>?</typ:Password>\r
+         <!--Optional:-->\r
+         <typ:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ:UserCredentials>\r
+   </soapenv:Header>\r
+   <soapenv:Body>\r
+      <typ1:DeleteJobs>\r
+         <typ1:JobURIs>\r
+            <!--Zero or more repetitions:-->\r
+            <typ1:JobURI>?</typ1:JobURI>\r
+         </typ1:JobURIs>\r
+         <!--Optional:-->\r
+         <typ1:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ1:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ1:DeleteJobs>\r
+   </soapenv:Body>\r
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/DeleteJobsRequest"/></con:call></con:operation><con:operation id="38e12446-21de-4769-a176-2c58a6623855" isOneWay="false" action="" name="GetJobStatus" bindingOperationName="GetJobStatus" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="f0736f7f-0b89-4064-bee2-208c2d45c034" name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost/services/Jobs</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://avid.com/interplay/ws/assets/types" xmlns:typ1="http://avid.com/interplay/ws/jobs/types">\r
+   <soapenv:Header>\r
+      <typ:UserCredentials>\r
+         <typ:Username>?</typ:Username>\r
+         <typ:Password>?</typ:Password>\r
+         <!--Optional:-->\r
+         <typ:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ:UserCredentials>\r
+   </soapenv:Header>\r
+   <soapenv:Body>\r
+      <typ1:GetJobStatus>\r
+         <typ1:JobURIs>\r
+            <!--Zero or more repetitions:-->\r
+            <typ1:JobURI>?</typ1:JobURI>\r
+         </typ1:JobURIs>\r
+         <!--Optional:-->\r
+         <typ1:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ1:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ1:GetJobStatus>\r
+   </soapenv:Body>\r
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/GetJobStatusRequest"/></con:call></con:operation><con:operation id="5044879c-1e2a-4cfe-95b6-90706ecdf93d" isOneWay="false" action="" name="GetProfiles" bindingOperationName="GetProfiles" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="cc3eec8e-7a98-47ed-93c2-adde3e981cca" name="Request 1"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://10.1.2.164/services/Jobs</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://avid.com/interplay/ws/assets/types" xmlns:typ1="http://avid.com/interplay/ws/jobs/types">
+   <soapenv:Header>
+      <typ:UserCredentials>
+         <typ:Username>spectra</typ:Username>
+         <typ:Password></typ:Password>
+         <!--Optional:-->
+         <typ:Extension>
+            <!--You may enter ANY elements at this point-->
+         </typ:Extension>
+         <!--You may enter ANY elements at this point-->
+      </typ:UserCredentials>
+   </soapenv:Header>
+   <soapenv:Body>
+      <typ1:GetProfiles>
+         <typ1:WorkgroupURI>interplay://AvidWorkgroup</typ1:WorkgroupURI>
+         <typ1:Services>
+            <!--Zero or more repetitions:-->
+            <typ1:Name>com.avid.dms.restore</typ1:Name>
+         </typ1:Services>
+         <!--Optional:-->
+         <typ1:ShowParameters>true</typ1:ShowParameters>
+         <!--Optional:-->
+         <typ1:Extension>
+            <!--You may enter ANY elements at this point-->
+         </typ1:Extension>
+         <!--You may enter ANY elements at this point-->
+      </typ1:GetProfiles>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/GetProfilesRequest"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation id="1d0f9832-8a48-46e3-a9c9-1ec255a10ebb" isOneWay="false" action="" name="PauseJobs" bindingOperationName="PauseJobs" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="14755502-a24d-44bc-bc7d-2073a86d26e2" name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost/services/Jobs</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://avid.com/interplay/ws/assets/types" xmlns:typ1="http://avid.com/interplay/ws/jobs/types">\r
+   <soapenv:Header>\r
+      <typ:UserCredentials>\r
+         <typ:Username>?</typ:Username>\r
+         <typ:Password>?</typ:Password>\r
+         <!--Optional:-->\r
+         <typ:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ:UserCredentials>\r
+   </soapenv:Header>\r
+   <soapenv:Body>\r
+      <typ1:PauseJobs>\r
+         <typ1:JobURIs>\r
+            <!--Zero or more repetitions:-->\r
+            <typ1:JobURI>?</typ1:JobURI>\r
+         </typ1:JobURIs>\r
+         <!--Optional:-->\r
+         <typ1:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ1:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ1:PauseJobs>\r
+   </soapenv:Body>\r
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/PauseJobsRequest"/></con:call></con:operation><con:operation id="fc41f384-b6c3-48c9-9d8d-2ee7f5dce556" isOneWay="false" action="" name="ResumeJobs" bindingOperationName="ResumeJobs" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="a13f70ef-4e5d-4638-b819-2fd63f51b5d2" name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost/services/Jobs</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://avid.com/interplay/ws/assets/types" xmlns:typ1="http://avid.com/interplay/ws/jobs/types">\r
+   <soapenv:Header>\r
+      <typ:UserCredentials>\r
+         <typ:Username>?</typ:Username>\r
+         <typ:Password>?</typ:Password>\r
+         <!--Optional:-->\r
+         <typ:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ:UserCredentials>\r
+   </soapenv:Header>\r
+   <soapenv:Body>\r
+      <typ1:ResumeJobs>\r
+         <typ1:JobURIs>\r
+            <!--Zero or more repetitions:-->\r
+            <typ1:JobURI>?</typ1:JobURI>\r
+         </typ1:JobURIs>\r
+         <!--Optional:-->\r
+         <typ1:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ1:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ1:ResumeJobs>\r
+   </soapenv:Body>\r
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/ResumeJobsRequest"/></con:call></con:operation><con:operation id="12935232-de45-4bc1-8582-fa637032ed94" isOneWay="false" action="" name="RetryJobs" bindingOperationName="RetryJobs" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="2fd9a7fe-6b5b-4b2c-bdd4-3f5501980da5" name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost/services/Jobs</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://avid.com/interplay/ws/assets/types" xmlns:typ1="http://avid.com/interplay/ws/jobs/types">\r
+   <soapenv:Header>\r
+      <typ:UserCredentials>\r
+         <typ:Username>?</typ:Username>\r
+         <typ:Password>?</typ:Password>\r
+         <!--Optional:-->\r
+         <typ:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ:UserCredentials>\r
+   </soapenv:Header>\r
+   <soapenv:Body>\r
+      <typ1:RetryJobs>\r
+         <typ1:JobURIs>\r
+            <!--Zero or more repetitions:-->\r
+            <typ1:JobURI>?</typ1:JobURI>\r
+         </typ1:JobURIs>\r
+         <!--Optional:-->\r
+         <typ1:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ1:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ1:RetryJobs>\r
+   </soapenv:Body>\r
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/RetryJobsRequest"/></con:call></con:operation><con:operation id="ae326a90-1aa6-43e1-b513-e32b2408ffe2" isOneWay="false" action="" name="SubmitJobUsingParameters" bindingOperationName="SubmitJobUsingParameters" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="a9c4722e-7aba-4744-89e2-58bb29401f19" name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost/services/Jobs</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://avid.com/interplay/ws/assets/types" xmlns:typ1="http://avid.com/interplay/ws/jobs/types">\r
+   <soapenv:Header>\r
+      <typ:UserCredentials>\r
+         <typ:Username>?</typ:Username>\r
+         <typ:Password>?</typ:Password>\r
+         <!--Optional:-->\r
+         <typ:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ:UserCredentials>\r
+   </soapenv:Header>\r
+   <soapenv:Body>\r
+      <typ1:SubmitJobUsingParameters>\r
+         <typ1:Service>?</typ1:Service>\r
+         <typ1:InterplayURI>?</typ1:InterplayURI>\r
+         <typ1:Parameters>\r
+            <!--Zero or more repetitions:-->\r
+            <typ1:Parameter Name="?">?</typ1:Parameter>\r
+         </typ1:Parameters>\r
+         <!--Optional:-->\r
+         <typ1:SourceServerType>?</typ1:SourceServerType>\r
+         <!--Optional:-->\r
+         <typ1:Extension>\r
+            <!--You may enter ANY elements at this point-->\r
+         </typ1:Extension>\r
+         <!--You may enter ANY elements at this point-->\r
+      </typ1:SubmitJobUsingParameters>\r
+   </soapenv:Body>\r
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/SubmitJobUsingParametersRequest"/></con:call></con:operation><con:operation id="727cfa32-083a-40c5-b6b1-fc25663f54fc" isOneWay="false" action="" name="SubmitJobUsingProfile" bindingOperationName="SubmitJobUsingProfile" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="b57d187b-975d-45a2-a767-b093b04eef49" name="Request 1"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://10.1.2.164/services/Jobs</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://avid.com/interplay/ws/assets/types" xmlns:typ1="http://avid.com/interplay/ws/jobs/types">
+   <soapenv:Header>
+      <typ:UserCredentials>
+         <typ:Username>spectra</typ:Username>
+         <typ:Password></typ:Password>
+         <!--Optional:-->
+         <typ:Extension>
+            <!--You may enter ANY elements at this point-->
+         </typ:Extension>
+         <!--You may enter ANY elements at this point-->
+      </typ:UserCredentials>
+   </soapenv:Header>
+   <soapenv:Body>
+      <typ1:SubmitJobUsingProfile>
+         <typ1:Service>com.avid.dms.restore</typ1:Service>
+         <typ1:Profile>BlackPearl</typ1:Profile>
+         <typ1:InterplayURI>interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49873e5275f80-060e2b347f7f-2a80</typ1:InterplayURI>
+         <!--Optional:-->
+         <typ1:SourceServerType></typ1:SourceServerType>
+         <!--Optional:-->
+         <typ1:Extension>
+            <!--You may enter ANY elements at this point-->
+         </typ1:Extension>
+         <!--You may enter ANY elements at this point-->
+      </typ1:SubmitJobUsingProfile>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/SubmitJobUsingProfileRequest"/><con:wsrmConfig version="1.2"/></con:call></con:operation></con:interface><con:properties/><con:wssContainer/><con:oAuth2ProfileContainer/><con:oAuth1ProfileContainer/></con:soapui-project>
