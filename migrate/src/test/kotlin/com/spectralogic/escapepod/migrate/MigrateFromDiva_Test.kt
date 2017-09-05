@@ -13,7 +13,7 @@
  *  ****************************************************************************
  */
 
-package com.greyrock.escapepod.migrate
+package com.spectralogic.escapepod.migrate
 
 import com.google.common.collect.ImmutableList
 import com.google.inject.Guice
