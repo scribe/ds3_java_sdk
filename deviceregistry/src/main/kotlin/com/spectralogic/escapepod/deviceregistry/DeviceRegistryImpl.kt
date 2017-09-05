@@ -26,7 +26,6 @@ import javax.inject.Inject
 internal class DeviceRegistryImpl @Inject constructor(private val persistenceServiceProvider: PersistenceServiceProvider): DeviceRegistry {
     override fun registerDevice(credentials: ManagementCredentials): Single<DeviceRegistration> {
         persistenceServiceProvider.getService().map {
-
         }
         return Single.just(DeviceRegistration("", emptySequence()))
     }

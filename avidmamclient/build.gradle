@@ -1,3 +1,5 @@
+import com.spectralogic.gradle.WsdlGenerationTask
+
 /*
  * *****************************************************************************
  *    Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
@@ -22,15 +24,9 @@ dependencies {
     compile "wsdl4j:wsdl4j:$wsdl4j"
 }
 
-
-task generateSoapClients(type:JavaExec) {
-    workingDir "$projectDir/src/main/java"
-
-    classpath = files(fileTree("$projectDir/tools/axis/lib/"))
-
-    main = 'org.apache.axis.wsdl.WSDL2Java'
-
-    args '-p', 'com.spectralogic.escapepod.avidmamclient.soap.bpmprocess', '../resources/wsdl/BPMProcess.wsdl'
+task generateBpmProcessClient(type: WsdlGenerationTask) {
+    packageName = 'com.spectralogic.escapepod.avidmamclient.soap.bpmprocess'
+    fileLocation = '../resources/wsdl/BPMProcess.wsdl'
 }
 
 task generateWSClientsPart1(type:JavaExec) {

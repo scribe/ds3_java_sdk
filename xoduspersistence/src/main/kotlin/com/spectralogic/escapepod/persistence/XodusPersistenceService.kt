@@ -69,7 +69,6 @@ internal class XodusPersistenceService(private val entityStore: PersistentEntity
     }
 
     override fun link(source: PersistenceID, link: String, destination: PersistenceID) {
-
         entityStore.executeInTransaction {
             val entity = it.getEntity(source.toEntityId())
 

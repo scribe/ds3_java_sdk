@@ -41,8 +41,8 @@ fun main(arg: Array<String>) {
 
     try {
         // 2 stage loading of the modules
-        Completable.merge(moduleInstances.map { it.loadModule() }).doOnError(::exitOnError).andThen(
-        Completable.merge(moduleInstances.map { it.startModule() })).subscribe()
+        Completable.merge(moduleInstances.map { it.loadModule() }).doOnError(::exitOnError)
+                .andThen(Completable.merge(moduleInstances.map { it.startModule() })).subscribe()
     } catch (t: Throwable) {
         exitOnError(t)
     }

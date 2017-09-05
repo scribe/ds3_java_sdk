@@ -185,7 +185,7 @@ internal class ElasticSearchServiceProvider
     }
 
     private fun startElasticSearch(newNode: Boolean): Completable {
-
+        // We only want to process the map call once all the Singles have emitted
         return Single.zip(clusterServiceProvider.getService(),
                 createElasticSearchNodeProcess(),
                 BiFunction<ClusterService, Process, Pair<ClusterService, Process>> { t1, t2 -> Pair(t1, t2) }
