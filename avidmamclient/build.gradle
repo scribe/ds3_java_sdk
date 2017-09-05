@@ -29,22 +29,12 @@ task generateBpmProcessClient(type: WsdlGenerationTask) {
     fileLocation = '../resources/wsdl/BPMProcess.wsdl'
 }
 
-task generateWSClientsPart1(type:JavaExec) {
-    workingDir "$projectDir/src/main/java"
-
-    classpath = files(fileTree("$projectDir/tools/axis/lib/"))
-
-    main = 'org.apache.axis.wsdl.WSDL2Java'
-
-    args '-p', 'com.spectralogic.escapepod.avidpamclient.soap.ws', '../resources/wsdl/Assets.wsdl'
+task generateWSClientsPart1(type:WsdlGenerationTask) {
+    packageName = 'com.spectralogic.escapepod.avidpamclient.soap.ws'
+    fileLocation = '../resources/wsdl/Assets.wsdl'
 }
 
-task generateWSClientsPart2(type:JavaExec) {
-    workingDir "$projectDir/src/main/java"
-
-    classpath = files(fileTree("$projectDir/tools/axis/lib/"))
-
-    main = 'org.apache.axis.wsdl.WSDL2Java'
-
-    args '-p', 'com.spectralogic.escapepod.avidpamclient.soap.ws', '../resources/wsdl/Jobs.wsdl'
+task generateWSClientsPart2(type:WsdlGenerationTask) {
+    packageName = 'com.spectralogic.escapepod.avidpamclient.soap.ws'
+    fileLocation = '../resources/wsdl/Jobs.wsdl'
 }
