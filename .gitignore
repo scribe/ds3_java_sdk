@@ -20,4 +20,6 @@ build/
 .escapepod
 .gradletasknamecache
 
+.DS_Store
+
 out/
