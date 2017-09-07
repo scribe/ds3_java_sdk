@@ -15,10 +15,7 @@
 
 package com.spectralogic.escapepod.api
 
-import io.reactivex.Completable
-import io.reactivex.Single
+import io.opentracing.ActiveSpan
+import io.opentracing.Tracer
 
-interface ServiceProvider<out T> : Shutdownable {
-    fun startService() : Completable
-    fun getService(requestContext: RequestContext) : Single<out T>
-}
+data class RequestContext(val tracer: Tracer, val currentSpan: ActiveSpan)

@@ -16,12 +16,13 @@
 package com.spectralogic.escapepod.metadatasearch
 
 import com.spectralogic.escapepod.api.*
-import com.spectralogic.escapepod.util.singleOfNullable
+import io.opentracing.Tracer
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
 import io.reactivex.functions.BiFunction
 import org.apache.http.HttpHost
+import org.elasticsearch.client.RestClient
 import org.slf4j.LoggerFactory
 import java.io.Serializable
 import java.nio.file.Files
@@ -35,6 +36,7 @@ internal class ElasticSearchServiceProvider
 @Inject constructor(
         private val clusterServiceProvider: ClusterServiceProvider,
         private val elasticSearchConfigFile: MetadataSearchServiceConfigFile,
+        private val tracer: Tracer,
         @Named("interfaceIp") private val interfaceIp: String,
         @Named("elasticSearchPort") private val elasticSearchPort: Int,
         @Named("elasticSearchBinDir") private val elasticSearchBinDir: Path) : MetadataSearchServiceProvider {
@@ -50,48 +52,40 @@ internal class ElasticSearchServiceProvider
     }
 
     private var elasticSearchProcess: Process? = null
-    private var elasticSearchService: ElasticSearchService? = null
+    private var restClient: RestClient? = null
 
-    override fun createNewMetadataSearchCluster(): Completable {
+    private fun createMetadataSearchCluster(requestContext: RequestContext): Completable {
         // TODO add check to make sure we are not already in a cluster
-        return startElasticSearch(true).andThen(createElasticSearchService())
+        return startElasticSearch(true, requestContext).andThen(createElasticSearchService(requestContext))
     }
 
-    override fun joinMetadataSearchCluster(): Completable {
-        // TODO add check to make sure we are not already in a cluster
-        return startElasticSearch(true).andThen(createElasticSearchService())
-    }
-
-    override fun metadataSearchNodeJoinedEvent(): Completable {
+    private fun metadataSearchNodeJoinedEvent(requestContext: RequestContext): Completable {
         closeElasticSearchProcess()
         LOG.info("Closed ElasticSearch Process")
 
-        return startElasticSearch(false).andThen(createElasticSearchService())
-    }
-
-    override fun leaveMetadataSearchCluster(): Completable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return startElasticSearch(false, requestContext).andThen(createElasticSearchService(requestContext))
     }
 
     override fun clusterHandler(event: ClusterEvent) {
         when (event) {
             is ClusterCreatedEvent -> {
                 LOG.info("ClusterCreatedEvent -> Create ElasticSearch cluster")
-                createNewMetadataSearchCluster()
+                createMetadataSearchCluster(requestContext("ClusterCreatedMetadataEvent"))
                         .doOnError { t ->
                             LOG.error("Failed to create ElasticSearch node", t)
                         }.subscribe()
             }
             is ClusterJoinedEvent -> {
                 LOG.info("ClusterJoinedEvent -> Attempting to join existing ElasticSearch cluster")
-                joinMetadataSearchCluster()
+
+                createMetadataSearchCluster(requestContext("ClusterJoinedMetadataEvent"))
                         .doOnError { t ->
                             LOG.error("Failed to join existing ElasticSearch cluster", t)
                         }.subscribe()
             }
             is ClusterNodeJoinedEvent -> {
                 LOG.info("ClusterNodeJoinedEvent -> New ElasticSearch Node joined the cluster")
-                metadataSearchNodeJoinedEvent()
+                metadataSearchNodeJoinedEvent(requestContext("ClusterNodeJoinedMetadataEvent"))
                         .doOnError { t ->
                             LOG.error("Failed to join the new node to the ElasticSearch cluster", t)
                         }.subscribe()
@@ -102,7 +96,7 @@ internal class ElasticSearchServiceProvider
             }
             is ClusterStartupEvent -> {
                 LOG.info("ClusterStartupEvent -> startup the elasticSearch node after restart")
-                joinMetadataSearchCluster()
+                createMetadataSearchCluster(requestContext("ClusterStartupMetadataEvent"))
                         .doOnError { t ->
                             LOG.error("Failed to join existing ElasticSearch cluster after restart", t)
                         }.subscribe()
@@ -111,9 +105,14 @@ internal class ElasticSearchServiceProvider
         }
     }
 
+    private fun requestContext(eventName: String): RequestContext {
+        return RequestContext(tracer, tracer.buildSpan(eventName).withTag("Module", "Metadata").startActive())
+    }
+
     override fun shutdown(): Completable {
-        return Maybe.just(elasticSearchService).flatMapCompletable {
-            it.closeConnection()
+        return Maybe.just(restClient).flatMapCompletable {
+            it.close()
+            Completable.complete()
         }.doOnError{
             LOG.error("Elastic Search Service is not running", it)
         }.doOnComplete {
@@ -167,27 +166,37 @@ internal class ElasticSearchServiceProvider
         return Completable.complete()
     }
 
-    override fun getService(): Single<MetadataSearchService> {
-        return singleOfNullable(elasticSearchService) {
-            Exception("The metadata service has not been started")
+    override fun getService(requestContext: RequestContext): Single<MetadataSearchService> {
+
+        return Single.create { emitter ->
+            val client = restClient
+            if (client == null) {
+                emitter.onError(Exception("The metadata service has not been started"))
+            } else {
+                emitter.onSuccess(ElasticSearchService(client, requestContext))
+            }
         }
     }
 
-    private fun createElasticSearchService() : Completable {
-        val clusterService = clusterServiceProvider.getService()
+    private fun createElasticSearchService(requestContext: RequestContext) : Completable {
+        val clusterService = clusterServiceProvider.getService(requestContext)
         val distributedSet = clusterService.map {  it.getDistributedSet<ElasticSearchNode>(ELASTICSEARCH_CLUSTER_ENDPOINT) }
 
-        return distributedSet.flatMapCompletable {
+        return distributedSet.map {
+            it.map { HttpHost(it.ip, it.port) }
+        } .flatMapCompletable {
             LOG.info("creating ElasticSearch client")
-            elasticSearchService = ElasticSearchService(it.map { HttpHost(it.ip, it.port) })
+
+            restClient = RestClient.builder(*it.toTypedArray()).build()
+
             Completable.complete()
         }
     }
 
-    private fun startElasticSearch(newNode: Boolean): Completable {
+    private fun startElasticSearch(newNode: Boolean, requestContext: RequestContext): Completable {
         // We only want to process the map call once all the Singles have emitted
-        return Single.zip(clusterServiceProvider.getService(),
-                createElasticSearchNodeProcess(),
+        return Single.zip(clusterServiceProvider.getService(requestContext),
+                createElasticSearchNodeProcess(requestContext),
                 BiFunction<ClusterService, Process, Pair<ClusterService, Process>> { t1, t2 -> Pair(t1, t2) }
         ).map {
             if (!it.second.isAlive) throw Exception("Failed to start ElasticSearch node")
@@ -205,11 +214,11 @@ internal class ElasticSearchServiceProvider
         }
     }
 
-    private fun createElasticSearchNodeProcess(): Single<Process> {
+    private fun createElasticSearchNodeProcess(requestContext: RequestContext): Single<Process> {
         //Create the configuration file before starting elasticSearch node
 
         val pidFile = elasticSearchBinDir.toString() + SLASH + "pid"
-        return elasticSearchConfigFile.createConfigFile()
+        return elasticSearchConfigFile.createConfigFile(requestContext)
                 .andThen(runProcess(elasticSearchBinDir.toString() + SLASH + ELASTIC_SEARCH_EXE, "-d", "-p", pidFile)
                         .doOnSuccess {
                             elasticSearchProcess = it

@@ -20,7 +20,9 @@ import io.reactivex.Single
 
 interface DeviceRegistryModule : Module
 
-interface DeviceRegistry {
+interface DeviceRegistryServiceProvider : ServiceProvider<DeviceRegistryService>
+
+interface DeviceRegistryService {
     fun registerDevice(credentials: ManagementCredentials): Single<DeviceRegistration>
     fun deviceRegistration(endpoint: String): Single<DeviceRegistration>
     fun removeRegistration(endpoint: String): Completable

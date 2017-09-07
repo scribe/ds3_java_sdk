@@ -17,6 +17,7 @@ package com.spectralogic.escapepod.cluster
 
 import com.spectralogic.escapepod.api.ClusterService
 import com.spectralogic.escapepod.api.ClusterServiceProvider
+import com.spectralogic.escapepod.api.RequestContext
 import io.reactivex.Scheduler
 import io.reactivex.schedulers.Schedulers
 import org.slf4j.LoggerFactory
@@ -37,7 +38,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
     override fun execute(chain: Chain) {
 
         chain.get("members") { ctx ->
-            clusterServiceProvider.getService().flatMapObservable(ClusterService::clusterNodes).toList().doOnSuccess { clusterList ->
+            clusterServiceProvider.getService(ctx.get(RequestContext::class.java)).flatMapObservable(ClusterService::clusterNodes).toList().doOnSuccess { clusterList ->
                 ctx.render(clusterList.joinToString(", ") { it.ip + ":" + it.port })
             }.doOnError{
                 ctx.response.status(400).send("Encountered an error with the cluster: " + it.message)
@@ -46,9 +47,11 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
 
         chain.all { ctx -> ctx.byMethod {
 
+            val requestContext = ctx.get(RequestContext::class.java)
+
             it.get {
 
-                clusterServiceProvider.getService().flatMap(ClusterService::name).doOnSuccess { name ->
+                clusterServiceProvider.getService(requestContext).flatMap(ClusterService::name).doOnSuccess { name ->
                     ctx.render(name)
                 }.doOnError { t ->
                     LOG.error("Failed to get cluster name", t)

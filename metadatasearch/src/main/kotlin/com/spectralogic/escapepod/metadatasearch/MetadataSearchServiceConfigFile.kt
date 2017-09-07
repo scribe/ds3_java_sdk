@@ -13,16 +13,11 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.metadatasearch.api
+package com.spectralogic.escapepod.metadatasearch;
 
-import com.spectralogic.escapepod.api.MetadataSearchService
+import com.spectralogic.escapepod.api.RequestContext
 import io.reactivex.Completable
 
-internal interface ElasticSearchMetadataService : MetadataSearchService {
-
-    /***
-     * Close the connection to the underline search provider
-     */
-    fun closeConnection(): Completable
+interface MetadataSearchServiceConfigFile {
+    fun createConfigFile(requestContext: RequestContext): Completable
 }
-

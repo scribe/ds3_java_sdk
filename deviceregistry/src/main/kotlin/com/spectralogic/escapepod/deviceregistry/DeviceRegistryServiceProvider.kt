@@ -15,26 +15,26 @@
 
 package com.spectralogic.escapepod.deviceregistry
 
-import com.spectralogic.escapepod.api.DeviceRegistration
-import com.spectralogic.escapepod.api.DeviceRegistry
-import com.spectralogic.escapepod.api.ManagementCredentials
+import com.spectralogic.escapepod.api.DeviceRegistryService
+import com.spectralogic.escapepod.api.DeviceRegistryServiceProvider
 import com.spectralogic.escapepod.api.PersistenceServiceProvider
+import com.spectralogic.escapepod.api.RequestContext
 import io.reactivex.Completable
 import io.reactivex.Single
 import javax.inject.Inject
 
-internal class DeviceRegistryImpl @Inject constructor(private val persistenceServiceProvider: PersistenceServiceProvider): DeviceRegistry {
-    override fun registerDevice(credentials: ManagementCredentials): Single<DeviceRegistration> {
-        persistenceServiceProvider.getService().map {
-        }
-        return Single.just(DeviceRegistration("", emptySequence()))
-    }
-
-    override fun deviceRegistration(endpoint: String): Single<DeviceRegistration> {
-        return Single.just(DeviceRegistration("", emptySequence()))
-    }
-
-    override fun removeRegistration(endpoint: String): Completable {
+internal class DeviceRegistryServiceProviderImpl
+@Inject constructor(private val persistenceServiceProvider: PersistenceServiceProvider): DeviceRegistryServiceProvider {
+    override fun startService(): Completable {
         return Completable.complete()
     }
+
+    override fun getService(requestContext: RequestContext): Single<out DeviceRegistryService> {
+        return Single.just(DeviceRegistryServiceImpl(persistenceServiceProvider, requestContext))
+    }
+
+    override fun shutdown(): Completable {
+        return Completable.complete()
+    }
+
 }

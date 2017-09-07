@@ -71,6 +71,7 @@ subprojects {
         testCompile "org.hamcrest:hamcrest-core:$hamcrestVersion"
         testCompile "org.mockito:mockito-core:$mockitoVersion"
         testCompile "org.assertj:assertj-core:$assertjVersion"
+        testCompile group: 'io.opentracing', name: 'opentracing-mock', version: "$opentracingVersion"
     }
 
     protobuf {

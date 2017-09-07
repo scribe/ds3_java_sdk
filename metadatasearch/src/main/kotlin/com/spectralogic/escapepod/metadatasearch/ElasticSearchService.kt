@@ -15,11 +15,7 @@
 
 package com.spectralogic.escapepod.metadatasearch
 
-import com.spectralogic.escapepod.api.MetadataException
-import com.spectralogic.escapepod.api.MetadataIndex
-import com.spectralogic.escapepod.api.MetadataSearchHealthResponse
-import com.spectralogic.escapepod.api.MetadataSearchHitsNode
-import com.spectralogic.escapepod.metadatasearch.api.ElasticSearchMetadataService
+import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchHealthResponse
 import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchIndicesResponse
 import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchResponse
@@ -39,9 +35,7 @@ import org.elasticsearch.client.RestClient
 import java.util.*
 import java.util.stream.Collectors
 
-class ElasticSearchService : ElasticSearchMetadataService {
-
-    private val restClient: RestClient
+class ElasticSearchService constructor(private val restClient: RestClient, private val requestContext: RequestContext) : MetadataSearchService {
 
     private companion object {
         private var PRETTY_TRUE: MutableMap<String, String> = Collections.singletonMap("pretty", "true")
@@ -52,13 +46,6 @@ class ElasticSearchService : ElasticSearchMetadataService {
         private var DELETE: String = "DELETE"
     }
 
-    constructor(httpHosts: List<HttpHost>) {
-        restClient = RestClient.builder(*httpHosts.toTypedArray()).build()
-    }
-
-    constructor(restClient: RestClient) {
-        this.restClient = restClient
-    }
 
     override fun health(): Single<MetadataSearchHealthResponse> {
         return ReactivexAdapters.createSingle { emitter ->
@@ -314,12 +301,5 @@ class ElasticSearchService : ElasticSearchMetadataService {
                 .stream()
                 .map({ entry -> "\"${entry.key}\" : \"${entry.value}\"" })
                 .collect(Collectors.joining(", "))
-    }
-
-    override fun closeConnection(): Completable {
-        return ReactivexAdapters.createCompletable { emitter ->
-            restClient.close()
-            emitter.onComplete()
-        }
     }
 }

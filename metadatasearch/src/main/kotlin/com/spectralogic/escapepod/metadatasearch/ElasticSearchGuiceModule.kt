@@ -17,7 +17,6 @@ package com.spectralogic.escapepod.metadatasearch
 
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
-import com.spectralogic.escapepod.api.MetadataSearchServiceConfigFile
 import com.spectralogic.escapepod.api.MetadataSearchServiceProvider
 import java.nio.file.Path
 import java.nio.file.Paths

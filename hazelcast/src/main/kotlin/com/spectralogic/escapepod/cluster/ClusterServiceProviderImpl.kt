@@ -83,7 +83,7 @@ internal class ClusterServiceProviderImpl
         return Completable.complete()
     }
 
-    override fun getService(): Single<ClusterService> = singleOfNullable(clusterService) {
+    override fun getService(requestContext: RequestContext): Single<ClusterService> = singleOfNullable(clusterService) {
         ClusterException(NOT_IN_CLUSTER)
     }
 
@@ -123,7 +123,7 @@ internal class ClusterServiceProviderImpl
         }
     }
 
-    fun innerCreateCluster(name : String) : Completable {
+    private fun innerCreateCluster(name : String) : Completable {
 
         return Completable.create { emitter ->
             val config = createCommonClusterConfiguration(name)

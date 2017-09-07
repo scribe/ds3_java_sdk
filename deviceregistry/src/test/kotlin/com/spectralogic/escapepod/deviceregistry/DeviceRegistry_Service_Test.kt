@@ -17,7 +17,7 @@ package com.spectralogic.escapepod.deviceregistry
 
 import org.junit.Test
 
-class DeviceRegistry_Test {
+class DeviceRegistry_Service_Test {
 
     @Test
     fun registerDevice() {
