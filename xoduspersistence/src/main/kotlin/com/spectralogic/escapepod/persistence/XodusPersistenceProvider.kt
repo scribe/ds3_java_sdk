@@ -75,7 +75,7 @@ internal class XodusPersistenceProvider
             if (eStore == null) {
                 emitter.onError(Exception("The persistence layer has not been configured"))
             } else {
-                XodusPersistenceService(eStore, requestContext)
+                emitter.onSuccess(XodusPersistenceService(eStore, requestContext))
             }
         }
     }
