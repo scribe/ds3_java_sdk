@@ -16,22 +16,23 @@
 package com.spectralogic.escapepod.cluster.config
 
 import com.spectralogic.escapepod.api.ClusterNode
-import com.spectralogic.escapepod.cluster.models.ClusterConfigProto
-import com.spectralogic.escapepod.cluster.models.Url
+import com.spectralogic.escapepod.util.append
 import com.spectralogic.escapepod.util.resource.Resource
+import com.spectralogic.escapepod.util.singleOfNullable
+import io.reactivex.Single
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.inject.Inject
 
 interface ClusterConfigService {
     fun createConfig(clusterName : String, nodeId: UUID)
-    fun getConfig() : ClusterConfigProto.ClusterConfig?
+    fun getConfig() : Single<ClusterConfig>
     fun addNode(node : ClusterNode)
     fun removeNode(node : ClusterNode)
     fun deleteConfig()
 }
 
-class ClusterConfigServiceImpl @Inject constructor(private val clusterConfigResource: Resource<ClusterConfigProto.ClusterConfig>): ClusterConfigService {
+class ClusterConfigServiceImpl @Inject constructor(private val clusterConfigResource: Resource<ClusterConfig>): ClusterConfigService {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(ClusterConfigServiceImpl::class.java)
@@ -42,12 +43,14 @@ class ClusterConfigServiceImpl @Inject constructor(private val clusterConfigReso
         clusterConfigResource.saveResource(createClusterConfig(clusterName, nodeId))
     }
 
-    private fun createClusterConfig(clusterName: String, nodeId: UUID) : ClusterConfigProto.ClusterConfig {
-         return ClusterConfigProto.ClusterConfig.newBuilder().setName(clusterName).setNodeId(nodeId.toString()).build()
+    private fun createClusterConfig(clusterName: String, nodeId: UUID) : ClusterConfig {
+        return ClusterConfig(clusterName, nodeId, emptySequence())
     }
 
-    override fun getConfig(): ClusterConfigProto.ClusterConfig? {
-        return clusterConfigResource.getResource()
+    override fun getConfig(): Single<ClusterConfig> {
+        return singleOfNullable(clusterConfigResource.getResource()) {
+            Exception("There is no previous configuration")
+        }
     }
 
     override fun addNode(node: ClusterNode) {
@@ -55,7 +58,10 @@ class ClusterConfigServiceImpl @Inject constructor(private val clusterConfigReso
         val resource = clusterConfigResource.getResource()
 
         if (resource != null) {
-            val updatedConfig = ClusterConfigProto.ClusterConfig.newBuilder().mergeFrom(resource).addNodes(node.toConfigNode()).build()
+            val nodeUrls = sequenceOf(node.toConfigNode())
+
+            val updatedConfig = resource.copy(nodeList = resource.nodeList.append(nodeUrls))
+
             clusterConfigResource.saveResource(updatedConfig)
         } else {
             LOG.warn("Attempting to add a node to the config when there is no configuration")
@@ -68,9 +74,9 @@ class ClusterConfigServiceImpl @Inject constructor(private val clusterConfigReso
 
         if (resource != null) {
 
-            val newList = resource.nodesList.filter { !(it.host.endpoint == node.ip && it.host.port == node.port)}
+            val newList = resource.nodeList.filter { !(it.endpoint == node.ip && it.port == node.port)}
 
-            val updatedConfig = ClusterConfigProto.ClusterConfig.newBuilder().setName(resource.name).addAllNodes(newList).build()
+            val updatedConfig = resource.copy(nodeList = newList)
             clusterConfigResource.saveResource(updatedConfig)
 
         } else {
@@ -84,8 +90,8 @@ class ClusterConfigServiceImpl @Inject constructor(private val clusterConfigReso
 
 }
 
-private fun ClusterNode.toConfigNode() : ClusterConfigProto.ClusterConfig.ClusterNode {
-    return ClusterConfigProto.ClusterConfig.ClusterNode.newBuilder().setHost(Url.URL.newBuilder().setEndpoint(this.ip).setPort(this.port)).build()
+private fun ClusterNode.toConfigNode() : NodeUrl {
+    return NodeUrl(this.ip, this.port)
 }
 
 

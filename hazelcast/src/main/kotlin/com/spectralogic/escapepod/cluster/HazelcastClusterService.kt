@@ -70,17 +70,7 @@ internal class HazelcastClusterService(private val hazelcastInstance: HazelcastI
     }
 
     override fun clusterNodes(): Observable<ClusterNode> {
-
-        return Observable.create { emitter ->
-            hazelcastInstance
-                .cluster
-                .members
-                .asSequence()
-                .map { ClusterNode(it.address.host, it.address.port) }
-                .forEach(emitter::onNext)
-
-            emitter.onComplete()
-        }
+        return Observable.fromIterable(hazelcastInstance.cluster.members.map { ClusterNode(it.address.host, it.address.port) })
     }
 
     internal fun getClusterNode(): ClusterNode {

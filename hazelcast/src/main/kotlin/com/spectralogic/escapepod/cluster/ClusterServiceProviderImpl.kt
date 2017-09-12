@@ -59,28 +59,26 @@ internal class ClusterServiceProviderImpl
 
     override fun startService(): Completable {
 
-        val resource = clusterConfigService.getConfig()
-        if (resource != null) {
+        return clusterConfigService.getConfig().doOnError { e ->
+            LOG.error("This node is not a member of a cluster.  Starting up as un-configured", e)
+        }.doOnSuccess {
             LOG.info("attempting to re-join cluster after restart")
-            val firstNode = resource.nodesList.stream().findFirst()
+        }.flatMapCompletable { (name, _, nodeList) ->
 
-            if (firstNode.isPresent) {
-                val node = firstNode.get()
-                return innerJoinCluster(node.host.endpoint + node.host.port)
+            try {
+                val node = nodeList.first()
+                innerJoinCluster(node.endpoint + node.port)
                         .doOnSuccess {
                             clusterLifecycleEvents.onNext(ClusterStartupEvent())
                         }
                         .toCompletable()
-            } else {
+            } catch (e: NoSuchElementException) {
                 LOG.info("There are no other nodes in the cluster, starting up as a single node cluster")
-                return innerCreateCluster(resource.name).doOnComplete {
+                innerCreateCluster(name).doOnComplete {
                     clusterLifecycleEvents.onNext(ClusterStartupEvent())
                 }
             }
         }
-
-        LOG.info("This node is not a member of a cluster.  Starting up as un-configured")
-        return Completable.complete()
     }
 
     override fun getService(requestContext: RequestContext): Single<ClusterService> = singleOfNullable(clusterService) {

@@ -15,6 +15,7 @@
 
 package com.spectralogic.escapepod.metadatasearch
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.spectralogic.escapepod.api.*
 import io.opentracing.Tracer
 import io.reactivex.Completable
@@ -37,6 +38,7 @@ internal class ElasticSearchServiceProvider
         private val clusterServiceProvider: ClusterServiceProvider,
         private val elasticSearchConfigFile: MetadataSearchServiceConfigFile,
         private val tracer: Tracer,
+        private val objectMapper: ObjectMapper,
         @Named("interfaceIp") private val interfaceIp: String,
         @Named("elasticSearchPort") private val elasticSearchPort: Int,
         @Named("elasticSearchBinDir") private val elasticSearchBinDir: Path) : MetadataSearchServiceProvider {
@@ -173,7 +175,7 @@ internal class ElasticSearchServiceProvider
             if (client == null) {
                 emitter.onError(Exception("The metadata service has not been started"))
             } else {
-                emitter.onSuccess(ElasticSearchService(client, requestContext))
+                emitter.onSuccess(ElasticSearchService(client, requestContext, objectMapper))
             }
         }
     }

@@ -13,21 +13,22 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.util.resource
+package com.spectralogic.escapepod.util
 
-import com.google.protobuf.Message
-import java.io.InputStream
-import java.io.OutputStream
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.inject.AbstractModule
+import com.google.inject.Provides
+import com.spectralogic.escapepod.util.json.JacksonMarshaller
+import com.spectralogic.escapepod.util.json.Mapper
+import com.spectralogic.escapepod.util.resource.ResourceMarshaller
 
-class ProtoBuffMarshaller<T : Message>(
-        private val builderFunction : () -> Message.Builder
-) : ResourceMarshaller<T> {
-    override fun saveResource(resource: T, outStream: OutputStream) {
-        resource.writeTo(outStream)
+class UtilGuavaModule: AbstractModule() {
+    override fun configure() {
+        bind(ResourceMarshaller::class.java).to(JacksonMarshaller::class.java)
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun loadResource(inStream: InputStream): T {
-        return builderFunction.invoke().mergeFrom(inStream).build() as T
+    @Provides
+    fun objectMapper(): ObjectMapper {
+        return Mapper.mapper
     }
 }

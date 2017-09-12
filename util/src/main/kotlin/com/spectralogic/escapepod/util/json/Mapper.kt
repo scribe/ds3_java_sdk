@@ -13,9 +13,26 @@
  *  ****************************************************************************
  */
 
-dependencies {
-    compile group: 'com.hazelcast', name: 'hazelcast', version: '3.8'
-    compile "com.squareup.retrofit2:retrofit:$retrofitVersion"
-    compile group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: "$retrofitVersion"
-    compile "com.squareup.retrofit2:converter-scalars:$retrofitVersion"
+package com.spectralogic.escapepod.util.json
+
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.guava.GuavaModule
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+
+object Mapper {
+
+    private val internalMapper = ObjectMapper()
+
+    val mapper: ObjectMapper
+    get (): ObjectMapper {
+        return internalMapper.copy()
+    }
+
+    init {
+        internalMapper.registerModule(GuavaModule())
+        internalMapper.registerModule(JavaTimeModule())
+        internalMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    }
 }
+

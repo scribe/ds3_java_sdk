@@ -22,3 +22,9 @@ fun AutoCloseable.use(action : () -> Unit) {
         this.close()
     }
 }
+
+/**
+ * Creates a new sequence which will lazily return the results from the sequence being appended to, then once
+ * that sequence has been consumed, it will pull elements from the sequence being appended.
+ */
+fun <T> Sequence<T>.append(sequence: Sequence<T>): Sequence<T> = sequenceOf(this, sequence).flatten()

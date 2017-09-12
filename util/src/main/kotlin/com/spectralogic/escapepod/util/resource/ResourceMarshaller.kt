@@ -20,7 +20,7 @@ package com.spectralogic.escapepod.util.resource
  *
  * A ResourceProvider should not be concerned with locking or with if the streams exist.
  */
-interface ResourceMarshaller<T> {
-    fun saveResource(resource : T, outStream : java.io.OutputStream) : Unit
-    fun loadResource(inStream: java.io.InputStream) : T
+interface ResourceMarshaller {
+    fun <T> saveResource(resource : T, outStream : java.io.OutputStream)
+    fun <T> loadResource(inStream: java.io.InputStream, clazz: Class<T>) : T
 }

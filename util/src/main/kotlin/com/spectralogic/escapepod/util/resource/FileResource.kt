@@ -30,7 +30,8 @@ import java.nio.file.StandardOpenOption
 class FileResource<T>(
         private val configDir : Path,
         configFileName : String,
-        private val resourceMarshaller: ResourceMarshaller<T>
+        private val resourceMarshaller: ResourceMarshaller,
+        private val clazz: Class<T>
 ) : Resource<T> {
     private companion object {
         private val LOG = LoggerFactory.getLogger(FileResource::class.java)
@@ -73,7 +74,7 @@ class FileResource<T>(
     private fun loadConfigFromFile(configPath : Path) : T {
         LOG.info("Reading config from file")
         Files.newInputStream(configPath).use {
-            return resourceMarshaller.loadResource(it)
+            return resourceMarshaller.loadResource(it, clazz)
         }
     }
 

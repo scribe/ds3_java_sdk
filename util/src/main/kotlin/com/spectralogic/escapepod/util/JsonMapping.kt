@@ -28,20 +28,10 @@ object JsonMapping {
     private val MAPPER = ObjectMapper()
 
     init {
-        MAPPER.registerModule(GuavaModule())
-        MAPPER.registerModule(JavaTimeModule())
-        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+
     }
 
     fun mapper() : ObjectMapper {
         return MAPPER.copy()
-    }
-
-    fun <T> fromJson(stream: InputStream, clazz: Class<T>): T {
-        return MAPPER.readValue(stream, clazz)
-    }
-
-    fun toJson(output: OutputStream, obj: Any) {
-        MAPPER.writeValue(output, obj)
     }
 }

@@ -13,9 +13,10 @@
  *  ****************************************************************************
  */
 
-dependencies {
-    compile group: 'com.hazelcast', name: 'hazelcast', version: '3.8'
-    compile "com.squareup.retrofit2:retrofit:$retrofitVersion"
-    compile group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: "$retrofitVersion"
-    compile "com.squareup.retrofit2:converter-scalars:$retrofitVersion"
-}
+package com.spectralogic.escapepod.cluster.config
+
+import java.util.*
+
+data class NodeUrl(val endpoint: String, val port: Int)
+
+data class ClusterConfig(val name: String, val nodeId: UUID, val nodeList: Sequence<NodeUrl>)
