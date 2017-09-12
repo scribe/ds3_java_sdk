@@ -24,6 +24,12 @@ object Mapper {
 
     private val internalMapper = ObjectMapper()
 
+    /**
+     * This property returns a new copy of a pre-configured ObjectMapper on each invocation.
+     * The intention for this class is to provide a ObjectMapper with sane defaults that
+     * can be used in most cases, but then modified as needed without affecting other
+     * ObjectMappers that are returned by this call.
+     */
     val mapper: ObjectMapper
     get (): ObjectMapper {
         return internalMapper.copy()
