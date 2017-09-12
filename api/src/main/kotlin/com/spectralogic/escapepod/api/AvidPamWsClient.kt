@@ -5,8 +5,10 @@ import io.reactivex.Single
 interface AvidPamWsClient {
     fun getChildren(interplayURI: String): Single<GetChildrenResponse>
     fun getProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean): Single<GetProfilesResponse>
-    fun restore(service: String, profile: String, interplayURI: String): Single<RestoreResponse>
-    fun jobStatus(jobURIs: Array<String>): Single<JobStatusResponse>
+    fun getJobStatus(jobURIs: Array<String>): Single<JobStatusResponse>
+
+    fun restore(profile: String, interplayURI: String): Single<JobResponse>
+    fun archive(profile: String, interplayURI: String): Single<JobResponse>
 }
 
 data class GetChildrenResponse(val results: Sequence<GetChildrenResult>, val errors: Sequence<WsError>)
@@ -19,7 +21,7 @@ data class GetProfilesResponse(val results: Sequence<GetProfilesResult>, val err
 
 data class GetProfilesResult(val name: String, val service: String, val parameters: Map<String, String>)
 
-data class RestoreResponse(val jobURI: String, val errors: Sequence<WsError>?)
+data class JobResponse(val jobURI: String, val errors: Sequence<WsError>?)
 
 data class JobStatusResponse(val results: Sequence<JobStatus>, val errors: Sequence<WsError>)
 
