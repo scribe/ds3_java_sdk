@@ -3,14 +3,15 @@ package com.spectralogic.escapepod.avidpamwsclient
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.api.AvidPamWsClient
 import com.spectralogic.escapepod.avidpamclient.soap.ws.*
-import java.util.concurrent.ForkJoinPool
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
 import java.util.concurrent.Executor
+import java.util.concurrent.ForkJoinPool
 
 internal class AvidPamWsClient
 constructor(username: String, password: String, endpoint: String,
             private val executor: Executor = ForkJoinPool.commonPool()) : AvidPamWsClient {
+
 
     companion object {
         private val LOG = LoggerFactory.getLogger(AvidPamWsClient::class.java)
@@ -87,18 +88,18 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun restore(service: String, profile: String, interplayURI: String): Single<RestoreResponse> {
+    override fun restore(profile: String, interplayURI: String): Single<JobResponse> {
         return Single.create { emitter ->
             executor.execute {
                 try {
                     val submitJobUsingProfileType = SubmitJobUsingProfileType()
-                    submitJobUsingProfileType.service = service
+                    submitJobUsingProfileType.service = "com.avid.dms.restore"
                     submitJobUsingProfileType.profile = profile
                     submitJobUsingProfileType.interplayURI = interplayURI
 
                     val res = jobsSoapClient.submitJobUsingProfile(submitJobUsingProfileType, credentials)
 
-                    emitter.onSuccess(RestoreResponse(res.jobURI, TransformUtils.errorTypeToWsError(res.errors)))
+                    emitter.onSuccess(JobResponse(res.jobURI, TransformUtils.errorTypeToWsError(res.errors)))
                 } catch (t: Throwable) {
                     LOG.error("Failed to restore", t)
                     emitter.onError(t)
@@ -107,7 +108,27 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun jobStatus(jobURIs: Array<String>): Single<JobStatusResponse> {
+    override fun archive(profile: String, interplayURI: String): Single<JobResponse> {
+        return Single.create { emitter ->
+            executor.execute {
+                try {
+                    val submitJobUsingProfileType = SubmitJobUsingProfileType()
+                    submitJobUsingProfileType.service = "com.avid.dms.archive"
+                    submitJobUsingProfileType.profile = profile
+                    submitJobUsingProfileType.interplayURI = interplayURI
+
+                    val res = jobsSoapClient.submitJobUsingProfile(submitJobUsingProfileType, credentials)
+
+                    emitter.onSuccess(JobResponse(res.jobURI, TransformUtils.errorTypeToWsError(res.errors)))
+                } catch (t: Throwable) {
+                    LOG.error("Failed to archive", t)
+                    emitter.onError(t)
+                }
+            }
+        }
+    }
+
+    override fun getJobStatus(jobURIs: Array<String>): Single<JobStatusResponse> {
         return Single.create { emitter ->
             executor.execute {
                 try {
