@@ -20,6 +20,7 @@ import com.spectralogic.escapepod.api.MetadataIndex
 import com.spectralogic.escapepod.api.MetadataSearchHitsNode
 import com.spectralogic.escapepod.api.MetadataSearchService
 import com.spectralogic.escapepod.api.RequestContext
+import com.spectralogic.escapepod.util.json.Mapper
 import io.opentracing.mock.MockTracer
 import org.apache.http.HttpHost
 import org.assertj.core.api.Assertions.assertThat
@@ -39,7 +40,7 @@ class TestElasticSearchService {
         @BeforeClass @JvmStatic
         fun beforeClass() {
             restClient = RestClient.builder(HttpHost("localhost", 9200), HttpHost("localhost", 9201)).build()
-            metadataSearchService = ElasticSearchService(restClient, createTestRequestContext())
+            metadataSearchService = ElasticSearchService(restClient, createTestRequestContext(), Mapper.mapper)
         }
 
         @AfterClass @JvmStatic
