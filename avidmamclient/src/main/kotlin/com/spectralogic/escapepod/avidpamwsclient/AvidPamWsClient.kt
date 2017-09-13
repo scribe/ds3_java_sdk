@@ -128,15 +128,15 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun getJobStatus(jobURIs: Array<String>): Single<JobStatusResponse> {
+    override fun getJobsStatus(jobsURI: Array<String>): Single<JobsStatusResponse> {
         return Single.create { emitter ->
             executor.execute {
                 try {
                     val getJobStatusType = GetJobStatusType()
-                    getJobStatusType.jobURIs = jobURIs
+                    getJobStatusType.jobURIs = jobsURI
                     val res = jobsSoapClient.getJobStatus(getJobStatusType, credentials)
 
-                    emitter.onSuccess(JobStatusResponse(
+                    emitter.onSuccess(JobsStatusResponse(
                             TransformUtils.jobStatusTypeToJobStatusResult(res.jobStatusTypes),
                             TransformUtils.errorTypeToWsError(res.errors)))
                 } catch (t: Throwable) {
