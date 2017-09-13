@@ -16,6 +16,7 @@
 package com.spectralogic.escapepod.ratpack
 
 import com.spectralogic.escapepod.api.monitoring.HTTP_METHOD_TAG
+import com.spectralogic.escapepod.api.monitoring.HTTP_STATUS_CODE
 import com.spectralogic.escapepod.api.monitoring.HTTP_URI
 import io.opentracing.Tracer
 import ratpack.handling.Context
@@ -36,6 +37,7 @@ internal class TracerHandler : Handler {
             val spanContinuation = span.capture()
             ctx.onClose {
                 spanContinuation.activate().use {
+                    it.setTag(HTTP_STATUS_CODE, ctx.response.status.code)
                     it.log("Finished Handling Request")
                 }
             }
