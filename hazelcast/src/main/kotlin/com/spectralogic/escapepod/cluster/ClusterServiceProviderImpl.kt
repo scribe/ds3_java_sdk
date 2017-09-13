@@ -67,11 +67,12 @@ internal class ClusterServiceProviderImpl
 
             try {
                 val node = nodeList.first()
-                innerJoinCluster(node.endpoint + node.port)
+                innerJoinCluster(node.endpoint +":"+ node.port)
                         .doOnSuccess {
                             clusterLifecycleEvents.onNext(ClusterStartupEvent())
-                        }
-                        .toCompletable()
+                        }.doOnError {
+                            LOG.error("Failed to join cluster on startup", it)
+                        }.toCompletable()
             } catch (e: NoSuchElementException) {
                 LOG.info("There are no other nodes in the cluster, starting up as a single node cluster")
                 innerCreateCluster(name).doOnComplete {

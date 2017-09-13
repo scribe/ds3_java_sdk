@@ -15,16 +15,20 @@
 
 package com.spectralogic.escapepod.cluster
 
+import com.spectralogic.escapepod.api.ClusterException
 import com.spectralogic.escapepod.api.RequestContext
 import com.spectralogic.escapepod.api.use
+import com.spectralogic.escapepod.cluster.config.ClusterConfig
 import com.spectralogic.escapepod.cluster.config.ClusterConfigService
+import com.spectralogic.escapepod.cluster.config.NodeUrl
 import io.opentracing.mock.MockTracer
 import io.reactivex.Single
+import io.vavr.collection.List
 import org.junit.Test
 
 import org.mockito.Mockito.*
 import org.assertj.core.api.Assertions.*
-import java.util.NoSuchElementException
+import java.util.*
 
 class ClusterServiceProviderImpl_Test {
     @Test
@@ -35,11 +39,123 @@ class ClusterServiceProviderImpl_Test {
 
         val clusterClientFactory = mock(ClusterClientFactory::class.java)
 
-        ClusterServiceProviderImpl("localhost", 5055, clusterConfigService, clusterClientFactory).use {
+        ClusterServiceProviderImpl("127.0.0.1", 5055, clusterConfigService, clusterClientFactory).use {
             it.startService().blockingAwait()
 
-            assertThat(it.getService(stubRequestContext())).isNotNull()
+            assertThatThrownBy{
+                it.getService(stubRequestContext()).blockingGet()
+            }.isExactlyInstanceOf(ClusterException::class.java)
+                    .hasMessage("The server must be a member of a cluster")
         }
+    }
+
+    @Test
+    fun createCluster() {
+        val clusterConfigService = mock(ClusterConfigService::class.java)
+        `when`(clusterConfigService.getConfig()).thenReturn(Single.error(NoSuchElementException()))
+
+        val clusterClientFactory = mock(ClusterClientFactory::class.java)
+
+        ClusterServiceProviderImpl("127.0.0.1", 5055, clusterConfigService, clusterClientFactory).use {
+            it.startService().blockingAwait()
+
+            it.createCluster("test").blockingAwait()
+
+            val clusterService = it.getService(stubRequestContext()).blockingGet()
+
+            assertThat(clusterService.name().blockingGet()).isEqualTo("test")
+        }
+    }
+
+    @Test
+    fun joinCluster() {
+        val clusterConfigService = mock(ClusterConfigService::class.java)
+        `when`(clusterConfigService.getConfig()).thenReturn(Single.error(NoSuchElementException()))
+
+        val clusterClientFactory = mock(ClusterClientFactory::class.java)
+
+        val clusterClient = mock(ClusterClient::class.java)
+        `when`(clusterClient.clusterName()).thenReturn(Single.just("test"))
+
+        `when`(clusterClientFactory.createClusterClient("127.0.0.1")).thenReturn(clusterClient)
+
+        ClusterServiceProviderImpl("127.0.0.1", 5055, clusterConfigService, clusterClientFactory).use {
+            it.startService().blockingAwait()
+
+            it.createCluster("test").blockingAwait()
+
+
+            ClusterServiceProviderImpl("127.0.0.1", 5056, clusterConfigService, clusterClientFactory).use {
+                val clusterName = it.joinCluster("127.0.0.1").blockingGet()
+                assertThat(clusterName).isEqualTo("test")
+                it.leaveCluster().blockingAwait()
+            }
+            it.leaveCluster().blockingAwait()
+        }
+    }
+
+    @Test
+    fun resumeCluster() {
+        val clusterConfigService = mock(ClusterConfigService::class.java)
+
+        val clusterConfig = ClusterConfig("test", UUID.randomUUID(), List.empty())
+
+        `when`(clusterConfigService.getConfig()).thenReturn(Single.just(clusterConfig))
+
+        val clusterClientFactory = mock(ClusterClientFactory::class.java)
+
+        ClusterServiceProviderImpl("127.0.0.1", 5055, clusterConfigService, clusterClientFactory).use {
+            it.startService().blockingAwait()
+
+            assertThat(it.getService(stubRequestContext()).blockingGet()).isNotNull()
+        }
+    }
+
+    @Test
+    fun rejoinOnStartup() {
+        val parentClusterConfigService = mock(ClusterConfigService::class.java)
+        `when`(parentClusterConfigService.getConfig()).thenReturn(Single.error(NoSuchElementException()))
+
+        val firstClusterClientFactory = mock(ClusterClientFactory::class.java)
+
+        ClusterServiceProviderImpl("127.0.0.1", 5055, parentClusterConfigService, firstClusterClientFactory).use {
+            it.startService().blockingAwait()
+
+            it.createCluster("test").blockingAwait()
+
+            val secondaryClusterConfigService = mock(ClusterConfigService::class.java)
+            val clusterConfig = ClusterConfig("test", UUID.randomUUID(), List.of(NodeUrl("127.0.0.1", 5055)))
+
+            `when`(secondaryClusterConfigService.getConfig()).thenReturn(Single.just(clusterConfig))
+
+            val clusterClientFactory = mock(ClusterClientFactory::class.java)
+            val clusterClient = mock(ClusterClient::class.java)
+            `when`(clusterClient.clusterName()).thenReturn(Single.just("test"))
+            `when`(clusterClientFactory.createClusterClient("127.0.0.1:5055")).thenReturn(clusterClient)
+
+            ClusterServiceProviderImpl("127.0.0.1", 5056, secondaryClusterConfigService, clusterClientFactory).use {
+
+                it.startService().blockingAwait()
+
+                val clusterService = it.getService(stubRequestContext()).blockingGet()
+                assertThat(clusterService.name().blockingGet()).isEqualTo("test")
+            }
+        }
+    }
+
+    @Test
+    fun leaveFromNonExistentCluster() {
+        val clusterConfigService = mock(ClusterConfigService::class.java)
+        `when`(clusterConfigService.getConfig()).thenReturn(Single.error(NoSuchElementException()))
+        val clusterClientFactory = mock(ClusterClientFactory::class.java)
+
+        ClusterServiceProviderImpl("127.0.0.1", 5055, clusterConfigService, clusterClientFactory).use {
+             it.startService().blockingAwait()
+
+            assertThatThrownBy { it.leaveCluster().blockingAwait() }
+                    .isExactlyInstanceOf(ClusterException::class.java)
+                    .hasMessage("The server must be a member of a cluster")
+         }
     }
 }
 
@@ -50,3 +166,4 @@ fun stubRequestContext(): RequestContext {
 
     return RequestContext(mockTracer, span)
 }
+
