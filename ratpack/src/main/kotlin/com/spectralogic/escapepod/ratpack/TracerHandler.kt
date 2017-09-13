@@ -15,6 +15,7 @@
 
 package com.spectralogic.escapepod.ratpack
 
+import com.spectralogic.escapepod.api.RequestContext
 import com.spectralogic.escapepod.api.monitoring.HTTP_METHOD_TAG
 import com.spectralogic.escapepod.api.monitoring.HTTP_STATUS_CODE
 import com.spectralogic.escapepod.api.monitoring.HTTP_URI
@@ -43,6 +44,6 @@ internal class TracerHandler : Handler {
             }
         }
 
-        ctx.next(Registry.single(requestSpan))
+        ctx.next(Registry.single(RequestContext(tracer, requestSpan)))
     }
 }
