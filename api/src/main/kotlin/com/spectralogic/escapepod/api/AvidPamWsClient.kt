@@ -9,7 +9,6 @@ interface AvidPamWsClient {
 
     fun restore(profile: String, interplayURI: String): Single<JobResponse>
     fun archive(profile: String, interplayURI: String): Single<JobResponse>
-    fun cancelJobs(jobsURI: Array<String>): Single<CancelJobsResponse>
 }
 
 data class GetChildrenResponse(val results: Sequence<GetChildrenResult>, val errors: Sequence<WsError>)
@@ -27,5 +26,3 @@ data class JobResponse(val jobURI: String, val errors: Sequence<WsError>)
 data class JobsStatusResponse(val results: Sequence<JobStatus>, val errors: Sequence<WsError>)
 
 data class JobStatus(val jobURI: String, val jobStatus: String, val percentComplete: Int?)
-
-data class CancelJobsResponse(val errors: Sequence<WsError>)
