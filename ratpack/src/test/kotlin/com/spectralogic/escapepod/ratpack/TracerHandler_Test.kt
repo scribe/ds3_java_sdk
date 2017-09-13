@@ -22,6 +22,8 @@ import ratpack.func.Action
 import ratpack.test.handling.RequestFixture
 
 import org.assertj.core.api.Assertions.*
+import ratpack.handling.Chain
+import ratpack.handling.Handler
 
 class TracerHandler_Test {
     @Test
@@ -30,7 +32,7 @@ class TracerHandler_Test {
 
         val mockTracer = MockTracer()
 
-        val handle = RequestFixture.handle(handler, Action<RequestFixture> {
+        val handle = RequestFixture.handle(ResponseChainFixture(handler), Action<RequestFixture> {
             it.registry {
                 it.add(mockTracer)
             }.method("GET")
@@ -38,5 +40,21 @@ class TracerHandler_Test {
         })
 
         assertThat(handle.registry[RequestContext::class.java]).isNotNull()
+        assertThat(handle.rendered(String::class.java)).isEqualTo("response")
+        assertThat(handle.status.code).isEqualTo(200)
     }
+}
+
+/**
+ * This Fixture always returns 'response' with a status code of 200
+ */
+private class ResponseChainFixture(private val filterHandler: Handler): Action<Chain> {
+    override fun execute(t: Chain) {
+        t.all(filterHandler)
+        t.all {
+            it.response.status(200)
+            it.render("response")
+        }
+    }
+
 }
