@@ -319,22 +319,4 @@ internal class AvidPamWsClientTest {
          * jobURI = interplay://AvidWorkgroup/DMS?jobid=1505159604061.1 ; (Processing , 52%)
          */
     }
-
-    @Test
-    fun cancelJobsTest() {
-        val jobURIs = arrayOf(
-                "",
-                "interplay://AvidWorkgroup/DMS?jobid=1505159604061.1",
-                "interplay://AvidWorkgroup/DMS?jobid=1504207567867.1")
-
-        val res = avidPamWsClient.cancelJobs(jobURIs).blockingGet()
-
-        if (res.errors.any()) {
-            for ((interplayURI, message, details) in res.errors) {
-                println("$interplayURI, $message, $details")
-            }
-        } else {
-            println("All jobs were canceled successfully")
-        }
-    }
 }

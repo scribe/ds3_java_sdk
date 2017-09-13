@@ -146,23 +146,4 @@ constructor(username: String, password: String, endpoint: String,
             }
         }
     }
-
-    override fun cancelJobs(jobsURI: Array<String>): Single<CancelJobsResponse> {
-        return Single.create { emitter ->
-            executor.execute {
-                try {
-
-                    val cancelJobsType = CancelJobsType()
-                    cancelJobsType.jobURIs = jobsURI
-
-                    val res = jobsSoapClient.cancelJobs(cancelJobsType, credentials)
-
-                    emitter.onSuccess(CancelJobsResponse(TransformUtils.errorTypeToWsError(res.errors)))
-                } catch (t: Throwable) {
-                    LOG.error("Failed to cancel jobs")
-                    emitter.onError(t)
-                }
-            }
-        }
-    }
 }
