@@ -209,8 +209,14 @@ internal class ClusterServiceProviderImpl
     private fun clusterEventsHandler(event : ConfigChangeEvent) {
         when (event) {
             is ConfigCreatedChangeEvent -> clusterConfigService.createConfig(event.clusterName, event.clusterId)
-            is ConfigNodeAddedChangeEvent -> clusterConfigService.addNode(event.clusterNode)
-            is ConfigNodeRemovedChangeEvent -> clusterConfigService.removeNode(event.clusterNode)
+            is ConfigNodeAddedChangeEvent -> {
+                clusterConfigService.addNode(event.clusterNode)
+                clusterLifecycleEvents.onNext(ClusterNodeJoinedEvent(event.clusterNode))
+            }
+            is ConfigNodeRemovedChangeEvent -> {
+                clusterConfigService.removeNode(event.clusterNode)
+                clusterLifecycleEvents.onNext(ClusterNodeLeftEvent(event.clusterNode))
+            }
             is ConfigDeletedChangeEvent -> clusterConfigService.deleteConfig()
         }
     }

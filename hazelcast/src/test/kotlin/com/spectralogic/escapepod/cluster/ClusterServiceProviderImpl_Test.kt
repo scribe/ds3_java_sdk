@@ -15,9 +15,7 @@
 
 package com.spectralogic.escapepod.cluster
 
-import com.spectralogic.escapepod.api.ClusterException
-import com.spectralogic.escapepod.api.RequestContext
-import com.spectralogic.escapepod.api.use
+import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.cluster.config.ClusterConfig
 import com.spectralogic.escapepod.cluster.config.ClusterConfigService
 import com.spectralogic.escapepod.cluster.config.NodeUrl
@@ -29,6 +27,7 @@ import org.junit.Test
 import org.mockito.Mockito.*
 import org.assertj.core.api.Assertions.*
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ClusterServiceProviderImpl_Test {
     @Test
@@ -56,15 +55,29 @@ class ClusterServiceProviderImpl_Test {
 
         val clusterClientFactory = mock(ClusterClientFactory::class.java)
 
+        val clusterCreatedEventFired = AtomicBoolean(false)
+        val clusterShutdownEventFired = AtomicBoolean(false)
+
         ClusterServiceProviderImpl("127.0.0.1", 5055, clusterConfigService, clusterClientFactory).use {
             it.startService().blockingAwait()
 
+            it.clusterLifecycleEvents().doOnNext {
+                when(it) {
+                    is ClusterCreatedEvent -> clusterCreatedEventFired.set(true)
+                    is ClusterShutdownEvent -> clusterShutdownEventFired.set(true)
+                }
+            }.subscribe()
+
             it.createCluster("test").blockingAwait()
+
+            assertThat(clusterCreatedEventFired).isTrue
 
             val clusterService = it.getService(stubRequestContext()).blockingGet()
 
             assertThat(clusterService.name().blockingGet()).isEqualTo("test")
         }
+
+        assertThat(clusterShutdownEventFired).isTrue
     }
 
     @Test
@@ -79,17 +92,42 @@ class ClusterServiceProviderImpl_Test {
 
         `when`(clusterClientFactory.createClusterClient("127.0.0.1")).thenReturn(clusterClient)
 
+        val nodeJoinedClusterEventFired = AtomicBoolean(false)
+        val nodeLeftClusterEventFired = AtomicBoolean(false)
+
         ClusterServiceProviderImpl("127.0.0.1", 5055, clusterConfigService, clusterClientFactory).use {
+
+            it.clusterLifecycleEvents().doOnNext {
+                when (it) {
+                    is ClusterNodeJoinedEvent -> nodeJoinedClusterEventFired.set(true)
+                    is ClusterNodeLeftEvent -> nodeLeftClusterEventFired.set(true)
+                }
+            }.subscribe()
+
             it.startService().blockingAwait()
 
             it.createCluster("test").blockingAwait()
 
+            val joinedClusterEvent = AtomicBoolean(false)
+            val leftClusterEvent = AtomicBoolean(false)
 
             ClusterServiceProviderImpl("127.0.0.1", 5056, clusterConfigService, clusterClientFactory).use {
+                it.clusterLifecycleEvents().doOnNext {
+                    when (it) {
+                        is ClusterJoinedEvent -> joinedClusterEvent.set(true)
+                        is ClusterLeftEvent -> leftClusterEvent.set(true)
+                    }
+                }.subscribe()
                 val clusterName = it.joinCluster("127.0.0.1").blockingGet()
                 assertThat(clusterName).isEqualTo("test")
+
+                assertThat(nodeJoinedClusterEventFired).isTrue
+                assertThat(joinedClusterEvent).isTrue
+
                 it.leaveCluster().blockingAwait()
+                assertThat(leftClusterEvent).isTrue
             }
+            assertThat(nodeLeftClusterEventFired).isTrue
             it.leaveCluster().blockingAwait()
         }
     }
@@ -104,10 +142,19 @@ class ClusterServiceProviderImpl_Test {
 
         val clusterClientFactory = mock(ClusterClientFactory::class.java)
 
+        val clusterStartupEventFired = AtomicBoolean(false)
+
         ClusterServiceProviderImpl("127.0.0.1", 5055, clusterConfigService, clusterClientFactory).use {
+            it.clusterLifecycleEvents().doOnNext {
+                when(it) {
+                    is ClusterStartupEvent -> clusterStartupEventFired.set(true)
+                }
+            }.subscribe()
+
             it.startService().blockingAwait()
 
             assertThat(it.getService(stubRequestContext()).blockingGet()).isNotNull()
+            assertThat(clusterStartupEventFired).isTrue
         }
     }
 
@@ -133,9 +180,17 @@ class ClusterServiceProviderImpl_Test {
             `when`(clusterClient.clusterName()).thenReturn(Single.just("test"))
             `when`(clusterClientFactory.createClusterClient("127.0.0.1:5055")).thenReturn(clusterClient)
 
+            val clusterStartupEventFired = AtomicBoolean(false)
             ClusterServiceProviderImpl("127.0.0.1", 5056, secondaryClusterConfigService, clusterClientFactory).use {
+                it.clusterLifecycleEvents().doOnNext {
+                    when(it) {
+                        is ClusterStartupEvent -> clusterStartupEventFired.set(true)
+                    }
+                }.subscribe()
 
                 it.startService().blockingAwait()
+
+                assertThat(clusterStartupEventFired).isTrue
 
                 val clusterService = it.getService(stubRequestContext()).blockingGet()
                 assertThat(clusterService.name().blockingGet()).isEqualTo("test")
