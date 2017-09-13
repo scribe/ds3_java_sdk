@@ -21,11 +21,18 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.http.GET
 
+/**
+ * A Rest interface used to get information about the cluster that is needed when a new node joins.
+ */
 interface ClusterClient {
     @GET("api/cluster")
     fun clusterName() : Single<String>
 }
 
+/**
+ * This Factory returns an instance of the ClusterClient which is used to get information about the
+ * cluster via the cluster's rest interface.  This is primarily used when joining a cluster.
+ */
 interface ClusterClientFactory {
     fun createClusterClient(endpoint: String) : ClusterClient
 }

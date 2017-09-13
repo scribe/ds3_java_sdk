@@ -62,6 +62,8 @@ subprojects {
         compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlincoroutineVersion"
         compile "org.jetbrains.kotlinx:kotlinx-coroutines-nio:$kotlincoroutineVersion"
         compile group: 'io.opentracing', name: 'opentracing-api', version: "$opentracingVersion"
+        compile "io.vavr:vavr:$vavrVersion"
+        compile "io.vavr:vavr-jackson:$vavrVersion"
 
         testCompile group: 'org.slf4j', name: 'slf4j-simple', version: "$slf4jVersion"
         testCompile "junit:junit:$junitVersion"

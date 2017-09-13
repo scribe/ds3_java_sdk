@@ -15,8 +15,9 @@
 
 package com.spectralogic.escapepod.cluster.config
 
-import java.util.*
+import io.vavr.collection.List
+import java.util.UUID
 
 data class NodeUrl(val endpoint: String, val port: Int)
 
-data class ClusterConfig(val name: String, val nodeId: UUID, val nodeList: Sequence<NodeUrl>)
+data class ClusterConfig(val name: String, val nodeId: UUID, val nodeList: List<NodeUrl>)

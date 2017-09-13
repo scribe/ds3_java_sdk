@@ -16,20 +16,21 @@
 package com.spectralogic.escapepod.cluster.config
 
 import com.spectralogic.escapepod.api.ClusterNode
-import com.spectralogic.escapepod.util.append
 import com.spectralogic.escapepod.util.resource.Resource
 import com.spectralogic.escapepod.util.singleOfNullable
+import io.reactivex.Completable
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.util.UUID
 import javax.inject.Inject
+import io.vavr.collection.List
 
 interface ClusterConfigService {
-    fun createConfig(clusterName : String, nodeId: UUID)
+    fun createConfig(clusterName : String, nodeId: UUID): Completable
     fun getConfig() : Single<ClusterConfig>
-    fun addNode(node : ClusterNode)
-    fun removeNode(node : ClusterNode)
-    fun deleteConfig()
+    fun addNode(node : ClusterNode) : Completable
+    fun removeNode(node : ClusterNode) : Completable
+    fun deleteConfig() : Completable
 }
 
 class ClusterConfigServiceImpl @Inject constructor(private val clusterConfigResource: Resource<ClusterConfig>): ClusterConfigService {
@@ -38,13 +39,16 @@ class ClusterConfigServiceImpl @Inject constructor(private val clusterConfigReso
         private val LOG = LoggerFactory.getLogger(ClusterConfigServiceImpl::class.java)
     }
 
-    override fun createConfig(clusterName: String, nodeId : UUID) {
-        LOG.info("Creating cluster config")
-        clusterConfigResource.saveResource(createClusterConfig(clusterName, nodeId))
+    override fun createConfig(clusterName: String, nodeId : UUID): Completable {
+        return Completable.create {
+            LOG.info("Creating cluster config")
+            clusterConfigResource.saveResource(createClusterConfig(clusterName, nodeId))
+            it.onComplete()
+        }
     }
 
     private fun createClusterConfig(clusterName: String, nodeId: UUID) : ClusterConfig {
-        return ClusterConfig(clusterName, nodeId, emptySequence())
+        return ClusterConfig(clusterName, nodeId, List.empty())
     }
 
     override fun getConfig(): Single<ClusterConfig> {
@@ -53,39 +57,45 @@ class ClusterConfigServiceImpl @Inject constructor(private val clusterConfigReso
         }
     }
 
-    override fun addNode(node: ClusterNode) {
+    override fun addNode(node: ClusterNode): Completable {
+        return Completable.create {
+            val resource = clusterConfigResource.getResource()
 
-        val resource = clusterConfigResource.getResource()
+            if (resource != null) {
+                val updatedConfig = resource.copy(nodeList = resource.nodeList.push(node.toConfigNode()))
 
-        if (resource != null) {
-            val nodeUrls = sequenceOf(node.toConfigNode())
-
-            val updatedConfig = resource.copy(nodeList = resource.nodeList.append(nodeUrls))
-
-            clusterConfigResource.saveResource(updatedConfig)
-        } else {
-            LOG.warn("Attempting to add a node to the config when there is no configuration")
+                clusterConfigResource.saveResource(updatedConfig)
+            } else {
+                LOG.warn("Attempting to add a node to the config when there is no configuration")
+            }
+            it.onComplete()
         }
     }
 
-    override fun removeNode(node: ClusterNode) {
+    override fun removeNode(node: ClusterNode): Completable {
 
-        val resource = clusterConfigResource.getResource()
+        return Completable.create {
+            val resource = clusterConfigResource.getResource()
 
-        if (resource != null) {
+            if (resource != null) {
 
-            val newList = resource.nodeList.filter { !(it.endpoint == node.ip && it.port == node.port)}
+                val newList = resource.nodeList.filter { !(it.endpoint == node.ip && it.port == node.port) }
 
-            val updatedConfig = resource.copy(nodeList = newList)
-            clusterConfigResource.saveResource(updatedConfig)
+                val updatedConfig = resource.copy(nodeList = newList)
+                clusterConfigResource.saveResource(updatedConfig)
 
-        } else {
-            LOG.warn("Attempting to remove a node from the config when there is no configuration")
+            } else {
+                LOG.warn("Attempting to remove a node from the config when there is no configuration")
+            }
+            it.onComplete()
         }
     }
 
-    override fun deleteConfig() {
-        clusterConfigResource.deleteResource()
+    override fun deleteConfig(): Completable {
+        return Completable.create {
+            clusterConfigResource.deleteResource()
+            it.onComplete()
+        }
     }
 
 }

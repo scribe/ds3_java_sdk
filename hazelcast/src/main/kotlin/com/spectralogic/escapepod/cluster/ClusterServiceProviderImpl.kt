@@ -78,7 +78,7 @@ internal class ClusterServiceProviderImpl
                     clusterLifecycleEvents.onNext(ClusterStartupEvent())
                 }
             }
-        }
+        }.onErrorComplete()
     }
 
     override fun getService(requestContext: RequestContext): Single<ClusterService> = singleOfNullable(clusterService) {

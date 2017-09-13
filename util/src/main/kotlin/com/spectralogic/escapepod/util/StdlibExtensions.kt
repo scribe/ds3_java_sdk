@@ -15,9 +15,9 @@
 
 package com.spectralogic.escapepod.util
 
-fun AutoCloseable.use(action : () -> Unit) {
+fun <T: AutoCloseable> T.use(action: (T) -> Unit) {
     try {
-        action.invoke()
+        action.invoke(this)
     } finally {
         this.close()
     }

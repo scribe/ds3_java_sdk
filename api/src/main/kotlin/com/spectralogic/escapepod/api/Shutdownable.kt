@@ -20,3 +20,15 @@ import io.reactivex.Completable
 interface Shutdownable {
     fun shutdown() : Completable
 }
+
+/**
+ * This will, in a blocking way, shutdown the `Shutdownable` class.
+ * This should primarily be used only for testing since it is a blocking call.
+ */
+fun <T: Shutdownable> T.use(function: (T) -> Unit) {
+    try {
+        function(this)
+    } finally {
+        this.shutdown().blockingAwait()
+    }
+}

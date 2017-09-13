@@ -16,7 +16,6 @@
 package com.spectralogic.escapepod.cluster.config
 
 import com.spectralogic.escapepod.api.ClusterNode
-import com.spectralogic.escapepod.util.collections.toImmutableList
 import com.spectralogic.escapepod.util.ifNotNull
 import com.spectralogic.escapepod.util.resource.Resource
 import org.assertj.core.api.Assertions.assertThat
@@ -32,7 +31,7 @@ class ClusterConfigService_Test {
 
         val id = UUID.randomUUID()
 
-        clusterConfigService.createConfig("test", id)
+        clusterConfigService.createConfig("test", id).blockingAwait()
 
         val resource = clusterConfigService.getConfig().blockingGet()
 
@@ -51,13 +50,13 @@ class ClusterConfigService_Test {
 
         val id = UUID.randomUUID()
 
-        clusterConfigService.createConfig("test", id)
+        clusterConfigService.createConfig("test", id).blockingAwait()
 
         clusterConfigService.addNode(ClusterNode("localhost", 8080))
-        val resource = clusterConfigService.getConfig()
+        val resource = clusterConfigService.getConfig().blockingGet()
         assertThat(resource).isNotNull()  // This is a precondition for the rest of the test
 
-        clusterConfigService.deleteConfig()
+        clusterConfigService.deleteConfig().blockingAwait()
 
         assertThat(clusterConfigResource.getResource()).isNull()
     }
@@ -69,25 +68,27 @@ class ClusterConfigService_Test {
 
         val id = UUID.randomUUID()
 
-        clusterConfigService.createConfig("test", id)
+        clusterConfigService.createConfig("test", id).blockingAwait()
 
-        clusterConfigService.addNode(ClusterNode("localhost", 8080))
+        clusterConfigService.addNode(ClusterNode("localhost", 8080)).blockingAwait()
 
         val resource = clusterConfigService.getConfig().blockingGet()
 
-        val nodeList = resource.nodeList.toImmutableList()
-        assertThat(resource).isNotNull()  // This is a precondition for the rest of the test
+        val nodeList = resource.nodeList
+        assertThat(nodeList).isNotNull  // This is a precondition for the rest of the test
         assertThat(nodeList).hasSize(1)
 
         val newNode = ClusterNode("test2", 8090)
-        clusterConfigService.addNode(newNode)
+        clusterConfigService.addNode(newNode).blockingAwait()
 
-        val updatedResource = clusterConfigService.getConfig()
+        val updatedResource = clusterConfigService.getConfig().blockingGet()
+
+        val updatedList = updatedResource.nodeList
 
         assertThat(updatedResource).isNotNull()
 
-        assertThat(nodeList).hasSize(2)
-        assertThat(nodeList.stream().filter { it.endpoint == "test2" && it.port == 8090 }.count()).isEqualTo(1)
+        assertThat(updatedList).hasSize(2)
+        assertThat(updatedList.filter { it.endpoint == "test2" && it.port == 8090 }.count()).isEqualTo(1)
     }
 
     @Test
@@ -97,26 +98,28 @@ class ClusterConfigService_Test {
 
         val id = UUID.randomUUID()
 
-        clusterConfigService.createConfig("test", id)
-        clusterConfigService.addNode(ClusterNode("localhost", 8080))
+        clusterConfigService.createConfig("test", id).blockingAwait()
+        clusterConfigService.addNode(ClusterNode("localhost", 8080)).blockingAwait()
 
         val newNode = ClusterNode("test2", 8090)
-        clusterConfigService.addNode(newNode)
+        clusterConfigService.addNode(newNode).blockingAwait()
 
         val resource = clusterConfigService.getConfig().blockingGet()
 
-        val nodeList = resource.nodeList.toImmutableList()
+        val nodeList = resource.nodeList
 
         assertThat(resource).isNotNull()  // This is a precondition for the rest of the test
         assertThat(nodeList).hasSize(2)
 
-        clusterConfigService.removeNode(ClusterNode("localhost", 8080))
-        val updatedResource = clusterConfigService.getConfig()
+        clusterConfigService.removeNode(ClusterNode("localhost", 8080)).blockingAwait()
+        val updatedResource = clusterConfigService.getConfig().blockingGet()
+
+        val updatedList = updatedResource.nodeList
 
         assertThat(updatedResource).isNotNull()
 
-        assertThat(nodeList).hasSize(1)
-        assertThat(nodeList.stream().filter { it.endpoint == "test2" && it.port == 8090 }.count()).isEqualTo(1)
+        assertThat(updatedList).hasSize(1)
+        assertThat(updatedList.filter { it.endpoint == "test2" && it.port == 8090 }.count()).isEqualTo(1)
     }
 }
 
