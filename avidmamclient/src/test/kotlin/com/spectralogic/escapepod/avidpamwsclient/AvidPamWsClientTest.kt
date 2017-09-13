@@ -5,7 +5,7 @@ import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
 
-internal class AvidPamWsClient_Test {
+internal class AvidPamWsClientTest {
 
     companion object {
 
@@ -29,13 +29,13 @@ internal class AvidPamWsClient_Test {
     }
 
     @Test
-    fun getChildren_Test() {
+    fun getChildrenTest() {
         val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1/sharon"
         val res = avidPamWsClient.getChildren(interplayURI).blockingGet()
 
         res.errors.ifNotNull {
-            for (e in it) {
-                println("$e.interplayURI, $e.message, $e.details")
+            for ((interplayUri, message, details) in it) {
+                println("$interplayUri, $message, $details")
             }
         }
 
@@ -156,14 +156,14 @@ internal class AvidPamWsClient_Test {
     @Test
     fun getProfilesTest() {
         val workgroupURI = "interplay://AvidWorkgroup"
-        val services = arrayOf("com.avid.dms.restore")
+        val services = arrayOf("com.avid.dms.restore", "com.avid.dms.archive")
         val showParameters = true
 
         val res = avidPamWsClient.getProfiles(workgroupURI, services, showParameters).blockingGet()
 
         res.errors.ifNotNull {
-            for (e in it) {
-                println("$e.interplayURI, $e.message, $e.details")
+            for ((interplayURI, message, details) in it) {
+                println("$interplayURI, $message, $details")
             }
         }
 
@@ -205,21 +205,57 @@ internal class AvidPamWsClient_Test {
         Param = (Archive Engine-Primary, eng-dell-32)
         Param = (Priority, 50)
         Param = (Archive Engine-Secondary, )
+
+        Name = BlackPearl ; Service = com.avid.dms.archive
+        Param = (Partition, )
+        Param = (TargetVideoQuality, All)
+        Param = (Destination_Path, AvidAM/Projects/Spectra/BlackPearl_Archive)
+        Param = (Requested Provider, eng-dell-35_Archive_3415)
+        Param = (Skip Motion Effect, )
+        Param = (Archive Engine Name, eng-dell-32.eng.sldomain.com)
+        Param = (Priority, 50)
+
+        Name = BlackPearl_with_partition ; Service = com.avid.dms.archive
+        Param = (Partition, avid-partition-bucket)
+        Param = (TargetVideoQuality, All)
+        Param = (Destination_Path, AvidAM/Projects/Spectra/BlackPearl_Archive/avid-partition-bucket)
+        Param = (Requested Provider, eng-dell-35_Archive_3415)
+        Param = (Skip Motion Effect, )
+        Param = (Archive Engine Name, eng-dell-32)
+        Param = (Priority, 50)
+
+        Name = BlackPearl_wrong_partition ; Service = com.avid.dms.archive
+        Param = (Partition, avid-wrong-bucket-@)
+        Param = (TargetVideoQuality, All)
+        Param = (Destination_Path, AvidAM/Projects/Spectra/BlackPearl_Archive)
+        Param = (Requested Provider, eng-dell-35_Archive_3415)
+        Param = (Skip Motion Effect, )
+        Param = (Archive Engine Name, eng-dell-32)
+        Param = (Priority, 50)
+
+        Name = BlackPearl-Cliff ; Service = com.avid.dms.archive
+        Param = (Partition, )
+        Param = (TargetVideoQuality, All)
+        Param = (Destination_Path, AvidAM/Projects/Spectra/BlackPearl_Archive)
+        Param = (Requested Provider, eng-dell-35_Archive_3415)
+        Param = (Skip Motion Effect, )
+        Param = (Archive Engine Name, eng-dell-32)
+        Param = (Priority, 50)
+
          */
     }
 
     @Test
     fun restoreTest() {
-        val service = "com.avid.dms.restore"
         val profile = "BlackPearl"
         val interplayURI =
-                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49873e5275f80-060e2b347f7f-2a80"
+                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49938e8335f83-060e2b347f7f-2a80"
 
-        val res = avidPamWsClient.restore(service, profile, interplayURI).blockingGet()
+        val res = avidPamWsClient.restore(profile, interplayURI).blockingGet()
 
         res.errors.ifNotNull {
-            for (e in it) {
-                println("$e.interplayURI, $e.message, $e.details")
+            for ((interplayUri, message, details) in it) {
+                println("$interplayUri, $message, $details")
             }
         }
 
@@ -228,7 +264,31 @@ internal class AvidPamWsClient_Test {
         }
 
         /**
-         * Output:
+         * Output example:
+         * jobURI = interplay://AvidWorkgroup/DMS?jobid=1504207567867.1
+         */
+    }
+
+    @Test
+    fun archiveTest() {
+        val profile = "BlackPearl"
+        val interplayURI =
+                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49938e8335f83-060e2b347f7f-2a80"
+
+        val res = avidPamWsClient.archive(profile, interplayURI).blockingGet()
+
+        res.errors.ifNotNull {
+            for ((interplayUri, message, details) in it) {
+                println("$interplayUri, $message, $details")
+            }
+        }
+
+        res.jobURI.ifNotNull {
+            println("jobURI = $it")
+        }
+
+        /**
+         * Output example:
          * jobURI = interplay://AvidWorkgroup/DMS?jobid=1504207567867.1
          */
     }
@@ -236,28 +296,28 @@ internal class AvidPamWsClient_Test {
     @Test
     fun jobStatusTest() {
         val jobURIs = arrayOf(
-                "interplay://AvidWorkgroup/DMS?jobid=1504199639770.1",
-                "interplay://AvidWorkgroup/DMS?jobid=1504207567867.1")
+                "interplay://AvidWorkgroup/DMS?jobid=1505159604061.1")
 
-        val res = avidPamWsClient.jobStatus(jobURIs).blockingGet()
+        val res = avidPamWsClient.getJobStatus(jobURIs).blockingGet()
 
 
         res.errors.ifNotNull {
-            for (e in it) {
-                println("$e.interplayURI, $e.message, $e.details")
+            for ((interplayURI, message, details) in it) {
+                println("$interplayURI, $message, $details")
             }
         }
 
         res.results.ifNotNull {
             for ((jobURI, jobStatus, percentComplete) in it) {
-                println("jobURI = $jobURI ; ($jobStatus , $percentComplete)")
+                println("jobURI = $jobURI ; ($jobStatus , $percentComplete%)")
             }
         }
 
         /**
-         * Output:
+         * Output example:
          * jobURI = interplay://AvidWorkgroup/DMS?jobid=1504207567867.1 ; (Completed , null)
-         * jobURI = interplay://AvidWorkgroup/DMS?jobid=1504199639770.1 ; (Completed , null)
+         * jobURI = interplay://AvidWorkgroup/DMS?jobid=1505159604061.1 ; (Processing , 52%)
          */
     }
+
 }
