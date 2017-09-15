@@ -117,7 +117,10 @@ class ClusterServiceProviderImpl_Test {
             val joinedClusterEvent = AtomicBoolean(false)
             val leftClusterEvent = AtomicBoolean(false)
 
-            ClusterServiceProviderImpl("127.0.0.1", 5056, clusterConfigService, clusterClientFactory).use {
+            val secondClusterConfigService = mock(ClusterConfigService::class.java)
+            `when`(secondClusterConfigService.getConfig()).thenReturn(Single.error(NoSuchElementException()))
+
+            ClusterServiceProviderImpl("127.0.0.1", 5056, secondClusterConfigService, clusterClientFactory).use {
                 it.clusterLifecycleEvents().doOnNext {
                     when (it) {
                         is ClusterJoinedEvent -> joinedClusterEvent.set(true)
@@ -135,7 +138,11 @@ class ClusterServiceProviderImpl_Test {
             }
             assertThat(nodeLeftClusterEventFired).isTrue
             it.leaveCluster().blockingAwait()
+            verify(secondClusterConfigService, times(1)).deleteConfig()
         }
+
+        verify(clusterConfigService, times(1)).addNode(VerifyMatchers.any())
+        verify(clusterConfigService, times(1)).deleteConfig()
     }
 
     @Test
