@@ -118,6 +118,7 @@ project(":hazelcast") {
     dependencies {
         compile project(":api")
         compile project(":httpservice")
+        testCompile project(":testutils")
     }
 }
 

@@ -19,6 +19,7 @@ import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.cluster.config.ClusterConfig
 import com.spectralogic.escapepod.cluster.config.ClusterConfigService
 import com.spectralogic.escapepod.cluster.config.NodeUrl
+import com.spectralogic.escapepod.testutils.VerifyMatchers
 import io.opentracing.mock.MockTracer
 import io.reactivex.Single
 import io.vavr.collection.List
@@ -26,6 +27,7 @@ import org.junit.Test
 
 import org.mockito.Mockito.*
 import org.assertj.core.api.Assertions.*
+import org.mockito.ArgumentMatchers
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -46,6 +48,8 @@ class ClusterServiceProviderImpl_Test {
             }.isExactlyInstanceOf(ClusterException::class.java)
                     .hasMessage("The server must be a member of a cluster")
         }
+
+        verify(clusterConfigService, times(1)).getConfig()
     }
 
     @Test
@@ -78,6 +82,8 @@ class ClusterServiceProviderImpl_Test {
         }
 
         assertThat(clusterShutdownEventFired).isTrue
+
+        verify(clusterConfigService, times(1)).createConfig(ArgumentMatchers.anyString(), VerifyMatchers.any())
     }
 
     @Test
