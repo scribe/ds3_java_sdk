@@ -15,6 +15,7 @@
 
 package com.spectralogic.escapepod.httpservice
 
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import ratpack.exec.Promise
@@ -28,5 +29,17 @@ fun <T: Any> Single<T>.toPromise(): Promise<T> {
 fun <T: Any> Observable<T>.toPromise(): Promise<List<T>> {
     return Promise.async { emitter ->
         this.toList().subscribe(emitter::success, emitter::error)
+    }
+}
+
+fun Completable.toPromise(): Promise<Unit> {
+    return Promise.async { emitter ->
+        this.subscribe(emitter::complete, emitter::error)
+    }
+}
+
+fun <T: Any> Promise<T>.toSingle(): Single<T> {
+    return Single.create { emitter ->
+        this.onError(emitter::onError).then(emitter::onSuccess)
     }
 }
