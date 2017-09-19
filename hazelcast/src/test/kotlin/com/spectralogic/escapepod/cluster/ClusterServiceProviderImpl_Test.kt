@@ -29,6 +29,8 @@ import org.mockito.Mockito.*
 import org.assertj.core.api.Assertions.*
 import org.mockito.ArgumentMatchers
 import java.util.*
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ClusterServiceProviderImpl_Test {
@@ -120,11 +122,16 @@ class ClusterServiceProviderImpl_Test {
             val secondClusterConfigService = mock(ClusterConfigService::class.java)
             `when`(secondClusterConfigService.getConfig()).thenReturn(Single.error(NoSuchElementException()))
 
+            val countDownLatch = CountDownLatch(1)
+
             ClusterServiceProviderImpl("127.0.0.1", 5056, secondClusterConfigService, clusterClientFactory).use {
                 it.clusterLifecycleEvents().doOnNext {
                     when (it) {
                         is ClusterJoinedEvent -> joinedClusterEvent.set(true)
-                        is ClusterLeftEvent -> leftClusterEvent.set(true)
+                        is ClusterLeftEvent -> {
+                            leftClusterEvent.set(true)
+                            countDownLatch.countDown()
+                        }
                     }
                 }.subscribe()
                 val clusterName = it.joinCluster("127.0.0.1").blockingGet()
@@ -136,6 +143,9 @@ class ClusterServiceProviderImpl_Test {
                 it.leaveCluster().blockingAwait()
                 assertThat(leftClusterEvent).isTrue
             }
+
+            countDownLatch.await(500, TimeUnit.MILLISECONDS)
+
             assertThat(nodeLeftClusterEventFired).isTrue
             it.leaveCluster().blockingAwait()
             verify(secondClusterConfigService, times(1)).deleteConfig()
