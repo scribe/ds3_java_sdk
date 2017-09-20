@@ -61,7 +61,6 @@ subprojects {
         compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
         compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlincoroutineVersion"
         compile "org.jetbrains.kotlinx:kotlinx-coroutines-nio:$kotlincoroutineVersion"
-        compile group: 'io.opentracing', name: 'opentracing-api', version: "$opentracingVersion"
         compile "io.vavr:vavr:$vavrVersion"
         compile "io.vavr:vavr-jackson:$vavrVersion"
 
@@ -70,7 +69,6 @@ subprojects {
         testCompile "org.hamcrest:hamcrest-core:$hamcrestVersion"
         testCompile "org.mockito:mockito-core:$mockitoVersion"
         testCompile "org.assertj:assertj-core:$assertjVersion"
-        testCompile group: 'io.opentracing', name: 'opentracing-mock', version: "$opentracingVersion"
     }
 
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {

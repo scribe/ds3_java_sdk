@@ -18,18 +18,15 @@ package com.spectralogic.escapepod.ratpack
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.Inject
 import com.google.inject.name.Named
-import com.spectralogic.escapepod.api.ClusterEvent
-import com.spectralogic.escapepod.api.ClusterLeftEvent
 import com.spectralogic.escapepod.api.RequestContext
 import com.spectralogic.escapepod.httpservice.HttpService
 import com.spectralogic.escapepod.httpservice.HttpServiceProvider
-import io.opentracing.Tracer
 import io.reactivex.Completable
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
 import ratpack.server.RatpackServer
 
-internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootHandler : RootHandler, private val tracer: Tracer, private val objectMapper: ObjectMapper) : HttpServiceProvider {
+internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootHandler : RootHandler, private val objectMapper: ObjectMapper) : HttpServiceProvider {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(HttpProvider::class.java)
@@ -50,7 +47,6 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
             LOG.info("Starting ratpack server")
             server = RatpackServer.start { server ->
                 server.registryOf {
-                    it.add(tracer)
                     it.add(objectMapper)
                 }
 

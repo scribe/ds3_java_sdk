@@ -17,7 +17,6 @@ package com.spectralogic.escapepod.metadatasearch
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.spectralogic.escapepod.api.*
-import io.opentracing.Tracer
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
@@ -37,7 +36,6 @@ internal class ElasticSearchServiceProvider
 @Inject constructor(
         private val clusterServiceProvider: ClusterServiceProvider,
         private val elasticSearchConfigFile: MetadataSearchServiceConfigFile,
-        private val tracer: Tracer,
         private val objectMapper: ObjectMapper,
         @Named("interfaceIp") private val interfaceIp: String,
         @Named("elasticSearchPort") private val elasticSearchPort: Int,
@@ -72,7 +70,7 @@ internal class ElasticSearchServiceProvider
         when (event) {
             is ClusterCreatedEvent -> {
                 LOG.info("ClusterCreatedEvent -> Create ElasticSearch cluster")
-                createMetadataSearchCluster(requestContext("ClusterCreatedMetadataEvent"))
+                createMetadataSearchCluster(requestContext())
                         .doOnError { t ->
                             LOG.error("Failed to create ElasticSearch node", t)
                         }.subscribe()
@@ -80,14 +78,14 @@ internal class ElasticSearchServiceProvider
             is ClusterJoinedEvent -> {
                 LOG.info("ClusterJoinedEvent -> Attempting to join existing ElasticSearch cluster")
 
-                createMetadataSearchCluster(requestContext("ClusterJoinedMetadataEvent"))
+                createMetadataSearchCluster(requestContext())
                         .doOnError { t ->
                             LOG.error("Failed to join existing ElasticSearch cluster", t)
                         }.subscribe()
             }
             is ClusterNodeJoinedEvent -> {
                 LOG.info("ClusterNodeJoinedEvent -> New ElasticSearch Node joined the cluster")
-                metadataSearchNodeJoinedEvent(requestContext("ClusterNodeJoinedMetadataEvent"))
+                metadataSearchNodeJoinedEvent(requestContext())
                         .doOnError { t ->
                             LOG.error("Failed to join the new node to the ElasticSearch cluster", t)
                         }.subscribe()
@@ -98,7 +96,7 @@ internal class ElasticSearchServiceProvider
             }
             is ClusterStartupEvent -> {
                 LOG.info("ClusterStartupEvent -> startup the elasticSearch node after restart")
-                createMetadataSearchCluster(requestContext("ClusterStartupMetadataEvent"))
+                createMetadataSearchCluster(requestContext())
                         .doOnError { t ->
                             LOG.error("Failed to join existing ElasticSearch cluster after restart", t)
                         }.subscribe()
@@ -107,8 +105,8 @@ internal class ElasticSearchServiceProvider
         }
     }
 
-    private fun requestContext(eventName: String): RequestContext {
-        return RequestContext(tracer, tracer.buildSpan(eventName).withTag("Module", "Metadata").startActive())
+    private fun requestContext(): RequestContext {
+        return RequestContext()
     }
 
     override fun shutdown(): Completable {

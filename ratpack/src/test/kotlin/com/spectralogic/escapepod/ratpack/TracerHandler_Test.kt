@@ -16,7 +16,6 @@
 package com.spectralogic.escapepod.ratpack
 
 import com.spectralogic.escapepod.api.RequestContext
-import io.opentracing.mock.MockTracer
 import org.junit.Test
 import ratpack.func.Action
 import ratpack.test.handling.RequestFixture
@@ -30,13 +29,9 @@ class TracerHandler_Test {
     fun addTracer() {
         val handler = TracerHandler()
 
-        val mockTracer = MockTracer()
-
         val handle = RequestFixture.handle(ResponseChainFixture(handler), Action<RequestFixture> {
-            it.registry {
-                it.add(mockTracer)
-            }.method("GET")
-                    .uri("/api/path")
+            it.method("GET")
+            .uri("/api/path")
         })
 
         assertThat(handle.registry[RequestContext::class.java]).isNotNull()
@@ -56,5 +51,4 @@ private class ResponseChainFixture(private val filterHandler: Handler): Action<C
             it.render("response")
         }
     }
-
 }

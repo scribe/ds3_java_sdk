@@ -20,7 +20,6 @@ import com.spectralogic.escapepod.cluster.config.ClusterConfig
 import com.spectralogic.escapepod.cluster.config.ClusterConfigService
 import com.spectralogic.escapepod.cluster.config.NodeUrl
 import com.spectralogic.escapepod.testutils.VerifyMatchers
-import io.opentracing.mock.MockTracer
 import io.reactivex.Single
 import io.vavr.collection.List
 import org.junit.Test
@@ -256,10 +255,6 @@ class ClusterServiceProviderImpl_Test {
 }
 
 fun stubRequestContext(): RequestContext {
-
-    val mockTracer = MockTracer()
-    val span = mockTracer.buildSpan("test").startActive()
-
-    return RequestContext(mockTracer, span)
+    return RequestContext()
 }
 

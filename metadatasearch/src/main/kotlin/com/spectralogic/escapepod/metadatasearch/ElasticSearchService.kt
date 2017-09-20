@@ -47,23 +47,20 @@ class ElasticSearchService constructor(private val restClient: RestClient, priva
 
     override fun health(): Single<MetadataSearchHealthResponse> {
         return ReactivexAdapters.createSingle { emitter ->
-            requestContext.tracer.buildSpan("elasticHealCheck").asChildOf(requestContext.currentSpan).startActive().use { span ->
-                val response = restClient.performRequest(
-                        GET,
-                        "/_cluster/health",
-                        PRETTY_TRUE)
+            val response = restClient.performRequest(
+                    GET,
+                    "/_cluster/health",
+                    PRETTY_TRUE)
 
-                if (response.statusLine.statusCode > 300) {
-                    span.setTag("Error", response.statusLine.reasonPhrase)
-                    emitter.onError(MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase))
-                } else {
+            if (response.statusLine.statusCode > 300) {
+                emitter.onError(MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase))
+            } else {
 
 
-                    val elasticSearchHealthResponse = objectMapper.readValue(response.entity.content, ElasticSearchHealthResponse::class.java)
+                val elasticSearchHealthResponse = objectMapper.readValue(response.entity.content, ElasticSearchHealthResponse::class.java)
 
-                    emitter.onSuccess(MetadataSearchHealthResponse(elasticSearchHealthResponse.clusterName,
-                            elasticSearchHealthResponse.status))
-                }
+                emitter.onSuccess(MetadataSearchHealthResponse(elasticSearchHealthResponse.clusterName,
+                        elasticSearchHealthResponse.status))
             }
         }
     }

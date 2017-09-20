@@ -15,7 +15,6 @@
 
 package com.spectralogic.escapepod.api
 
-import io.opentracing.ActiveSpan
-import io.opentracing.Tracer
+import java.util.*
 
-data class RequestContext(val tracer: Tracer, val currentSpan: ActiveSpan)
+data class RequestContext(val requestId: UUID = UUID.randomUUID())

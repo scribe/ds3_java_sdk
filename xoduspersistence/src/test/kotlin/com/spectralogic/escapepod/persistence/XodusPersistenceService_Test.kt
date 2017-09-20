@@ -17,7 +17,6 @@ package com.spectralogic.escapepod.persistence
 
 import com.google.common.collect.ImmutableMap
 import com.spectralogic.escapepod.api.RequestContext
-import io.opentracing.mock.MockTracer
 import jetbrains.exodus.entitystore.PersistentEntityStores
 import org.junit.Rule
 import org.junit.Test
@@ -93,8 +92,5 @@ class XodusPersistenceService_Test {
 }
 
 fun createTestRequestContext(): RequestContext {
-
-    val tracer = MockTracer()
-
-    return RequestContext(tracer, tracer.buildSpan("test").startActive())
+    return RequestContext()
 }

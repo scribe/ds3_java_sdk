@@ -21,7 +21,6 @@ import com.spectralogic.escapepod.api.MetadataSearchHitsNode
 import com.spectralogic.escapepod.api.MetadataSearchService
 import com.spectralogic.escapepod.api.RequestContext
 import com.spectralogic.escapepod.util.json.Mapper
-import io.opentracing.mock.MockTracer
 import org.apache.http.HttpHost
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -292,7 +291,5 @@ class TestElasticSearchService {
 }
 
 private fun createTestRequestContext(): RequestContext {
-    val tracer = MockTracer()
-
-    return RequestContext(tracer, tracer.buildSpan("elasticSearchTests").startActive())
+    return RequestContext()
 }
