@@ -30,7 +30,14 @@ import io.reactivex.subjects.PublishSubject
 import org.slf4j.LoggerFactory
 
 internal class InstrumentedClusterService(private val clusterService: ClusterService, private val requestContext: RequestContext): ClusterService by clusterService {
-
+    override fun clusterNodes(): Observable<ClusterNode> {
+        requestContext.tracer.buildSpan("getClusterNodes").asChildOf(requestContext.currentSpan).startActive().use {
+            val continuation = it.capture()
+            return clusterService.clusterNodes().doOnComplete {
+                continuation.activate().close()
+            }
+        }
+    }
 }
 
 internal class HazelcastClusterService(private val hazelcastInstance: HazelcastInstance, private val instanceName : String) : ClusterService {
