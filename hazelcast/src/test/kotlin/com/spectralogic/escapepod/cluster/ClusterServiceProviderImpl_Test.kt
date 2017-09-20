@@ -87,6 +87,8 @@ class ClusterServiceProviderImpl_Test {
             val clusterService = it.getService(stubRequestContext()).blockingGet()
 
             assertThat(clusterService.name().blockingGet()).isEqualTo("test")
+
+            it.leaveCluster().blockingAwait()
         }
 
         assertThat(clusterShutdownEventFired).isTrue
@@ -191,6 +193,7 @@ class ClusterServiceProviderImpl_Test {
 
             assertThat(it.getService(stubRequestContext()).blockingGet()).isNotNull()
             assertThat(clusterStartupEventFired).isTrue
+            it.leaveCluster().blockingAwait()
         }
     }
 
@@ -230,7 +233,9 @@ class ClusterServiceProviderImpl_Test {
 
                 val clusterService = it.getService(stubRequestContext()).blockingGet()
                 assertThat(clusterService.name().blockingGet()).isEqualTo("test")
+                it.leaveCluster().blockingAwait()
             }
+            it.leaveCluster().blockingAwait()
         }
     }
 
