@@ -17,6 +17,8 @@ package com.spectralogic.escapepod.httpservice
 
 import com.spectralogic.escapepod.util.use
 import io.reactivex.Completable
+import io.reactivex.Observable
+import io.reactivex.Single
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -37,6 +39,99 @@ class Promises_Test {
             }
 
             assertThat(resultRan).isTrue
+        }
+    }
+
+    @Test
+    fun fromCompletableWithError() {
+        ExecHarness.harness().use {
+            val resultRan = AtomicBoolean(false)
+            val errorRan = AtomicBoolean(false)
+            it.run {
+                Completable.error(Exception("I'm an error")).toPromise()
+                        .onError{
+                            errorRan.set(true)
+                        }
+                        .then {
+                            resultRan.set(true)
+                        }
+            }
+
+            assertThat(resultRan).isFalse
+            assertThat(errorRan).isTrue
+        }
+    }
+
+    @Test
+    fun fromSingle() {
+        ExecHarness.harness().use {
+            val resultRan = AtomicBoolean(false)
+
+            it.run {
+                Single.just("value!").toPromise().then {
+                    resultRan.set(true)
+                    assertThat(it).isEqualTo("value!")
+                }
+            }
+
+            assertThat(resultRan).isTrue
+        }
+    }
+
+    @Test
+    fun fromSingleWithError() {
+        ExecHarness.harness().use {
+            val resultRan = AtomicBoolean(false)
+            val errorRan = AtomicBoolean(false)
+            it.run {
+                Single.error<String>(Exception("I'm an error")).toPromise()
+                        .onError{
+                            errorRan.set(true)
+                        }
+                        .then {
+                            resultRan.set(true)
+                        }
+            }
+
+            assertThat(resultRan).isFalse
+            assertThat(errorRan).isTrue
+        }
+    }
+
+    @Test
+    fun fromObservable() {
+        ExecHarness.harness().use {
+            val resultRan = AtomicBoolean(false)
+
+            it.run {
+                Observable.just("value!").toPromise().then {
+                    resultRan.set(true)
+                    assertThat(it.size).isEqualTo(1)
+                    assertThat(it[0]).isEqualTo("value!")
+                }
+            }
+
+            assertThat(resultRan).isTrue
+        }
+    }
+
+    @Test
+    fun fromObservableWithError() {
+        ExecHarness.harness().use {
+            val resultRan = AtomicBoolean(false)
+            val errorRan = AtomicBoolean(false)
+            it.run {
+                Observable.error<String>(Exception("I'm an error")).toPromise()
+                        .onError{
+                            errorRan.set(true)
+                        }
+                        .then {
+                            resultRan.set(true)
+                        }
+            }
+
+            assertThat(resultRan).isFalse
+            assertThat(errorRan).isTrue
         }
     }
 }

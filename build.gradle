@@ -80,7 +80,7 @@ subprojects {
     }
 }
 
-task unit(dependsOn: [':util:test', ':hazelcast:test', ':api:test', ':xoduspersistence:test', ':runner:test', ':ratpack:test', ':deviceregistry:test', ':xoduspersistence:test']) {
+task unit(dependsOn: [':util:test', ':api:test', ':xoduspersistence:test', ':runner:test', ':ratpack:test', ':deviceregistry:test', ':xoduspersistence:test', ':httpservice:test', ':hazelcast:test']) {
     doLast {
         println "Finished processing unit tests"
     }

@@ -28,12 +28,18 @@ import org.junit.Test
 import org.mockito.Mockito.*
 import org.assertj.core.api.Assertions.*
 import org.mockito.ArgumentMatchers
+import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ClusterServiceProviderImpl_Test {
+
+    private companion object {
+        private val LOG = LoggerFactory.getLogger(ClusterServiceProviderImpl_Test::class.java)
+    }
+
     @Test
     fun startService() {
 
@@ -111,6 +117,7 @@ class ClusterServiceProviderImpl_Test {
                 when (it) {
                     is ClusterNodeJoinedEvent -> nodeJoinedClusterEventFired.set(true)
                     is ClusterNodeLeftEvent -> {
+                        LOG.info("Got ClusterNode left event on thread ${Thread.currentThread().name}")
                         nodeLeftClusterEventFired.set(true)
                         leftNodeCountDownLatch.countDown()
                     }
@@ -134,6 +141,7 @@ class ClusterServiceProviderImpl_Test {
                     when (it) {
                         is ClusterJoinedEvent -> joinedClusterEvent.set(true)
                         is ClusterLeftEvent -> {
+                            LOG.info("Got cluster left event on thread ${Thread.currentThread().name}")
                             leftClusterEvent.set(true)
                             countDownLatch.countDown()
                         }
@@ -146,11 +154,11 @@ class ClusterServiceProviderImpl_Test {
                 assertThat(joinedClusterEvent).isTrue
 
                 it.leaveCluster().blockingAwait()
-                countDownLatch.await(500, TimeUnit.MILLISECONDS)
+                assertThat(countDownLatch.await(500, TimeUnit.MILLISECONDS)).isTrue()
                 assertThat(leftClusterEvent).isTrue
             }
 
-            leftNodeCountDownLatch.await(500, TimeUnit.MILLISECONDS)
+            assertThat(leftNodeCountDownLatch.await(15, TimeUnit.SECONDS)).isTrue()
             assertThat(nodeLeftClusterEventFired).isTrue
             it.leaveCluster().blockingAwait()
             verify(secondClusterConfigService, times(1)).deleteConfig()

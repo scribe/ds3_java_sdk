@@ -20,12 +20,19 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import ratpack.exec.Promise
 
+/**
+ * Turns a RxJava Single into a RatPack Promise.
+ */
 fun <T: Any> Single<T>.toPromise(): Promise<T> {
     return Promise.async { emitter ->
         this.subscribe(emitter::success, emitter::error)
     }
 }
 
+/**
+ * Converts an Observable to a Promise where the values emitted from the Observable have been
+ * collected into a List
+ */
 fun <T: Any> Observable<T>.toPromise(): Promise<List<T>> {
     return Promise.async { emitter ->
         this.toList().subscribe(emitter::success, emitter::error)
@@ -39,14 +46,5 @@ fun <T: Any> Observable<T>.toPromise(): Promise<List<T>> {
 fun Completable.toPromise(): Promise<Unit> {
     return Promise.async { emitter ->
         this.subscribe({emitter.success(null)}, emitter::error)
-    }
-}
-
-/**
- * Converts a RatPack Promise into a RxJava Single.  This must be called from a RatPack managed thread.
- */
-fun <T: Any> Promise<T>.toSingle(): Single<T> {
-    return Single.create { emitter ->
-        this.onError(emitter::onError).then(emitter::onSuccess)
     }
 }
