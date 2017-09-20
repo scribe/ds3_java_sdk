@@ -182,7 +182,7 @@ internal class ElasticSearchServiceProvider
 
     private fun createElasticSearchService(requestContext: RequestContext) : Completable {
         val clusterService = clusterServiceProvider.getService(requestContext)
-        val distributedSet = clusterService.map {  it.getDistributedSet<ElasticSearchNode>(ELASTICSEARCH_CLUSTER_ENDPOINT) }
+        val distributedSet = clusterService.flatMap {  it.getDistributedSet<ElasticSearchNode>(ELASTICSEARCH_CLUSTER_ENDPOINT) }
 
         return distributedSet.map {
             it.map { HttpHost(it.ip, it.port) }
@@ -204,11 +204,12 @@ internal class ElasticSearchServiceProvider
             if (!it.second.isAlive) throw Exception("Failed to start ElasticSearch node")
             LOG.info("Started ElasticSearch")
             it.first
-        }.flatMapCompletable { clusterService ->
+        }.flatMap { clusterService ->
+            clusterService.getDistributedSet<ElasticSearchNode>(ELASTICSEARCH_CLUSTER_ENDPOINT)
+        }.flatMapCompletable { endpointSet ->
             if (newNode) {
                 LOG.info("Adding ElasticSearch node to distributed cluster list")
-                val distributedSet = clusterService.getDistributedSet<ElasticSearchNode>(ELASTICSEARCH_CLUSTER_ENDPOINT)
-                distributedSet.add(ElasticSearchNode(interfaceIp, elasticSearchPort))
+                endpointSet.add(ElasticSearchNode(interfaceIp, elasticSearchPort))
             }
             Completable.complete()
         }.doOnComplete {

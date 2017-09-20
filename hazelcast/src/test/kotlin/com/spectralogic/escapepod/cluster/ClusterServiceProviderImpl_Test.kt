@@ -103,12 +103,17 @@ class ClusterServiceProviderImpl_Test {
         val nodeJoinedClusterEventFired = AtomicBoolean(false)
         val nodeLeftClusterEventFired = AtomicBoolean(false)
 
+        val leftNodeCountDownLatch = CountDownLatch(1)
+
         ClusterServiceProviderImpl("127.0.0.1", 5055, clusterConfigService, clusterClientFactory).use {
 
             it.clusterLifecycleEvents().doOnNext {
                 when (it) {
                     is ClusterNodeJoinedEvent -> nodeJoinedClusterEventFired.set(true)
-                    is ClusterNodeLeftEvent -> nodeLeftClusterEventFired.set(true)
+                    is ClusterNodeLeftEvent -> {
+                        nodeLeftClusterEventFired.set(true)
+                        leftNodeCountDownLatch.countDown()
+                    }
                 }
             }.subscribe()
 
@@ -141,11 +146,11 @@ class ClusterServiceProviderImpl_Test {
                 assertThat(joinedClusterEvent).isTrue
 
                 it.leaveCluster().blockingAwait()
+                countDownLatch.await(500, TimeUnit.MILLISECONDS)
                 assertThat(leftClusterEvent).isTrue
             }
 
-            countDownLatch.await(500, TimeUnit.MILLISECONDS)
-
+            leftNodeCountDownLatch.await(500, TimeUnit.MILLISECONDS)
             assertThat(nodeLeftClusterEventFired).isTrue
             it.leaveCluster().blockingAwait()
             verify(secondClusterConfigService, times(1)).deleteConfig()

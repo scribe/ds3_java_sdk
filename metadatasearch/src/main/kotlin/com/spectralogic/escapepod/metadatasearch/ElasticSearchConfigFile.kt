@@ -58,8 +58,10 @@ internal class ElasticSearchConfigFile
                 clusterService.clusterNodes().count()
             }
 
-            val endpoints: Single<String> = serviceSingle.map { clusterService ->
-                clusterService.getDistributedSet<ElasticSearchNode>(ElasticSearchServiceProvider.ELASTICSEARCH_CLUSTER_ENDPOINT).joinToString(",") { elasticNode ->
+            val endpoints: Single<String> = serviceSingle.flatMap { clusterService ->
+                clusterService.getDistributedSet<ElasticSearchNode>(ElasticSearchServiceProvider.ELASTICSEARCH_CLUSTER_ENDPOINT)}
+                    .map {
+                        it.joinToString(",") { elasticNode ->
                     "\"${elasticNode.ip}:${elasticNode.port}\"" }
             }
 
