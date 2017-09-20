@@ -13,7 +13,30 @@
  *  ****************************************************************************
  */
 
-dependencies {
-    compile group: 'io.ratpack', name: 'ratpack-core', version: "$ratpackVersion"
-    testCompile group: 'io.ratpack', name: 'ratpack-test', version: "$ratpackVersion"
+package com.spectralogic.escapepod.httpservice
+
+import com.spectralogic.escapepod.util.use
+import io.reactivex.Completable
+import org.junit.Test
+import java.util.concurrent.atomic.AtomicBoolean
+
+import org.assertj.core.api.Assertions.*
+import ratpack.test.exec.ExecHarness
+
+class Promises_Test {
+
+    @Test
+    fun fromCompletable() {
+        ExecHarness.harness().use {
+            val resultRan = AtomicBoolean(false)
+
+            it.run {
+                Completable.complete().toPromise().then {
+                    resultRan.set(true)
+                }
+            }
+
+            assertThat(resultRan).isTrue
+        }
+    }
 }

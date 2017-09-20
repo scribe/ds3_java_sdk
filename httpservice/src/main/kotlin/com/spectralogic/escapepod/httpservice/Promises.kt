@@ -32,12 +32,19 @@ fun <T: Any> Observable<T>.toPromise(): Promise<List<T>> {
     }
 }
 
+/**
+ * Converts a Completable into a RatPack Promise.  When the Completable completes, null is emitted to the promise
+ * since it doesn't have the same semantics as the Completable.
+ */
 fun Completable.toPromise(): Promise<Unit> {
     return Promise.async { emitter ->
-        this.subscribe(emitter::complete, emitter::error)
+        this.subscribe({emitter.success(null)}, emitter::error)
     }
 }
 
+/**
+ * Converts a RatPack Promise into a RxJava Single.  This must be called from a RatPack managed thread.
+ */
 fun <T: Any> Promise<T>.toSingle(): Single<T> {
     return Single.create { emitter ->
         this.onError(emitter::onError).then(emitter::onSuccess)
