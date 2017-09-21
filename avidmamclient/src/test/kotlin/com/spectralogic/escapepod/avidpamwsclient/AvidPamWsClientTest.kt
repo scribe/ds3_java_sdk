@@ -28,35 +28,12 @@ internal class AvidPamWsClientTest {
         }
     }
 
-//    @Test
-//    fun getFolders() {
-//        val interplayURI = "interplay://AvidWorkgroup/"
-//        avidPamWsClient.getFolders(interplayURI). blockingForEach { (results, errors) ->
-//
-//            if (errors.any()) {
-//                for ((message, details) in errors) {
-//                    println("$message, $details")
-//                }
-//            }
-//
-//            if (results.any()) {
-//                for (r in results) {
-//                    println("interplayURI = $r.interplayURI")
-//                    for ((key, value) in r.attributes) {
-//                        println("Attribute = ($key, $value)")
-//                    }
-//                    println("")
-//                }
-//            }
-//        }
-//    }
-
     @Test
     fun getChildrenTest() {
-//        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1/sharon"
+        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1/sharon"
 //        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1"
-        val interplayURI = "interplay://AvidWorkgroup/"
-        avidPamWsClient.getChildren(interplayURI).blockingForEach{ it ->
+//        val interplayURI = "interplay://AvidWorkgroup/"
+        avidPamWsClient.getChildren(interplayURI).blockingForEach { it ->
             println("${it.interplayURI}, ${it.displayName}, ${it.mobid}, ${it.path}, ${it.mediaSize}, ${it.mediaStatus}, ${it.type}")
         }
 
@@ -262,10 +239,8 @@ internal class AvidPamWsClientTest {
             for ((message, details) in res.errors) {
                 println("$message, $details")
             }
-        }
-
-        res.jobURI.ifNotNull {
-            println("jobURI = $it")
+        } else {
+            println("${res.interplayURI}, ${res.jobURI}")
         }
 
         /**

@@ -2,12 +2,10 @@ package com.spectralogic.escapepod.avidpamwsclient
 
 import com.google.common.collect.ImmutableMap
 import com.spectralogic.escapepod.api.GetProfilesResult
+import com.spectralogic.escapepod.api.GetWorkGroupsResult
 import com.spectralogic.escapepod.api.JobStatus
 import com.spectralogic.escapepod.api.WsError
-import com.spectralogic.escapepod.avidpamclient.soap.ws.AttributeType
-import com.spectralogic.escapepod.avidpamclient.soap.ws.ErrorType
-import com.spectralogic.escapepod.avidpamclient.soap.ws.JobStatusType
-import com.spectralogic.escapepod.avidpamclient.soap.ws.ProfileType
+import com.spectralogic.escapepod.avidpamclient.soap.ws.*
 
 internal object TransformUtils {
     fun errorTypeToWsError(errors: Array<ErrorType>?): List<WsError> {
@@ -45,6 +43,16 @@ internal object TransformUtils {
         }
 
         return ImmutableMap.copyOf(attributes.associateBy({ it.name }, { it._value }))
+    }
+
+    fun getConfigurationInformationTypeToGetWorkGroupResult(results: Array<WorkgroupType>?): List<GetWorkGroupsResult> {
+        if (results == null) {
+            return emptyList()
+        }
+
+        return results.map { it->
+            GetWorkGroupsResult(it.workgroupName, it.interplayEngineHost, it.archiveEngineHost, it.mediaServicesEngineHost)
+        }.toList()
     }
 }
 

@@ -10,6 +10,7 @@ interface AvidPamWsClient {
     fun getProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean): Single<GetProfilesResponse>
     fun getJobsStatus(jobsURI: Array<String>): Single<JobsStatusResponse>
     fun getMaxArchiveAssetSize(interplayURI: String): Single<GetMaxArchiveAssetSize>
+    fun getWorkGroups(): Single<GetWorkGroupsResponse>
 
     fun restore(profile: String, interplayURI: String): Single<JobResponse>
     fun archive(profile: String, interplayURI: String): Single<JobResponse>
@@ -63,6 +64,9 @@ data class GetProfilesResult(
 )
 
 data class JobResponse(
+        @JsonProperty("interplayURI")
+        val interplayURI: String,
+
         @JsonProperty("jobUri")
         val jobURI: String,
 
@@ -100,4 +104,27 @@ data class GetMaxArchiveAssetSize(
 data class GetFoldersResult(
         @JsonProperty("name")
         val name: String
+)
+
+data class GetWorkGroupsResponse(
+        @JsonProperty("results")
+        val results: List<GetWorkGroupsResult>,
+
+        @JsonProperty("errors")
+        val errors: List<WsError>
+)
+
+data class GetWorkGroupsResult(
+        @JsonProperty("WorkgroupName")
+        val workgroupName: String,
+
+        @JsonProperty("InterplayEngineHost")
+        val interplayEngineHost: String,
+
+        @JsonProperty("ArchiveEngineHost")
+        val archiveEngineHost: String,
+
+        @JsonProperty("MediaServicesEngineHost")
+        val mediaServicesEngineHost: String
+
 )

@@ -33,10 +33,17 @@ class PamMigrateHandlerChain
             getFiles(ctx)
         }
 
+        chain.get("jobstatus") { ctx ->
+            getJobStatus(ctx)
+        }
+
         chain.get("maxarchiveassetsize") { ctx ->
             getMaxArchiveAssetSize(ctx)
         }
 
+        chain.get("workgroups") {ctx ->
+            getWorkGroups(ctx)
+        }
 
 
         chain.post("archive") { ctx ->
@@ -46,6 +53,17 @@ class PamMigrateHandlerChain
         chain.post("restore") { ctx ->
             restore(ctx)
         }
+    }
+
+    private fun getWorkGroups(ctx: Context) {
+        pamMigrateProvider.getWorkGroups().observeOn(scheduler)
+                .toPromise()
+                .onError {
+                    ctx.response.status(400).send("Encountered an error with getting all the work groups: " + it.message)
+                }
+                .then { res ->
+                    ctx.render(json(res))
+                }
     }
 
     private fun getMaxArchiveAssetSize(ctx: Context) {
@@ -105,6 +123,24 @@ class PamMigrateHandlerChain
                     .toPromise()
                     .onError {
                         ctx.response.status(400).send("Encountered an error with getting the profiles: " + it.message)
+                    }
+                    .then { res ->
+                        ctx.render(json(res))
+                    }
+        }
+    }
+
+    private fun getJobStatus(ctx: Context) {
+        val workGroup = ctx.request.queryParams["workgroup"]
+        val jobId = ctx.request.queryParams["jobid"]
+
+        if (workGroup.isNullOrEmpty() || jobId.isNullOrEmpty()) {
+            ctx.response.status(400).send("'workgroup' and 'jobid' cannot be empty")
+        } else {
+            pamMigrateProvider.getJobStatus(workGroup!!, jobId!!).observeOn(scheduler)
+                    .toPromise()
+                    .onError {
+                        ctx.response.status(400).send("Encountered an error when getting job status: " + it.message)
                     }
                     .then { res ->
                         ctx.render(json(res))

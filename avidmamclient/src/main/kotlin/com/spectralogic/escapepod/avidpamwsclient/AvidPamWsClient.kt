@@ -20,18 +20,22 @@ constructor(username: String, password: String, endpoint: String,
         private val LOG = LoggerFactory.getLogger(AvidPamWsClient::class.java)
         private val JOBS = "Jobs"
         private val ASSETS = "Assets"
+        private val INFRASTRUCTURE = "Infrastructure"
     }
 
     private val credentials = UserCredentialsType()
 
     private val jobsLocator = JobsLocator()
     private val assetsLocator = AssetsLocator()
+    private val infrastructureLocator = InfrastructureLocator()
+
     private var jobsEndpointUrl: String
-
     private var assetsEndpointUrl: String
-    private var jobsSoapClient: JobsPortType
+    private var infrastructureEndpointUrl: String
 
+    private var jobsSoapClient: JobsPortType
     private var assetsSoapClient: AssetsPortType
+    private var infrastructureSoapClient: InfrastructurePortType
 
     init {
         LOG.info("Init AvidPamWsClient")
@@ -46,6 +50,10 @@ constructor(username: String, password: String, endpoint: String,
         assetsEndpointUrl = "http://$endpoint/services/$ASSETS"
         assetsLocator.setEndpointAddress("AssetsPort", assetsEndpointUrl)
         assetsSoapClient = assetsLocator.assetsPort
+
+        infrastructureEndpointUrl = "http://$endpoint/services/$INFRASTRUCTURE"
+        infrastructureLocator.setEndpointAddress("InfrastructurePort", infrastructureEndpointUrl)
+        infrastructureSoapClient = infrastructureLocator.infrastructurePort
     }
 
     //TODO change to return observable and return all children inside a folder and sub folders
@@ -112,7 +120,7 @@ constructor(username: String, password: String, endpoint: String,
 
                     val res = jobsSoapClient.submitJobUsingProfile(submitJobUsingProfileType, credentials)
 
-                    emitter.onSuccess(JobResponse(res.jobURI, TransformUtils.errorTypeToWsError(res.errors)))
+                    emitter.onSuccess(JobResponse(interplayURI, res.jobURI, TransformUtils.errorTypeToWsError(res.errors)))
                 } catch (t: Throwable) {
                     LOG.error("Failed to restore", t)
                     emitter.onError(t)
@@ -132,7 +140,7 @@ constructor(username: String, password: String, endpoint: String,
 
                     val res = jobsSoapClient.submitJobUsingProfile(submitJobUsingProfileType, credentials)
 
-                    emitter.onSuccess(JobResponse(res.jobURI, TransformUtils.errorTypeToWsError(res.errors)))
+                    emitter.onSuccess(JobResponse(interplayURI, res.jobURI, TransformUtils.errorTypeToWsError(res.errors)))
                 } catch (t: Throwable) {
                     LOG.error("Failed to archive", t)
                     emitter.onError(t)
@@ -167,6 +175,25 @@ constructor(username: String, password: String, endpoint: String,
                     emitter.onSuccess(GetMaxArchiveAssetSize(0, emptyList()))
                 } catch (t: Throwable) {
                     LOG.error("Failed to get the max archive asset size", t)
+                    emitter.onError(t)
+                }
+            }
+        }
+    }
+
+    override fun getWorkGroups(): Single<GetWorkGroupsResponse> {
+        return Single.create { emitter ->
+            executor.execute {
+                try {
+                    val getConfigurationInformationType = GetConfigurationInformationType()
+
+                    val res = infrastructureSoapClient.getConfigurationInformation(getConfigurationInformationType)
+                    emitter.onSuccess(GetWorkGroupsResponse(
+                            TransformUtils.getConfigurationInformationTypeToGetWorkGroupResult(res.results),
+                            TransformUtils.errorTypeToWsError(res.errors)
+                    ))
+                } catch (t: Throwable) {
+                    LOG.error("Failed to get the system work groups", t)
                     emitter.onError(t)
                 }
             }
