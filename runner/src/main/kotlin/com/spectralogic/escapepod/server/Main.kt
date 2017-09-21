@@ -21,6 +21,7 @@ import com.spectralogic.escapepod.util.UtilGuiceModule
 import com.spectralogic.escapepod.util.append
 
 import com.spectralogic.escapepod.util.collections.toImmutableList
+import com.spectralogic.escapepod.webui.WebUiGuiceModule
 import io.reactivex.Completable
 import org.slf4j.LoggerFactory
 
@@ -33,7 +34,7 @@ fun main(arg: Array<String>) {
 
     val loadedModules = moduleLoader.loadModules()
 
-    val injector = Guice.createInjector(loadedModules.map(ModuleRegistration<*>::guiceModule).append(UtilGuiceModule()).asIterable())
+    val injector = Guice.createInjector(loadedModules.map(ModuleRegistration<*>::guiceModule).append(UtilGuiceModule(), WebUiGuiceModule()).asIterable())
 
     val moduleInstances = loadedModules.map(ModuleRegistration<*>::module).map { injector.getInstance(it) }.toImmutableList()
 

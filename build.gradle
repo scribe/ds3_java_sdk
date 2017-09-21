@@ -162,8 +162,9 @@ project(":runner") {
         compile project(":localcache")
         compile project(":scheduler")
         compile project(":xoduspersistence")
-	compile project(":metadatasearch")
-	compile project(":ratpack")
+	    compile project(":metadatasearch")
+	    compile project(":ratpack")
+        compile project(":web_ui")
     }
 }
 
@@ -197,5 +198,12 @@ project(":deviceregistry") {
     dependencies {
         compile project(":api")
         compile project(":util")
+    }
+}
+
+project(":web_ui") {
+    dependencies {
+        compile project(":api")
+        compile project(":httpservice")
     }
 }
