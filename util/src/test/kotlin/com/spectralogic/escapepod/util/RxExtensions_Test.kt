@@ -15,39 +15,26 @@
 
 package com.spectralogic.escapepod.util
 
-import io.reactivex.Maybe
 import io.reactivex.Observable
-import io.reactivex.Single
-import java.util.Optional
+import org.junit.Test
 
-fun <T> maybeOfNullable(item: T?, exceptionFactory: () -> Exception) : Maybe<T>  {
-    return if (item == null) {
-        Maybe.error(exceptionFactory())
-    } else {
-        Maybe.just(item)
+import org.assertj.core.api.Assertions.*
+
+class RxExtensions_Test {
+
+    @Test
+    fun maxLong() {
+        assertThat(Observable.just(2L, 5L, 1L).maxLong().blockingGet()).isEqualTo(5L)
     }
-}
 
-fun <T> Optional<T>.toRxMaybe(): Maybe<T> {
-    return try {
-        Maybe.just(this.get())
-    } catch (e: NoSuchElementException) {
-        Maybe.empty()
+    @Test
+    fun maxInt() {
+        assertThat(Observable.just(2, 5, 10).maxInt().blockingGet()).isEqualTo(10)
+        assertThat(Observable.just(15, 5, 10).maxInt().blockingGet()).isEqualTo(15)
     }
-}
 
-fun <T> singleOfNullable(item: T?, exceptionFactory: () -> Exception) : Single<T>  {
-    return if (item == null) {
-        Single.error(exceptionFactory())
-    } else {
-        Single.just(item)
+    @Test
+    fun emptyMaxLong() {
+        assertThat(Observable.empty<Long>().maxLong().blockingGet()).isEqualTo(0)
     }
-}
-
-fun Observable<Long>.maxLong(): Single<Long> {
-    return this.reduce(0L, Math::max)
-}
-
-fun Observable<Int>.maxInt(): Single<Int> {
-    return this.reduce(0, Math::max)
 }
