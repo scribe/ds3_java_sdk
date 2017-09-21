@@ -41,7 +41,7 @@ class PamMigrateHandlerChain
             getMaxArchiveAssetSize(ctx)
         }
 
-        chain.get("workgroups") {ctx ->
+        chain.get("workgroups") { ctx ->
             getWorkGroups(ctx)
         }
 
@@ -58,8 +58,10 @@ class PamMigrateHandlerChain
     private fun getWorkGroups(ctx: Context) {
         pamMigrateProvider.getWorkGroups().observeOn(scheduler)
                 .toPromise()
-                .onError {
-                    ctx.response.status(400).send("Encountered an error with getting all the work groups: " + it.message)
+                .onError { t ->
+                    val message = "Encountered an error with getting all the work groups: "
+                    LOG.error(message, t)
+                    ctx.response.status(400).send(message + t.message)
                 }
                 .then { res ->
                     ctx.render(json(res))
@@ -74,8 +76,10 @@ class PamMigrateHandlerChain
         } else {
             pamMigrateProvider.getMaxArchiveAssetSize(workGroup!!).observeOn(scheduler)
                     .toPromise()
-                    .onError {
-                        ctx.response.status(400).send("Encountered an error with getting the max archive asset size: " + it.message)
+                    .onError { t ->
+                        val message = "Encountered an error with getting the max archive asset size: "
+                        LOG.error(message, t)
+                        ctx.response.status(400).send(message + t.message)
                     }
                     .then { res ->
                         ctx.render(json(res))
@@ -91,8 +95,10 @@ class PamMigrateHandlerChain
         } else {
             pamMigrateProvider.getFolders(workGroup!!).observeOn(scheduler)
                     .toPromise()
-                    .onError {
-                        ctx.response.status(400).send("Encountered an error with getting folders: " + it.message)
+                    .onError { t ->
+                        val message = "Encountered an error with getting folders: "
+                        LOG.error(message, t)
+                        ctx.response.status(400).send(message + t.message)
                     }
                     .then { res ->
                         ctx.render(json(res))
@@ -109,8 +115,10 @@ class PamMigrateHandlerChain
         } else {
             pamMigrateProvider.getFiles(workGroup!!, folder!!).observeOn(scheduler)
                     .toPromise()
-                    .onError {
-                        ctx.response.status(400).send("Encountered an error with getting files: " + it.message)
+                    .onError { t ->
+                        val message = "Encountered an error with getting files: "
+                        LOG.error(message, t)
+                        ctx.response.status(400).send(message + t.message)
                     }
                     .then { res ->
                         ctx.render(json(res))
@@ -126,8 +134,10 @@ class PamMigrateHandlerChain
         } else {
             pamMigrateProvider.getProfiles(workGroup!!).observeOn(scheduler)
                     .toPromise()
-                    .onError {
-                        ctx.response.status(400).send("Encountered an error with getting the profiles: " + it.message)
+                    .onError { t ->
+                        val message = "Encountered an error with getting the profiles: "
+                        LOG.error(message, t)
+                        ctx.response.status(400).send(message + t.message)
                     }
                     .then { res ->
                         ctx.render(json(res))
@@ -144,8 +154,10 @@ class PamMigrateHandlerChain
         } else {
             pamMigrateProvider.getJobStatus(workGroup!!, jobId!!).observeOn(scheduler)
                     .toPromise()
-                    .onError {
-                        ctx.response.status(400).send("Encountered an error when getting job status: " + it.message)
+                    .onError { t ->
+                        val message = "Encountered an error when getting job status: "
+                        LOG.error(message, t)
+                        ctx.response.status(400).send(message + t.message)
                     }
                     .then { res ->
                         ctx.render(json(res))
@@ -163,8 +175,10 @@ class PamMigrateHandlerChain
         } else {
             pamMigrateProvider.restore(workGroup!!, profile!!, mobid!!).observeOn(scheduler)
                     .toPromise()
-                    .onError {
-                        ctx.response.status(400).send("Encountered an error when restoring an asset: " + it.message)
+                    .onError { t ->
+                        val message = "Encountered an error when restoring an asset: "
+                        LOG.error(message, t)
+                        ctx.response.status(400).send(message + t.message)
                     }
                     .then { res ->
                         ctx.render(json(res))
@@ -182,8 +196,10 @@ class PamMigrateHandlerChain
         } else {
             pamMigrateProvider.archive(workGroup!!, profile!!, mobid!!).observeOn(scheduler)
                     .toPromise()
-                    .onError {
-                        ctx.response.status(400).send("Encountered an error when archiving an asset: " + it.message)
+                    .onError { t ->
+                        val message = "Encountered an error when archiving an asset: "
+                        LOG.error(message, t)
+                        ctx.response.status(400).send(message + t.message)
                     }
                     .then { res ->
                         ctx.render(json(res))

@@ -3,6 +3,7 @@ package com.spectralogic.escapepod.avidpamwsclient
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.api.AvidPamWsClient
 import com.spectralogic.escapepod.avidpamclient.soap.ws.*
+import com.spectralogic.escapepod.util.maxLong
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
@@ -64,7 +65,6 @@ constructor(username: String, password: String, endpoint: String,
                     getChildrenHelper(interplayURI, emitter)
                     emitter.onComplete()
                 } catch (t: Throwable) {
-                    LOG.error("Failed to get children", t)
                     emitter.onError(t)
                 }
             }
@@ -78,7 +78,6 @@ constructor(username: String, password: String, endpoint: String,
                     getFoldersHelper(interplayURI, emitter)
                     emitter.onComplete()
                 } catch (t: Throwable) {
-                    LOG.error("Failed to get folders", t)
                     emitter.onError(t)
                 }
             }
@@ -102,7 +101,6 @@ constructor(username: String, password: String, endpoint: String,
                             TransformUtils.profileTypeToGetProfileResult(res.results),
                             TransformUtils.errorTypeToWsError(res.errors)))
                 } catch (t: Throwable) {
-                    LOG.error("Failed to get profiles", t)
                     emitter.onError(t)
                 }
             }
@@ -122,7 +120,6 @@ constructor(username: String, password: String, endpoint: String,
 
                     emitter.onSuccess(JobResponse(interplayURI, res.jobURI, TransformUtils.errorTypeToWsError(res.errors)))
                 } catch (t: Throwable) {
-                    LOG.error("Failed to restore", t)
                     emitter.onError(t)
                 }
             }
@@ -142,7 +139,6 @@ constructor(username: String, password: String, endpoint: String,
 
                     emitter.onSuccess(JobResponse(interplayURI, res.jobURI, TransformUtils.errorTypeToWsError(res.errors)))
                 } catch (t: Throwable) {
-                    LOG.error("Failed to archive", t)
                     emitter.onError(t)
                 }
             }
@@ -161,7 +157,6 @@ constructor(username: String, password: String, endpoint: String,
                             TransformUtils.jobStatusTypeToJobStatusResult(res.jobStatusTypes),
                             TransformUtils.errorTypeToWsError(res.errors)))
                 } catch (t: Throwable) {
-                    LOG.error("Failed to query job status", t)
                     emitter.onError(t)
                 }
             }
@@ -169,16 +164,13 @@ constructor(username: String, password: String, endpoint: String,
     }
 
     override fun getMaxArchiveAssetSize(interplayURI: String): Single<GetMaxArchiveAssetSize> {
-        return Single.create { emitter ->
-            executor.execute {
-                try {
-                    getMaxArchiveAssetSizeHelper(interplayURI, emitter)
-                } catch (t: Throwable) {
-                    LOG.error("Failed to get the max archive asset size", t)
-                    emitter.onError(t)
-                }
+        return getChildren(interplayURI).map { it ->
+            if (it.mediaSize != "N/A") {
+                it.mediaSize.toLong()
+            } else {
+                0L
             }
-        }
+        }.maxLong().map { max -> GetMaxArchiveAssetSize(max, emptyList()) }
     }
 
     override fun getWorkGroups(): Single<GetWorkGroupsResponse> {
@@ -193,7 +185,6 @@ constructor(username: String, password: String, endpoint: String,
                             TransformUtils.errorTypeToWsError(res.errors)
                     ))
                 } catch (t: Throwable) {
-                    LOG.error("Failed to get the system work groups", t)
                     emitter.onError(t)
                 }
             }
@@ -220,9 +211,6 @@ constructor(username: String, password: String, endpoint: String,
         for (r in res.results) {
             val uri = r.interplayURI
             val attributeMap = TransformUtils.attributeTypeToAttributeMap(r.attributes)
-
-//            attributeMap.forEach { it -> LOG.debug("${it.key}, ${it.value}") }
-//            LOG.debug("\n")
 
             if (attributeMap.getOrDefault("Path", "N/A").endsWith("/")) {
                 foldersQueue.add(uri)
@@ -251,9 +239,6 @@ constructor(username: String, password: String, endpoint: String,
             for (r in res.results) {
                 val uri = r.interplayURI
                 val attributeMap = TransformUtils.attributeTypeToAttributeMap(r.attributes)
-
-//                attributeMap.forEach { it -> LOG.debug("${it.key}, ${it.value}") }
-//                LOG.debug("\n")
 
                 if (attributeMap.getOrDefault("Path", "N/A").endsWith("/")) {
                     foldersQueue.add(uri)
@@ -310,23 +295,5 @@ constructor(username: String, password: String, endpoint: String,
                 emitter.onNext(GetFoldersResult(uri))
             }
         }
-    }
-
-    private fun getMaxArchiveAssetSizeHelper(interplayURI: String, emitter: SingleEmitter<GetMaxArchiveAssetSize>) {
-        var max: Long = 0
-        getChildren(interplayURI)
-                .doOnNext { it ->
-                    if (it.mediaSize != "N/A" && max < it.mediaSize.toLong()) {
-                        max = it.mediaSize.toLong()
-                    }
-                }
-                .doOnComplete {
-                    //TODO remove empty list
-                    emitter.onSuccess(GetMaxArchiveAssetSize(max, emptyList()))
-                }
-                .doOnError { t ->
-                    emitter.onError(t)
-                }
-                .subscribe()
     }
 }
