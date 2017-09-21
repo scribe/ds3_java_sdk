@@ -13,20 +13,14 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.ratpack
+package com.spectralogic.escapepod.webui
 
-import ratpack.func.Action
-import ratpack.handling.Chain
-import javax.inject.Inject
+import com.google.inject.AbstractModule
+import com.spectralogic.escapepod.httpservice.WebUi
+import javax.inject.Singleton
 
-internal class RootHandler
-@Inject constructor(
-        private val ratpackHttpRouter: RatpackHttpRouter
-) : Action<Chain> {
-
-    override fun execute(chain: Chain) {
-        chain.all(TracerHandler())
-
-        ratpackHttpRouter.execute(chain)
+class WebUiGuiceModule: AbstractModule() {
+    override fun configure() {
+        bind(WebUi::class.java).to(WebUiImpl::class.java).`in`(Singleton::class.java)
     }
 }

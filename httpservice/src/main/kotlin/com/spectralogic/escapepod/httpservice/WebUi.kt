@@ -13,6 +13,10 @@
  *  ****************************************************************************
  */
 
-include 'api', 'avidmamclient', 'localcache', 'hazelcast', 'restclientutils', 'util', 'gui', 'planner',
-  'runner', 'bpclient', 'scheduler', 'divaclient', 'flashnetclient', 'migrate', 'xoduspersistence', 'ratpack',
-  'httpservice', 'metadatasearch', 'deviceregistry', 'testutils', 'web_ui'
+package com.spectralogic.escapepod.httpservice
+
+import ratpack.handling.Handler
+
+interface WebUi {
+    fun slashHandler(): Handler
+}

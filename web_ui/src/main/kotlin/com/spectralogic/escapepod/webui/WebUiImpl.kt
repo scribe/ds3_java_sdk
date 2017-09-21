@@ -13,6 +13,22 @@
  *  ****************************************************************************
  */
 
-include 'api', 'avidmamclient', 'localcache', 'hazelcast', 'restclientutils', 'util', 'gui', 'planner',
-  'runner', 'bpclient', 'scheduler', 'divaclient', 'flashnetclient', 'migrate', 'xoduspersistence', 'ratpack',
-  'httpservice', 'metadatasearch', 'deviceregistry', 'testutils', 'web_ui'
+package com.spectralogic.escapepod.webui
+
+import com.spectralogic.escapepod.httpservice.WebUi
+import ratpack.handling.Context
+import ratpack.handling.Handler
+
+internal class WebUiImpl: WebUi {
+    override fun slashHandler(): Handler {
+        return TestHandler()
+    }
+}
+
+
+internal class TestHandler: Handler {
+    override fun handle(ctx: Context) {
+
+        ctx.response.status(200).send("I'm a test!")
+    }
+}
