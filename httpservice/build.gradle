@@ -15,4 +15,5 @@
 
 dependencies {
     compile group: 'io.ratpack', name: 'ratpack-core', version: "$ratpackVersion"
+    testCompile group: 'io.ratpack', name: 'ratpack-test', version: "$ratpackVersion"
 }

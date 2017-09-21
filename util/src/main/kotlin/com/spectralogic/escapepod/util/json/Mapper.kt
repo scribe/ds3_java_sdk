@@ -13,35 +13,34 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.util
+package com.spectralogic.escapepod.util.json
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import io.vavr.jackson.datatype.VavrModule
 
-import java.io.InputStream
-import java.io.OutputStream
+object Mapper {
 
-object JsonMapping {
+    private val internalMapper = ObjectMapper()
 
-    private val MAPPER = ObjectMapper()
+    /**
+     * This property returns a new copy of a pre-configured ObjectMapper on each invocation.
+     * The intention for this class is to provide a ObjectMapper with sane defaults that
+     * can be used in most cases, but then modified as needed without affecting other
+     * ObjectMappers that are returned by this call.
+     */
+    val mapper: ObjectMapper
+    get (): ObjectMapper {
+        return internalMapper.copy()
+    }
 
     init {
-        MAPPER.registerModule(GuavaModule())
-        MAPPER.registerModule(JavaTimeModule())
-        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    }
-
-    fun mapper() : ObjectMapper {
-        return MAPPER.copy()
-    }
-
-    fun <T> fromJson(stream: InputStream, clazz: Class<T>): T {
-        return MAPPER.readValue(stream, clazz)
-    }
-
-    fun toJson(output: OutputStream, obj: Any) {
-        MAPPER.writeValue(output, obj)
+        internalMapper.registerModule(GuavaModule())
+        internalMapper.registerModule(JavaTimeModule())
+        internalMapper.registerModule(VavrModule())
+        internalMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     }
 }
+

@@ -15,33 +15,25 @@
 
 package com.spectralogic.escapepod.metadatasearch
 
-import com.spectralogic.escapepod.api.MetadataException
-import com.spectralogic.escapepod.api.MetadataIndex
-import com.spectralogic.escapepod.api.MetadataSearchHealthResponse
-import com.spectralogic.escapepod.api.MetadataSearchHitsNode
-import com.spectralogic.escapepod.metadatasearch.api.ElasticSearchMetadataService
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchHealthResponse
 import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchIndicesResponse
 import com.spectralogic.escapepod.metadatasearch.models.ElasticSearchResponse
-import com.spectralogic.escapepod.util.JsonMapping
 import com.spectralogic.escapepod.util.ReadFileFromResources
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
-import org.apache.http.HttpHost
 import org.apache.http.entity.ContentType
 import org.apache.http.nio.entity.NStringEntity
-import org.apache.http.util.EntityUtils
 import org.elasticsearch.client.Response
 import org.elasticsearch.client.ResponseException
 import org.elasticsearch.client.RestClient
 import java.util.*
 import java.util.stream.Collectors
 
-class ElasticSearchService : ElasticSearchMetadataService {
-
-    private val restClient: RestClient
+class ElasticSearchService constructor(private val restClient: RestClient, private val requestContext: RequestContext, private val objectMapper: ObjectMapper) : MetadataSearchService {
 
     private companion object {
         private var PRETTY_TRUE: MutableMap<String, String> = Collections.singletonMap("pretty", "true")
@@ -52,13 +44,6 @@ class ElasticSearchService : ElasticSearchMetadataService {
         private var DELETE: String = "DELETE"
     }
 
-    constructor(httpHosts: List<HttpHost>) {
-        restClient = RestClient.builder(*httpHosts.toTypedArray()).build()
-    }
-
-    constructor(restClient: RestClient) {
-        this.restClient = restClient
-    }
 
     override fun health(): Single<MetadataSearchHealthResponse> {
         return ReactivexAdapters.createSingle { emitter ->
@@ -70,8 +55,9 @@ class ElasticSearchService : ElasticSearchMetadataService {
             if (response.statusLine.statusCode > 300) {
                 emitter.onError(MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase))
             } else {
-                val elasticSearchHealthResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                        ElasticSearchHealthResponse::class.java)
+
+
+                val elasticSearchHealthResponse = objectMapper.readValue(response.entity.content, ElasticSearchHealthResponse::class.java)
 
                 emitter.onSuccess(MetadataSearchHealthResponse(elasticSearchHealthResponse.clusterName,
                         elasticSearchHealthResponse.status))
@@ -134,9 +120,8 @@ class ElasticSearchService : ElasticSearchMetadataService {
             if (response.statusLine.statusCode > 300) {
                 emitter.onError(MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase))
             } else {
-                val elasticSearchIndicesResponse =
-                        JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                                ElasticSearchIndicesResponse::class.java)
+
+                val elasticSearchIndicesResponse = objectMapper.readValue(response.entity.content, ElasticSearchIndicesResponse::class.java)
 
                 elasticSearchIndicesResponse.indices.forEach {
                     (indexName, primaries, replications, numberOfDocuments) ->
@@ -298,8 +283,7 @@ class ElasticSearchService : ElasticSearchMetadataService {
         if (response.statusLine.statusCode > 300) {
             emitter.onError(MetadataException(response.statusLine.statusCode, response.statusLine.reasonPhrase))
         } else {
-            val elasticSearchResponse = JsonMapping.fromJson(EntityUtils.toString(response.entity).byteInputStream(),
-                    ElasticSearchResponse::class.java)
+            val elasticSearchResponse = objectMapper.readValue(response.entity.content, ElasticSearchResponse::class.java)
 
             elasticSearchResponse.hits.hits.map {
                 (index, type, id, score, source) ->
@@ -314,12 +298,5 @@ class ElasticSearchService : ElasticSearchMetadataService {
                 .stream()
                 .map({ entry -> "\"${entry.key}\" : \"${entry.value}\"" })
                 .collect(Collectors.joining(", "))
-    }
-
-    override fun closeConnection(): Completable {
-        return ReactivexAdapters.createCompletable { emitter ->
-            restClient.close()
-            emitter.onComplete()
-        }
     }
 }

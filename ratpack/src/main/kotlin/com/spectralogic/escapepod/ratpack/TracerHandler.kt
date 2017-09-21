@@ -15,27 +15,39 @@
 
 package com.spectralogic.escapepod.ratpack
 
-import com.spectralogic.escapepod.api.monitoring.HTTP_METHOD_TAG
-import com.spectralogic.escapepod.api.monitoring.HTTP_URI
-import io.opentracing.Tracer
+import com.spectralogic.escapepod.api.RequestContext
+import org.slf4j.LoggerFactory
 import ratpack.handling.Context
 import ratpack.handling.Handler
+import ratpack.registry.Registry
+import java.time.Duration
+import java.time.Instant
+import java.util.*
 
-internal class TracerHandler constructor(private val tracer: Tracer): Handler {
+internal class TracerHandler : Handler {
+
+    private companion object {
+        private val LOG = LoggerFactory.getLogger(TracerHandler::class.java)
+    }
 
     override fun handle(ctx: Context) {
-        tracer.buildSpan("request").startActive().use { span ->
-            span.log("Started Handling Request")
-            span.setTag(HTTP_METHOD_TAG, ctx.request.method.name)
-            span.setTag(HTTP_URI, ctx.request.uri)
-            val spanContinuation = span.capture()
-            ctx.onClose {
-                spanContinuation.activate().use {
-                    it.log("Finished Handling Request")
-                }
-            }
+
+        val requestId = UUID.randomUUID()
+        val timer = Instant.now()
+
+        LOG.info("Request: {}\nHTTP Method: {}, HTTP URI: {}", requestId, ctx.request.method.toString(), ctx.request.uri)
+
+
+        ctx.onClose {
+            LOG.info("Request {} finished in {} with status code {}", requestId, formattedTimeDifference(timer), ctx.response.status.code)
         }
 
-        ctx.next()
+        ctx.next(Registry.single(RequestContext(requestId)))
+    }
+
+    private fun formattedTimeDifference(startTime: Instant): String {
+        val currentInstant = Instant.now()
+
+        return Duration.between(startTime, currentInstant).toString()
     }
 }

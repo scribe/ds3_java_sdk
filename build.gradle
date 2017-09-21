@@ -26,7 +26,6 @@ buildscript {
     dependencies {
         classpath "gradle.plugin.net.ossindex:ossindex-gradle-plugin:0.1.1"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "com.google.protobuf:protobuf-gradle-plugin:0.8.1"
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
     }
 }
@@ -40,7 +39,6 @@ subprojects {
     apply plugin: 'com.github.ben-manes.versions'
     apply plugin: 'java'
     apply plugin: 'kotlin'
-    apply plugin: 'com.google.protobuf'
     apply plugin: 'net.ossindex.audit'
 
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -63,8 +61,8 @@ subprojects {
         compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
         compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlincoroutineVersion"
         compile "org.jetbrains.kotlinx:kotlinx-coroutines-nio:$kotlincoroutineVersion"
-        compile "com.google.protobuf:protobuf-java:$protobufVersion"
-        compile group: 'io.opentracing', name: 'opentracing-api', version: "$opentracingVersion"
+        compile "io.vavr:vavr:$vavrVersion"
+        compile "io.vavr:vavr-jackson:$vavrVersion"
 
         testCompile group: 'org.slf4j', name: 'slf4j-simple', version: "$slf4jVersion"
         testCompile "junit:junit:$junitVersion"
@@ -73,33 +71,14 @@ subprojects {
         testCompile "org.assertj:assertj-core:$assertjVersion"
     }
 
-    protobuf {
-        generatedFilesBaseDir = "$projectDir/src"
-
-        protoc {
-            artifact = "com.google.protobuf:protoc:$protocVersion"
-        }
-
-        generateProtoTasks {
-            all().each { task ->
-                task.builtins {
-                    java { }
-                }
-            }
-        }
-    }
-
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
       kotlinOptions {
         jvmTarget = "1.8"
       }
     }
-
-    compileKotlin.dependsOn 'generateProto'
-    compileTestKotlin.dependsOn 'generateTestProto'
 }
 
-task unit(dependsOn: [':util:test', ':api:test', ':xoduspersistence:test', ':runner:test', ':ratpack:test', ':deviceregistry:test', ':xoduspersistence:test']) {
+task unit(dependsOn: [':util:test', ':api:test', ':xoduspersistence:test', ':runner:test', ':ratpack:test', ':deviceregistry:test', ':xoduspersistence:test', ':httpservice:test', ':hazelcast:test']) {
     doLast {
         println "Finished processing unit tests"
     }
@@ -137,6 +116,7 @@ project(":hazelcast") {
     dependencies {
         compile project(":api")
         compile project(":httpservice")
+        testCompile project(":testutils")
     }
 }
 

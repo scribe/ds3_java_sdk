@@ -16,7 +16,6 @@
 package com.spectralogic.escapepod.persistence
 
 import com.spectralogic.escapepod.api.*
-import com.spectralogic.escapepod.util.singleOfNullable
 import io.reactivex.Completable
 import io.reactivex.Single
 import jetbrains.exodus.entitystore.PersistentEntityStore
@@ -41,7 +40,6 @@ internal class XodusPersistenceProvider
     }
 
     private var entityStore : PersistentEntityStore? = null
-    private var xodusService : PersistenceService? = null
 
 
     override fun shutdown(): Completable {
@@ -58,7 +56,6 @@ internal class XodusPersistenceProvider
             try {
                 Files.createDirectories(dataDir)
                 entityStore = PersistentEntityStores.newInstance(dataDir.toFile())
-                xodusService = XodusPersistenceService(entityStore!!)
                 emitter.onComplete()
             } catch (e : IOException) {
                 LOG.error("Failed to access data directory for Xodus", e)
@@ -72,8 +69,15 @@ internal class XodusPersistenceProvider
         return Completable.complete()
     }
 
-    override fun getService(): Single<PersistenceService> = singleOfNullable(xodusService) {
-        Exception("The persistence layer has not been configured")
+    override fun getService(requestContext: RequestContext): Single<PersistenceService> {
+        return Single.create { emitter ->
+            val eStore = entityStore
+            if (eStore == null) {
+                emitter.onError(Exception("The persistence layer has not been configured"))
+            } else {
+                emitter.onSuccess(XodusPersistenceService(eStore, requestContext))
+            }
+        }
     }
 
     override fun createNewPersistenceCluster(name: String, port: Int): Completable {

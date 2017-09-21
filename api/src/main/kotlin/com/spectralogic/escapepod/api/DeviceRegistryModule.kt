@@ -20,7 +20,13 @@ import io.reactivex.Single
 
 interface DeviceRegistryModule : Module
 
-interface DeviceRegistry {
+interface DeviceRegistryServiceProvider : ServiceProvider<DeviceRegistryService>
+
+/**
+ * This service is used to store information about Verdes, Black Pearls, and other remote systems that
+ * escape pod services will need to communicate with.
+ */
+interface DeviceRegistryService {
     fun registerDevice(credentials: ManagementCredentials): Single<DeviceRegistration>
     fun deviceRegistration(endpoint: String): Single<DeviceRegistration>
     fun removeRegistration(endpoint: String): Completable

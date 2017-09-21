@@ -17,7 +17,7 @@ package com.spectralogic.escapepod.metadatasearch
 
 import com.spectralogic.escapepod.api.ClusterService
 import com.spectralogic.escapepod.api.ClusterServiceProvider
-import com.spectralogic.escapepod.api.MetadataSearchServiceConfigFile
+import com.spectralogic.escapepod.api.RequestContext
 import io.reactivex.Completable
 import io.reactivex.Single
 import io.reactivex.functions.Function5
@@ -41,7 +41,7 @@ internal class ElasticSearchConfigFile
         private val LOG = LoggerFactory.getLogger(ElasticSearchConfigFile::class.java)
     }
 
-    override fun createConfigFile() : Completable {
+    override fun createConfigFile(requestContext: RequestContext) : Completable {
         LOG.debug("Writing elasticSearch cluster config")
 
         val configFile = elasticSearchConfigDir.resolve("elasticsearch.yml")
@@ -50,7 +50,7 @@ internal class ElasticSearchConfigFile
 
             val fileWriterSingle: Single<BufferedWriter> = createFileSingle(configFile)
 
-            val serviceSingle = clusterServiceProvider.getService()
+            val serviceSingle = clusterServiceProvider.getService(requestContext)
 
             val clusterNameSingle: Single<String> = serviceSingle.flatMap(ClusterService::name)
             val instanceNameSingle: Single<String> = serviceSingle.flatMap(ClusterService::instanceName)
@@ -58,8 +58,10 @@ internal class ElasticSearchConfigFile
                 clusterService.clusterNodes().count()
             }
 
-            val endpoints: Single<String> = serviceSingle.map { clusterService ->
-                clusterService.getDistributedSet<ElasticSearchNode>(ElasticSearchServiceProvider.ELASTICSEARCH_CLUSTER_ENDPOINT).joinToString(",") { elasticNode ->
+            val endpoints: Single<String> = serviceSingle.flatMap { clusterService ->
+                clusterService.getDistributedSet<ElasticSearchNode>(ElasticSearchServiceProvider.ELASTICSEARCH_CLUSTER_ENDPOINT)}
+                    .map {
+                        it.joinToString(",") { elasticNode ->
                     "\"${elasticNode.ip}:${elasticNode.port}\"" }
             }
 

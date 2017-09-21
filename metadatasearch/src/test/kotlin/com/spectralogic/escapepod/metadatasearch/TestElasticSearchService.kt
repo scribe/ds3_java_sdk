@@ -18,7 +18,9 @@ package com.spectralogic.escapepod.metadatasearch
 import com.google.common.collect.ImmutableMap
 import com.spectralogic.escapepod.api.MetadataIndex
 import com.spectralogic.escapepod.api.MetadataSearchHitsNode
-import com.spectralogic.escapepod.metadatasearch.api.ElasticSearchMetadataService
+import com.spectralogic.escapepod.api.MetadataSearchService
+import com.spectralogic.escapepod.api.RequestContext
+import com.spectralogic.escapepod.util.json.Mapper
 import org.apache.http.HttpHost
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -31,27 +33,25 @@ import java.util.concurrent.TimeUnit
 class TestElasticSearchService {
 
     companion object {
-        //        private val LOG = LoggerFactory.getLogger(TestElasticSearchService::class.java)
-        lateinit internal var metadataSearchService: ElasticSearchMetadataService
+        lateinit internal var metadataSearchService: MetadataSearchService
+        lateinit private var restClient: RestClient
 
         @BeforeClass @JvmStatic
         fun beforeClass() {
-            val restClient = RestClient.builder(*arrayOf(
-                    HttpHost("localhost", 9200),
-                    HttpHost("localhost", 9201))).build()
-            metadataSearchService = ElasticSearchService(restClient)
+            restClient = RestClient.builder(HttpHost("localhost", 9200), HttpHost("localhost", 9201)).build()
+            metadataSearchService = ElasticSearchService(restClient, createTestRequestContext(), Mapper.mapper)
         }
 
         @AfterClass @JvmStatic
         fun afterClass() {
-            metadataSearchService.closeConnection()
+            restClient.close()
         }
     }
 
     @Test
     fun testHealth() {
         val single = metadataSearchService.health()
-        val expected: String = "green"
+        val expected = "green"
 
         val MetadataSearchHealthResponse = single.filter {
             health ->
@@ -288,4 +288,8 @@ class TestElasticSearchService {
             metadataSearchService.deleteIndex(index2).subscribe()
         }
     }
+}
+
+private fun createTestRequestContext(): RequestContext {
+    return RequestContext()
 }

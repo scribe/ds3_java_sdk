@@ -13,16 +13,15 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.metadatasearch.api
+package com.spectralogic.escapepod.testutils
 
-import com.spectralogic.escapepod.api.MetadataSearchService
-import io.reactivex.Completable
+import org.mockito.Mockito
 
-internal interface ElasticSearchMetadataService : MetadataSearchService {
-
-    /***
-     * Close the connection to the underline search provider
-     */
-    fun closeConnection(): Completable
+object VerifyMatchers {
+    fun <T> any(): T {
+        Mockito.any<T>()
+        return uninitialized()
+    }
 }
 
+private fun <T> uninitialized(): T = null as T

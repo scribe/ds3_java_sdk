@@ -13,9 +13,21 @@
  *  ****************************************************************************
  */
 
-dependencies {
-    compile group: 'com.hazelcast', name: 'hazelcast', version: '3.8'
-    compile "com.squareup.retrofit2:retrofit:$retrofitVersion"
-    compile group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: "$retrofitVersion"
-    compile "com.squareup.retrofit2:converter-scalars:$retrofitVersion"
+package com.spectralogic.escapepod.util.json
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.spectralogic.escapepod.util.resource.ResourceMarshaller
+import java.io.InputStream
+import java.io.OutputStream
+import javax.inject.Inject
+
+class JacksonMarshaller @Inject constructor(private val objectMapper: ObjectMapper): ResourceMarshaller {
+
+    override fun <T> saveResource(resource: T, outStream: OutputStream) {
+        objectMapper.writeValue(outStream, resource)
+    }
+
+    override fun <T> loadResource(inStream: InputStream, clazz: Class<T>): T {
+        return objectMapper.readValue(inStream, clazz)
+    }
 }

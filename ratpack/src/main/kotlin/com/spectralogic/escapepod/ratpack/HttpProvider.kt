@@ -15,10 +15,10 @@
 
 package com.spectralogic.escapepod.ratpack
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.Inject
 import com.google.inject.name.Named
-import com.spectralogic.escapepod.api.ClusterEvent
-import com.spectralogic.escapepod.api.ClusterLeftEvent
+import com.spectralogic.escapepod.api.RequestContext
 import com.spectralogic.escapepod.httpservice.HttpService
 import com.spectralogic.escapepod.httpservice.HttpServiceProvider
 import io.reactivex.Completable
@@ -26,7 +26,7 @@ import io.reactivex.Single
 import org.slf4j.LoggerFactory
 import ratpack.server.RatpackServer
 
-internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootHandler : RootHandler) : HttpServiceProvider {
+internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootHandler : RootHandler, private val objectMapper: ObjectMapper) : HttpServiceProvider {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(HttpProvider::class.java)
@@ -46,6 +46,10 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
         return Completable.create { emitter ->
             LOG.info("Starting ratpack server")
             server = RatpackServer.start { server ->
+                server.registryOf {
+                    it.add(objectMapper)
+                }
+
                 server.serverConfig {
                     it.port(port)
                 }
@@ -53,12 +57,13 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
                 server.handlers {
                     it.prefix("api", rootHandler)
                 }
+
             }
             emitter.onComplete()
         }
     }
 
-    override fun getService(): Single<HttpService> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun getService(requestContext: RequestContext): Single<HttpService> {
+        TODO("not implemented")
     }
 }

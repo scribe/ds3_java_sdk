@@ -13,9 +13,14 @@
  *  ****************************************************************************
  */
 
-dependencies {
-    compile group: 'com.hazelcast', name: 'hazelcast', version: '3.8'
-    compile "com.squareup.retrofit2:retrofit:$retrofitVersion"
-    compile group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: "$retrofitVersion"
-    compile "com.squareup.retrofit2:converter-scalars:$retrofitVersion"
+package com.spectralogic.escapepod.deviceregistry
+
+import org.junit.Test
+
+class DeviceRegistryService_Test {
+
+    @Test
+    fun registerDevice() {
+        // TODO need to finish the persistence layer implementation before these tests can be written
+    }
 }

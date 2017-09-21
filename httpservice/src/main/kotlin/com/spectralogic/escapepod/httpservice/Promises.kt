@@ -15,18 +15,36 @@
 
 package com.spectralogic.escapepod.httpservice
 
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import ratpack.exec.Promise
 
+/**
+ * Turns a RxJava Single into a RatPack Promise.
+ */
 fun <T: Any> Single<T>.toPromise(): Promise<T> {
     return Promise.async { emitter ->
         this.subscribe(emitter::success, emitter::error)
     }
 }
 
+/**
+ * Converts an Observable to a Promise where the values emitted from the Observable have been
+ * collected into a List
+ */
 fun <T: Any> Observable<T>.toPromise(): Promise<List<T>> {
     return Promise.async { emitter ->
         this.toList().subscribe(emitter::success, emitter::error)
+    }
+}
+
+/**
+ * Converts a Completable into a RatPack Promise.  When the Completable completes, null is emitted to the promise
+ * since it doesn't have the same semantics as the Completable.
+ */
+fun Completable.toPromise(): Promise<Unit> {
+    return Promise.async { emitter ->
+        this.subscribe({emitter.success(null)}, emitter::error)
     }
 }

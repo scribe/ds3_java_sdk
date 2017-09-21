@@ -15,19 +15,17 @@
 
 package com.spectralogic.escapepod.ratpack
 
-import io.opentracing.Tracer
 import ratpack.func.Action
 import ratpack.handling.Chain
 import javax.inject.Inject
 
 internal class RootHandler
 @Inject constructor(
-        private val ratpackHttpRouter: RatpackHttpRouter,
-        private val tracer : Tracer
+        private val ratpackHttpRouter: RatpackHttpRouter
 ) : Action<Chain> {
 
     override fun execute(chain: Chain) {
-        chain.all(TracerHandler(tracer))
+        chain.all(TracerHandler())
 
         ratpackHttpRouter.execute(chain)
     }

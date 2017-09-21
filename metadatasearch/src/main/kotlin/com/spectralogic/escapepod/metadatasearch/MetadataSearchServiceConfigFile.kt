@@ -13,21 +13,11 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.util.resource
+package com.spectralogic.escapepod.metadatasearch;
 
-import com.google.protobuf.Message
-import java.io.InputStream
-import java.io.OutputStream
+import com.spectralogic.escapepod.api.RequestContext
+import io.reactivex.Completable
 
-class ProtoBuffMarshaller<T : Message>(
-        private val builderFunction : () -> Message.Builder
-) : ResourceMarshaller<T> {
-    override fun saveResource(resource: T, outStream: OutputStream) {
-        resource.writeTo(outStream)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun loadResource(inStream: InputStream): T {
-        return builderFunction.invoke().mergeFrom(inStream).build() as T
-    }
+interface MetadataSearchServiceConfigFile {
+    fun createConfigFile(requestContext: RequestContext): Completable
 }

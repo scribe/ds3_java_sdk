@@ -13,9 +13,8 @@
  *  ****************************************************************************
  */
 
-dependencies {
-    compile group: 'com.hazelcast', name: 'hazelcast', version: '3.8'
-    compile "com.squareup.retrofit2:retrofit:$retrofitVersion"
-    compile group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: "$retrofitVersion"
-    compile "com.squareup.retrofit2:converter-scalars:$retrofitVersion"
-}
+package com.spectralogic.escapepod.api
+
+import java.util.*
+
+data class RequestContext(val requestId: UUID = UUID.randomUUID())

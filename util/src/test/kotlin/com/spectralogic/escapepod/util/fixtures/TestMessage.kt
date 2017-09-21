@@ -13,7 +13,9 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.api.monitoring
+package com.spectralogic.escapepod.util.fixtures
 
-const val HTTP_METHOD_TAG = "http.method"
-const val HTTP_URI = "http.url"
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
+
+data class TestMessage @JsonCreator constructor(@JsonProperty("message") val message: String)
