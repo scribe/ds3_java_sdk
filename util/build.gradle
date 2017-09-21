@@ -21,7 +21,3 @@ dependencies {
     compile group: 'org.apache.commons', name: 'commons-lang3', version: "$commonslang3Version"
     compile group: 'commons-io', name: 'commons-io', version: "$iocommonsVersion"
 }
-
-clean.doFirst {
-    delete "${projectDir}/src/test/java"
-}

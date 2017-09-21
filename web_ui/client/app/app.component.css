@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+.background-primary-color {
+    background-color: #3F51B5;
+}
+
+.background-accent-color {
+    background-color: #FF4081;
+}
+
+.white-text {
+    color: #FFF;
+}
+
+.app-content {
+    padding: 20px;
+}

@@ -20,13 +20,14 @@ import com.google.common.collect.ImmutableMultimap
 import com.spectralogic.escapepod.api.PersistenceEntity
 import com.spectralogic.escapepod.api.PersistenceID
 import com.spectralogic.escapepod.api.PersistenceService
+import com.spectralogic.escapepod.api.RequestContext
 import com.spectralogic.escapepod.util.collections.immutableListCollector
 import jetbrains.exodus.entitystore.Entity
 import jetbrains.exodus.entitystore.EntityId
 import jetbrains.exodus.entitystore.PersistentEntityId
 import jetbrains.exodus.entitystore.PersistentEntityStore
 
-internal class XodusPersistenceService(private val entityStore: PersistentEntityStore) : PersistenceService {
+internal class XodusPersistenceService(private val entityStore: PersistentEntityStore, private val requestContext: RequestContext) : PersistenceService {
 
     override fun get(id: PersistenceID): PersistenceEntity {
         return entityStore.computeInReadonlyTransaction {

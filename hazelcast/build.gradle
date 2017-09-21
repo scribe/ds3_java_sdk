@@ -19,7 +19,3 @@ dependencies {
     compile group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: "$retrofitVersion"
     compile "com.squareup.retrofit2:converter-scalars:$retrofitVersion"
 }
-
-clean.doFirst {
-    delete "${projectDir}/src/main/java"
-}

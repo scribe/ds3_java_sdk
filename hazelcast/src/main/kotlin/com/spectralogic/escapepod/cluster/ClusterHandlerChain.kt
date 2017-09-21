@@ -17,6 +17,9 @@ package com.spectralogic.escapepod.cluster
 
 import com.spectralogic.escapepod.api.ClusterService
 import com.spectralogic.escapepod.api.ClusterServiceProvider
+import com.spectralogic.escapepod.api.RequestContext
+import com.spectralogic.escapepod.httpservice.toPromise
+
 import io.reactivex.Scheduler
 import io.reactivex.schedulers.Schedulers
 import org.slf4j.LoggerFactory
@@ -37,26 +40,39 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
     override fun execute(chain: Chain) {
 
         chain.get("members") { ctx ->
-            clusterServiceProvider.getService().flatMapObservable(ClusterService::clusterNodes).toList().doOnSuccess { clusterList ->
-                ctx.render(clusterList.joinToString(", ") { it.ip + ":" + it.port })
-            }.doOnError{
-                ctx.response.status(400).send("Encountered an error with the cluster: " + it.message)
-            }.observeOn(scheduler).subscribe()
+            clusterServiceProvider.getService(ctx.get(RequestContext::class.java))
+                    .observeOn(scheduler)
+                    .flatMapObservable(ClusterService::clusterNodes)
+                    .toPromise()
+                    .onError {
+                        LOG.error("Failed to get cluster members", it)
+                        ctx.response.status(400).send("Encountered an error with the cluster: " + it.message)
+                    }
+                    .then { clusterList ->
+                        ctx.render(clusterList.joinToString(", ") { it.ip + ":" + it.port })
+                    }
         }
 
         chain.all { ctx -> ctx.byMethod {
 
-            it.get {
+            val requestContext = ctx.get(RequestContext::class.java)
 
-                clusterServiceProvider.getService().flatMap(ClusterService::name).doOnSuccess { name ->
-                    ctx.render(name)
-                }.doOnError { t ->
-                    LOG.error("Failed to get cluster name", t)
-                    ctx.response.status(400).send("The cluster is not responding: ${t.message}")
-                }.observeOn(scheduler).subscribe()
+            it.get { ctx ->
+
+                clusterServiceProvider.getService(requestContext)
+                        .observeOn(scheduler)
+                        .flatMap(ClusterService::name)
+                        .toPromise()
+                        .onError { t ->
+                            LOG.error("Failed to get cluster name", t)
+                            ctx.response.status(400).send("The cluster is not responding: ${t.message}")
+                        }
+                        .then { name ->
+                            ctx.render(name)
+                        }
             }
 
-            it.post {
+            it.post { ctx ->
                 when {
                     "name" in ctx.request.queryParams -> createCluster(ctx)
                     "ip" in ctx.request.queryParams -> joinCluster(ctx)
@@ -64,17 +80,19 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
                 }
             }
 
-            it.delete {
-                clusterServiceProvider.leaveCluster().doOnComplete {
-                    ctx.response.status(204).send("Successfully removed from cluster")
-                }
-                .doOnError {
-                    LOG.error("Could not remove the system from the cluster", it)
-                    ctx.response.status(400).send("Failed to remove system from cluster")
-                }
-                .observeOn(scheduler).subscribe()
-            }
-        } }
+            it.delete { ctx ->
+                clusterServiceProvider.leaveCluster()
+                        .observeOn(scheduler)
+                        .toPromise()
+                        .onError {
+                            LOG.error("Could not remove the system from the cluster", it)
+                            ctx.response.status(400).send("Failed to remove system from cluster")
+                        }
+                        .then {
+                            ctx.response.status(204).send("Successfully removed from cluster")
+                        }
+            }}
+        }
     }
 
     private fun joinCluster(ctx: Context) {
@@ -82,12 +100,16 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
         if (ip.isNullOrEmpty()) {
             ctx.response.status(400).send("'ip' cannot be empty")
         } else {
-            clusterServiceProvider.joinCluster(ip!!).doOnSuccess {
-                ctx.response.status(202).send("Successfully joined a cluster")
-            }.doOnError { t ->
-                LOG.error("Failed to join cluster", t)
-                ctx.response.status(400).send("Failed to join cluster because: " + t.message)
-            }.observeOn(scheduler).subscribe()
+            clusterServiceProvider.joinCluster(ip!!)
+                    .observeOn(scheduler)
+                    .toPromise()
+                    .onError { t ->
+                        LOG.error("Failed to join cluster", t)
+                        ctx.response.status(400).send("Failed to join cluster because: " + t.message)
+                    }
+                    .then {
+                        ctx.response.status(202).send("Successfully joined a cluster")
+                    }
         }
     }
 
@@ -97,16 +119,15 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
             ctx.response.status(400).send("'name' cannot be empty")
         } else {
             clusterServiceProvider.createCluster(clusterName!!)
-                    .doOnComplete {
-                        ctx.response.status(202).send("Successfully created a new cluster")
-                    }
-                    .doOnError { t ->
-                        // do error stuff
+                    .observeOn(scheduler)
+                    .toPromise()
+                    .onError { t ->
                         LOG.error("failed to create cluster", t)
                         ctx.response.status(400).send("Failed to create cluster with name: " + clusterName)
                     }
-                    .observeOn(scheduler)
-                    .subscribe()
+                    .then {
+                        ctx.response.status(202).send("Successfully created a new cluster")
+                    }
         }
     }
 }

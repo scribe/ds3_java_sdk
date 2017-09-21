@@ -15,10 +15,22 @@
 
 package com.spectralogic.escapepod.util
 
-fun AutoCloseable.use(action : () -> Unit) {
+fun <T: AutoCloseable> T.use(action: (T) -> Unit) {
     try {
-        action.invoke()
+        action.invoke(this)
     } finally {
         this.close()
     }
 }
+
+/**
+ * Creates a new sequence which will lazily return the results from the sequence being appended to, then once
+ * that sequence has been consumed, it will pull elements from the sequence being appended.
+ */
+fun <T> Sequence<T>.append(sequence: Sequence<T>): Sequence<T> = sequenceOf(this, sequence).flatten()
+
+/**
+ * Creates a new sequence which will lazily return the results from the sequence being appended to, then once
+ * that sequence has been consumed, it will emit all the values being appended.
+ */
+fun <T> Sequence<T>.append(vararg value: T): Sequence<T> = this.append(sequenceOf(*value))

@@ -13,4 +13,4 @@
  *  ****************************************************************************
  */
 
-include 'api', 'avidmamclient', 'localcache', 'hazelcast', 'restclientutils', 'util', 'gui', 'planner', 'runner', 'bpclient', 'scheduler', 'divaclient', 'flashnetclient', 'migrate', 'xoduspersistence', 'ratpack', 'httpservice', 'metadatasearch', 'deviceregistry'
+include 'api', 'avidmamclient', 'localcache', 'hazelcast', 'restclientutils', 'util', 'gui', 'planner', 'runner', 'bpclient', 'scheduler', 'divaclient', 'flashnetclient', 'migrate', 'xoduspersistence', 'ratpack', 'httpservice', 'metadatasearch', 'deviceregistry', 'testutils'

@@ -1,0 +1,21 @@
+
+<div class="app-content">
+    <md-sidenav-layout class="background-primary-color white-text" fullscreen>
+        <!-- <md-sidenav #leftNavigationPane mode="side" opened="true"> -->
+        <md-sidenav #leftNavigationPane mode="side">
+            <md-toolbar>
+                <span>Modules</span>
+                <md-toolbar-row *ngFor="let module of modules">
+                    <span><a routerLink="{{ module.url }}" routerLinkActive="active">{{ module.name }}</a></span>
+                </md-toolbar-row>
+            </md-toolbar>
+        </md-sidenav>
+        <md-toolbar>
+            <button md-button style="margin-top: 15px" class="background-primary-color white-text" (click)="leftNavigationPane.toggle()">
+                <md-icon [fontIcon]="menu">menu</md-icon>
+            </button>
+            <span>{{title}}</span>
+        </md-toolbar>
+        <router-outlet></router-outlet>
+    </md-sidenav-layout>
+</div>

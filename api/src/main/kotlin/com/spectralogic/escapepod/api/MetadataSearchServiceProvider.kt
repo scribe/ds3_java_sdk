@@ -20,15 +20,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 
 interface MetadataSearchServiceProvider : ServiceProvider<MetadataSearchService>{
-    fun createNewMetadataSearchCluster(): Completable
-    fun joinMetadataSearchCluster(): Completable
-    fun metadataSearchNodeJoinedEvent(): Completable
-    fun leaveMetadataSearchCluster(): Completable
     fun clusterHandler(event: ClusterEvent)
-}
-
-interface MetadataSearchServiceConfigFile {
-    fun createConfigFile(): Completable
 }
 
 interface MetadataSearchService {

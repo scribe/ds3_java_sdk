@@ -20,5 +20,5 @@ import io.reactivex.Single
 
 interface ServiceProvider<out T> : Shutdownable {
     fun startService() : Completable
-    fun getService() : Single<out T>
+    fun getService(requestContext: RequestContext) : Single<out T>
 }

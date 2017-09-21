@@ -17,12 +17,21 @@ package com.spectralogic.escapepod.util
 
 import io.reactivex.Maybe
 import io.reactivex.Single
+import java.util.*
 
 fun <T> maybeOfNullable(item: T?, exceptionFactory: () -> Exception) : Maybe<T>  {
     return if (item == null) {
         Maybe.error(exceptionFactory())
     } else {
         Maybe.just(item)
+    }
+}
+
+fun <T> Optional<T>.toRxMaybe(): Maybe<T> {
+    return try {
+        Maybe.just(this.get())
+    } catch (e: NoSuchElementException) {
+        Maybe.empty()
     }
 }
 

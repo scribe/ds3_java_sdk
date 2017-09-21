@@ -15,7 +15,9 @@
 
 package com.spectralogic.escapepod.util.resource
 
-import com.spectralogic.escapepod.util.test.models.Messages
+import com.spectralogic.escapepod.util.fixtures.TestMessage
+import com.spectralogic.escapepod.util.json.JacksonMarshaller
+import com.spectralogic.escapepod.util.json.Mapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.nio.file.Files
@@ -25,7 +27,7 @@ class FileResource_Test {
     @Test
     fun nullResource() {
         val testDir = Files.createTempDirectory("resourceTests-")
-        val fileResource = FileResource(testDir, "test.conf", ProtoBuffMarshaller<Messages.TestMessage>(Messages.TestMessage::newBuilder))
+        val fileResource = FileResource<TestMessage>(testDir, "test.conf", JacksonMarshaller(Mapper.mapper), TestMessage::class.java)
 
         assertThat(fileResource.getResource()).isNull()
     }
@@ -34,9 +36,9 @@ class FileResource_Test {
     fun saveResource() {
         val testDir = Files.createTempDirectory("resourceTests-")
 
-        val fileResource = FileResource(testDir, "test.conf", ProtoBuffMarshaller<Messages.TestMessage>(Messages.TestMessage::newBuilder))
+        val fileResource = FileResource<TestMessage>(testDir, "test.conf", JacksonMarshaller(Mapper.mapper), TestMessage::class.java)
         try {
-            val message = Messages.TestMessage.newBuilder().setMessage("test message").build()
+            val message = TestMessage("test message")
 
             fileResource.saveResource(message)
 
@@ -56,13 +58,13 @@ class FileResource_Test {
     fun saveResourceAndReload() {
         val testDir = Files.createTempDirectory("resourceTests-")
 
-        val fileResource = FileResource(testDir, "test.conf", ProtoBuffMarshaller<Messages.TestMessage>(Messages.TestMessage::newBuilder))
+        val fileResource = FileResource<TestMessage>(testDir, "test.conf", JacksonMarshaller(Mapper.mapper), TestMessage::class.java)
         try {
-            val message = Messages.TestMessage.newBuilder().setMessage("test message").build()
+            val message = TestMessage("test message")
 
             fileResource.saveResource(message)
 
-            val fileResourceReload = FileResource(testDir, "test.conf", ProtoBuffMarshaller<Messages.TestMessage>(Messages.TestMessage::newBuilder))
+            val fileResourceReload = FileResource<TestMessage>(testDir, "test.conf", JacksonMarshaller(Mapper.mapper), TestMessage::class.java)
             val retrievedMessage = fileResourceReload.getResource()
 
             assertThat(retrievedMessage).isNotNull()
