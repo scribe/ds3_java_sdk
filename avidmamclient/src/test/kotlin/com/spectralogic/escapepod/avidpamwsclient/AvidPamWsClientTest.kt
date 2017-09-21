@@ -28,25 +28,36 @@ internal class AvidPamWsClientTest {
         }
     }
 
+//    @Test
+//    fun getFolders() {
+//        val interplayURI = "interplay://AvidWorkgroup/"
+//        avidPamWsClient.getFolders(interplayURI). blockingForEach { (results, errors) ->
+//
+//            if (errors.any()) {
+//                for ((message, details) in errors) {
+//                    println("$message, $details")
+//                }
+//            }
+//
+//            if (results.any()) {
+//                for (r in results) {
+//                    println("interplayURI = $r.interplayURI")
+//                    for ((key, value) in r.attributes) {
+//                        println("Attribute = ($key, $value)")
+//                    }
+//                    println("")
+//                }
+//            }
+//        }
+//    }
+
     @Test
     fun getChildrenTest() {
-        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1/sharon"
-        val res = avidPamWsClient.getChildren(interplayURI).blockingGet()
-
-        if (res.errors.any()) {
-            for ((interplayUri, message, details) in res.errors) {
-                println("$interplayUri, $message, $details")
-            }
-        }
-
-        if (res.results.any()) {
-            for (r in res.results) {
-                println("interplayURI = $r.interplayURI")
-                for ((key, value) in r.attributes) {
-                    println("Attribute = ($key, $value)")
-                }
-                println("")
-            }
+//        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1/sharon"
+//        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1"
+        val interplayURI = "interplay://AvidWorkgroup/"
+        avidPamWsClient.getChildren(interplayURI).blockingForEach{ it ->
+            println("${it.interplayURI}, ${it.displayName}, ${it.mobid}, ${it.path}, ${it.mediaSize}, ${it.mediaStatus}, ${it.type}")
         }
 
         /**
@@ -162,20 +173,14 @@ internal class AvidPamWsClientTest {
         val res = avidPamWsClient.getProfiles(workgroupURI, services, showParameters).blockingGet()
 
         if (res.errors.any()) {
-            for ((interplayURI, message, details) in res.errors) {
-                println("$interplayURI, $message, $details")
+            for ((message, details) in res.errors) {
+                println("$message, $details")
             }
         }
 
         if (res.results.any()) {
-            for ((name, service, parameters) in res.results) {
+            for ((name, service) in res.results) {
                 println("Name = $name ; Service = $service")
-                parameters.ifNotNull {
-                    for ((key, value) in it) {
-                        println("Param = ($key, $value)")
-                    }
-                }
-                println("")
             }
         }
 
@@ -254,8 +259,8 @@ internal class AvidPamWsClientTest {
         val res = avidPamWsClient.restore(profile, interplayURI).blockingGet()
 
         if (res.errors.any()) {
-            for ((interplayUri, message, details) in res.errors) {
-                println("$interplayUri, $message, $details")
+            for ((message, details) in res.errors) {
+                println("$message, $details")
             }
         }
 
@@ -278,8 +283,8 @@ internal class AvidPamWsClientTest {
         val res = avidPamWsClient.archive(profile, interplayURI).blockingGet()
 
         if (res.errors.any()) {
-            for ((interplayUri, message, details) in res.errors) {
-                println("$interplayUri, $message, $details")
+            for ((message, details) in res.errors) {
+                println("$message, $details")
             }
         }
 
@@ -302,8 +307,8 @@ internal class AvidPamWsClientTest {
 
 
         if (res.errors.any()) {
-            for ((interplayURI, message, details) in res.errors) {
-                println("$interplayURI, $message, $details")
+            for ((message, details) in res.errors) {
+                println("$message, $details")
             }
         }
 

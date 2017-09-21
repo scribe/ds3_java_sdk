@@ -1,28 +1,103 @@
 package com.spectralogic.escapepod.api
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import io.reactivex.Observable
 import io.reactivex.Single
 
 interface AvidPamWsClient {
-    fun getChildren(interplayURI: String): Single<GetChildrenResponse>
+    fun getChildren(interplayURI: String): Observable<GetChildrenResult>
+    fun getFolders(interplayURI: String): Observable<GetFoldersResult>
     fun getProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean): Single<GetProfilesResponse>
     fun getJobsStatus(jobsURI: Array<String>): Single<JobsStatusResponse>
+    fun getMaxArchiveAssetSize(interplayURI: String): Single<GetMaxArchiveAssetSize>
 
     fun restore(profile: String, interplayURI: String): Single<JobResponse>
     fun archive(profile: String, interplayURI: String): Single<JobResponse>
 }
 
-data class GetChildrenResponse(val results: Sequence<GetChildrenResult>, val errors: Sequence<WsError>)
+data class WsError(
+        @JsonProperty("message")
+        val message: String,
 
-data class WsError(val interplayURI: String, val message: String, val details: String)
+        @JsonProperty("details")
+        val details: String
+)
 
-data class GetChildrenResult(val interplayURI: String, val attributes: Map<String, String>)
+data class GetChildrenResult(
+        @JsonProperty("interplayURI")
+        val interplayURI: String,
 
-data class GetProfilesResponse(val results: Sequence<GetProfilesResult>, val errors: Sequence<WsError>)
+        @JsonProperty("MobID")
+        val mobid: String,
 
-data class GetProfilesResult(val name: String, val service: String, val parameters: Map<String, String>)
+        @JsonProperty("Path")
+        val path: String,
 
-data class JobResponse(val jobURI: String, val errors: Sequence<WsError>)
+        @JsonProperty("DisplayName")
+        val displayName: String,
 
-data class JobsStatusResponse(val results: Sequence<JobStatus>, val errors: Sequence<WsError>)
+        @JsonProperty("MediaSize")
+        val mediaSize: String,
 
-data class JobStatus(val jobURI: String, val jobStatus: String, val percentComplete: Int?)
+        @JsonProperty("MediaStatus")
+        val mediaStatus: String,
+
+        @JsonProperty("Type")
+        val type: String
+)
+
+data class GetProfilesResponse(
+        @JsonProperty("results")
+        val results: List<GetProfilesResult>,
+
+        @JsonProperty("errors")
+        val errors: List<WsError>
+)
+
+data class GetProfilesResult(
+        @JsonProperty("name")
+        val name: String,
+
+        @JsonProperty("service")
+        val service: String
+)
+
+data class JobResponse(
+        @JsonProperty("jobUri")
+        val jobURI: String,
+
+        @JsonProperty("errors")
+        val errors: List<WsError>
+)
+
+data class JobsStatusResponse(
+        @JsonProperty("results")
+        val results: List<JobStatus>,
+
+        @JsonProperty("errors")
+        val errors: List<WsError>
+)
+
+data class JobStatus(
+        @JsonProperty("jobUri")
+        val jobURI: String,
+
+        @JsonProperty("jobStatus")
+        val jobStatus: String,
+
+        @JsonProperty("percentComplete")
+        val percentComplete: Int?
+)
+
+data class GetMaxArchiveAssetSize(
+        @JsonProperty("Size")
+        val size: Long,
+
+        @JsonProperty("errors")
+        val errors: List<WsError>
+)
+
+data class GetFoldersResult(
+        @JsonProperty("name")
+        val name: String
+)

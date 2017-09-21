@@ -3,30 +3,34 @@ package com.spectralogic.escapepod.avidpamwsclient
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.api.AvidPamWsClient
 import com.spectralogic.escapepod.avidpamclient.soap.ws.*
+import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
+import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.ForkJoinPool
 
-internal class AvidPamWsClient
+class AvidPamWsClient
 constructor(username: String, password: String, endpoint: String,
             private val executor: Executor = ForkJoinPool.commonPool()) : AvidPamWsClient {
-
-
     companion object {
+
+
         private val LOG = LoggerFactory.getLogger(AvidPamWsClient::class.java)
         private val JOBS = "Jobs"
         private val ASSETS = "Assets"
     }
 
     private val credentials = UserCredentialsType()
+
     private val jobsLocator = JobsLocator()
     private val assetsLocator = AssetsLocator()
-
     private var jobsEndpointUrl: String
-    private var assetsEndpointUrl: String
 
+    private var assetsEndpointUrl: String
     private var jobsSoapClient: JobsPortType
+
     private var assetsSoapClient: AssetsPortType
 
     init {
@@ -44,20 +48,29 @@ constructor(username: String, password: String, endpoint: String,
         assetsSoapClient = assetsLocator.assetsPort
     }
 
-    override fun getChildren(interplayURI: String): Single<GetChildrenResponse> {
-        return Single.create { emitter ->
+    //TODO change to return observable and return all children inside a folder and sub folders
+    override fun getChildren(interplayURI: String): Observable<GetChildrenResult> {
+        return Observable.create { emitter ->
             executor.execute {
                 try {
-                    val getChildrenType = GetChildrenType()
-                    getChildrenType.interplayURI = interplayURI
-
-                    val res = assetsSoapClient.getChildren(getChildrenType, credentials)
-
-                    emitter.onSuccess(GetChildrenResponse(
-                            TransformUtils.assetDescriptionTypeToGetChildrenResult(res.results),
-                            TransformUtils.errorTypeToWsError(res.errors)))
+                    getChildrenHelper(interplayURI, emitter)
+                    emitter.onComplete()
                 } catch (t: Throwable) {
                     LOG.error("Failed to get children", t)
+                    emitter.onError(t)
+                }
+            }
+        }
+    }
+
+    override fun getFolders(interplayURI: String): Observable<GetFoldersResult> {
+        return Observable.create { emitter ->
+            executor.execute {
+                try {
+                    getFoldersHelper(interplayURI, emitter)
+                    emitter.onComplete()
+                } catch (t: Throwable) {
+                    LOG.error("Failed to get folders", t)
                     emitter.onError(t)
                 }
             }
@@ -143,6 +156,125 @@ constructor(username: String, password: String, endpoint: String,
                     LOG.error("Failed to query job status", t)
                     emitter.onError(t)
                 }
+            }
+        }
+    }
+
+    override fun getMaxArchiveAssetSize(interplayURI: String): Single<GetMaxArchiveAssetSize> {
+        return Single.create { emitter ->
+            executor.execute {
+                try {
+                    emitter.onSuccess(GetMaxArchiveAssetSize(0, emptyList()))
+                } catch (t: Throwable) {
+                    LOG.error("Failed to get the max archive asset size", t)
+                    emitter.onError(t)
+                }
+            }
+        }
+    }
+
+    private fun getChildrenHelper(interplayURI: String, emitter: ObservableEmitter<GetChildrenResult>) {
+
+        val foldersQueue: Queue<String> = LinkedList<String>()
+
+        val getChildrenType = GetChildrenType()
+        getChildrenType.interplayURI = interplayURI
+        getChildrenType.includeFolders = true
+        getChildrenType.includeFiles = true
+        getChildrenType.includeMOBs = true
+
+        var res = assetsSoapClient.getChildren(getChildrenType, credentials)
+
+        if (res.errors != null) {
+            emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
+            return
+        }
+
+        for (r in res.results) {
+            val uri = r.interplayURI
+            val attributeMap = TransformUtils.attributeTypeToAttributeMap(r.attributes)
+            if (attributeMap.getOrDefault("Type", "N/A").equals("folder")) {
+                foldersQueue.add(uri)
+            } else {
+                emitter.onNext(GetChildrenResult(
+                        uri,
+                        attributeMap.getOrDefault("MOB ID", "N/A"),
+                        attributeMap.getOrDefault("Path", "N/A"),
+                        attributeMap.getOrDefault("Display Name", "N/A"),
+                        attributeMap.getOrDefault("Media Size", "N/A"),
+                        attributeMap.getOrDefault("Media Status", "N/A"),
+                        attributeMap.getOrDefault("Type", "N/A")
+                ))
+            }
+        }
+
+        while (foldersQueue.isNotEmpty()) {
+            getChildrenType.interplayURI = foldersQueue.poll()
+            res = assetsSoapClient.getChildren(getChildrenType, credentials)
+
+            if (res.errors != null) {
+                emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
+                return
+            }
+
+            for (r in res.results) {
+                val uri = r.interplayURI
+                val attributeMap = TransformUtils.attributeTypeToAttributeMap(r.attributes)
+
+                if (attributeMap.getOrDefault("Type", "N/A").equals("folder")) {
+                    foldersQueue.add(uri)
+                } else {
+                    emitter.onNext(GetChildrenResult(
+                            uri,
+                            attributeMap.getOrDefault("MOB ID", "N/A"),
+                            attributeMap.getOrDefault("Path", "N/A"),
+                            attributeMap.getOrDefault("Display Name", "N/A"),
+                            attributeMap.getOrDefault("Media Size", "N/A"),
+                            attributeMap.getOrDefault("Media Status", "N/A"),
+                            attributeMap.getOrDefault("Type", "N/A")
+                    ))
+                }
+            }
+        }
+    }
+
+
+    private fun getFoldersHelper(interplayURI: String, emitter: ObservableEmitter<GetFoldersResult>) {
+
+        val foldersQueue: Queue<String> = LinkedList<String>()
+
+        val getChildrenType = GetChildrenType()
+        getChildrenType.interplayURI = interplayURI
+        getChildrenType.includeFolders = true
+        getChildrenType.includeFiles = false
+        getChildrenType.includeMOBs = false
+
+        var res = assetsSoapClient.getChildren(getChildrenType, credentials)
+
+        if (res.errors != null) {
+            emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
+            return
+        }
+
+        for (r in res.results) {
+            val uri = r.interplayURI
+            foldersQueue.add(uri)
+            emitter.onNext(GetFoldersResult(uri))
+        }
+
+        while (foldersQueue.isNotEmpty()) {
+            getChildrenType.interplayURI = foldersQueue.poll()
+            res = assetsSoapClient.getChildren(getChildrenType, credentials)
+
+            if (res.errors != null) {
+                emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
+                return
+            }
+
+            for (r in res.results) {
+                val uri = r.interplayURI
+                foldersQueue.add(uri)
+                emitter.onNext(GetFoldersResult(uri))
             }
         }
     }

@@ -1,54 +1,50 @@
 package com.spectralogic.escapepod.avidpamwsclient
 
-import com.spectralogic.escapepod.api.GetChildrenResult
+import com.google.common.collect.ImmutableMap
 import com.spectralogic.escapepod.api.GetProfilesResult
 import com.spectralogic.escapepod.api.JobStatus
 import com.spectralogic.escapepod.api.WsError
-import com.spectralogic.escapepod.avidpamclient.soap.ws.AssetDescriptionType
+import com.spectralogic.escapepod.avidpamclient.soap.ws.AttributeType
 import com.spectralogic.escapepod.avidpamclient.soap.ws.ErrorType
 import com.spectralogic.escapepod.avidpamclient.soap.ws.JobStatusType
 import com.spectralogic.escapepod.avidpamclient.soap.ws.ProfileType
 
 internal object TransformUtils {
-    fun errorTypeToWsError(errors: Array<ErrorType>?): Sequence<WsError> {
+    fun errorTypeToWsError(errors: Array<ErrorType>?): List<WsError> {
         if (errors == null) {
-            return emptySequence()
+            return emptyList()
         }
 
-        return errors.map { it -> WsError(it.interplayURI, it.message, it.details) }.asSequence()
+        return errors.map { it -> WsError(it.message, it.details) }.toList()
     }
 
-    fun assetDescriptionTypeToGetChildrenResult(results: Array<AssetDescriptionType>?):
-            Sequence<GetChildrenResult> {
+    fun profileTypeToGetProfileResult(results: Array<ProfileType>?): List<GetProfilesResult> {
         if (results == null) {
-            return emptySequence()
-        }
-
-        return results.map { it ->
-            GetChildrenResult(
-                    it.interplayURI,
-                    it.attributes.associateBy({ it.name }, { it._value }))
-        }.asSequence()
-    }
-
-    fun profileTypeToGetProfileResult(results: Array<ProfileType>?): Sequence<GetProfilesResult> {
-        if (results == null) {
-            return emptySequence()
+            return emptyList()
         }
 
         return results.map { it ->
-            GetProfilesResult(it.name, it.service, it.parameters.associateBy({ it.name }, { it._value }))
-        }.asSequence()
+            GetProfilesResult(it.name, it.service)
+        }.toList()
     }
 
-    fun jobStatusTypeToJobStatusResult(results: Array<JobStatusType>?): Sequence<JobStatus> {
+    fun jobStatusTypeToJobStatusResult(results: Array<JobStatusType>?): List<JobStatus> {
         if (results == null) {
-            return emptySequence()
+            return emptyList()
         }
 
         return results.map { it ->
             JobStatus(it.jobURI, it.status, it.percentComplete)
-        }.asSequence()
+        }.toList()
+    }
+
+    fun attributeTypeToAttributeMap(attributes: Array<AttributeType>?): ImmutableMap<String, String> {
+
+        if (attributes == null || attributes.isEmpty()) {
+            return ImmutableMap.of<String, String>()
+        }
+
+        return ImmutableMap.copyOf(attributes.associateBy({ it.name }, { it._value }))
     }
 }
 

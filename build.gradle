@@ -143,8 +143,9 @@ project(":hazelcast") {
 project(":migrate") {
     dependencies {
         compile project(":api")
-        compile project(":divaclient")
         compile project(":avidmamclient")
+        compile project(":httpservice")
+        compile project(":util")
     }
 }
 
@@ -182,8 +183,9 @@ project(":runner") {
         compile project(":localcache")
         compile project(":scheduler")
         compile project(":xoduspersistence")
-	compile project(":metadatasearch")
-	compile project(":ratpack")
+        compile project(":metadatasearch")
+        compile project(":ratpack")
+        compile project(":migrate")
     }
 }
 
