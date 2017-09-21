@@ -56,7 +56,7 @@ class PamMigrateProvider {
 
     fun getMaxArchiveAssetSize(workGroup: String): Single<GetMaxArchiveAssetSize> {
         val workGroupUri = "interplay://$workGroup/"
-        LOG.info("Finding the max archived asset size in workgoup '$workGroup'")
+        LOG.info("Finding the max archived asset size in workgoup '$workGroupUri'")
 
         return avidPamWsClient.getMaxArchiveAssetSize(workGroupUri)
     }

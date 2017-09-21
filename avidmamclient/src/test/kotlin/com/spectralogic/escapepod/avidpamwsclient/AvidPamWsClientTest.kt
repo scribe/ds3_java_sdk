@@ -30,9 +30,9 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun getChildrenTest() {
-        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1/sharon"
+//        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1/sharon"
 //        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1"
-//        val interplayURI = "interplay://AvidWorkgroup/"
+        val interplayURI = "interplay://AvidWorkgroup/"
         avidPamWsClient.getChildren(interplayURI).blockingForEach { it ->
             println("${it.interplayURI}, ${it.displayName}, ${it.mobid}, ${it.path}, ${it.mediaSize}, ${it.mediaStatus}, ${it.type}")
         }

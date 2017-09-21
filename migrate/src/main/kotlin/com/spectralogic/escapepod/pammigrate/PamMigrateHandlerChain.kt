@@ -67,15 +67,20 @@ class PamMigrateHandlerChain
     }
 
     private fun getMaxArchiveAssetSize(ctx: Context) {
-        //TODO
-        pamMigrateProvider.getMaxArchiveAssetSize("").observeOn(scheduler)
-                .toPromise()
-                .onError {
-                    ctx.response.status(400).send("Encountered an error with getting the max archive asset size: " + it.message)
-                }
-                .then { res ->
-                    ctx.render(json(res))
-                }
+        val workGroup = ctx.request.queryParams["workgroup"]
+
+        if (workGroup.isNullOrEmpty()) {
+            ctx.response.status(400).send("'workgroup' cannot be empty")
+        } else {
+            pamMigrateProvider.getMaxArchiveAssetSize(workGroup!!).observeOn(scheduler)
+                    .toPromise()
+                    .onError {
+                        ctx.response.status(400).send("Encountered an error with getting the max archive asset size: " + it.message)
+                    }
+                    .then { res ->
+                        ctx.render(json(res))
+                    }
+        }
     }
 
     private fun getFolders(ctx: Context) {

@@ -6,6 +6,7 @@ import com.spectralogic.escapepod.avidpamclient.soap.ws.*
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
+import io.reactivex.SingleEmitter
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.Executor
@@ -56,7 +57,6 @@ constructor(username: String, password: String, endpoint: String,
         infrastructureSoapClient = infrastructureLocator.infrastructurePort
     }
 
-    //TODO change to return observable and return all children inside a folder and sub folders
     override fun getChildren(interplayURI: String): Observable<GetChildrenResult> {
         return Observable.create { emitter ->
             executor.execute {
@@ -172,7 +172,7 @@ constructor(username: String, password: String, endpoint: String,
         return Single.create { emitter ->
             executor.execute {
                 try {
-                    emitter.onSuccess(GetMaxArchiveAssetSize(0, emptyList()))
+                    getMaxArchiveAssetSizeHelper(interplayURI, emitter)
                 } catch (t: Throwable) {
                     LOG.error("Failed to get the max archive asset size", t)
                     emitter.onError(t)
@@ -220,7 +220,11 @@ constructor(username: String, password: String, endpoint: String,
         for (r in res.results) {
             val uri = r.interplayURI
             val attributeMap = TransformUtils.attributeTypeToAttributeMap(r.attributes)
-            if (attributeMap.getOrDefault("Type", "N/A").equals("folder")) {
+
+//            attributeMap.forEach { it -> LOG.debug("${it.key}, ${it.value}") }
+//            LOG.debug("\n")
+
+            if (attributeMap.getOrDefault("Path", "N/A").endsWith("/")) {
                 foldersQueue.add(uri)
             } else {
                 emitter.onNext(GetChildrenResult(
@@ -248,7 +252,10 @@ constructor(username: String, password: String, endpoint: String,
                 val uri = r.interplayURI
                 val attributeMap = TransformUtils.attributeTypeToAttributeMap(r.attributes)
 
-                if (attributeMap.getOrDefault("Type", "N/A").equals("folder")) {
+//                attributeMap.forEach { it -> LOG.debug("${it.key}, ${it.value}") }
+//                LOG.debug("\n")
+
+                if (attributeMap.getOrDefault("Path", "N/A").endsWith("/")) {
                     foldersQueue.add(uri)
                 } else {
                     emitter.onNext(GetChildrenResult(
@@ -264,7 +271,6 @@ constructor(username: String, password: String, endpoint: String,
             }
         }
     }
-
 
     private fun getFoldersHelper(interplayURI: String, emitter: ObservableEmitter<GetFoldersResult>) {
 
@@ -304,5 +310,23 @@ constructor(username: String, password: String, endpoint: String,
                 emitter.onNext(GetFoldersResult(uri))
             }
         }
+    }
+
+    private fun getMaxArchiveAssetSizeHelper(interplayURI: String, emitter: SingleEmitter<GetMaxArchiveAssetSize>) {
+        var max: Long = 0
+        getChildren(interplayURI)
+                .doOnNext { it ->
+                    if (it.mediaSize != "N/A" && max < it.mediaSize.toLong()) {
+                        max = it.mediaSize.toLong()
+                    }
+                }
+                .doOnComplete {
+                    //TODO remove empty list
+                    emitter.onSuccess(GetMaxArchiveAssetSize(max, emptyList()))
+                }
+                .doOnError { t ->
+                    emitter.onError(t)
+                }
+                .subscribe()
     }
 }
