@@ -13,22 +13,14 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.util
+package com.spectralogic.escapepod.deviceregistry
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.inject.AbstractModule
-import com.google.inject.Provides
-import com.spectralogic.escapepod.util.json.JacksonMarshaller
-import com.spectralogic.escapepod.util.json.Mapper
-import com.spectralogic.escapepod.util.resource.ResourceMarshaller
+import org.junit.Test
 
-class UtilGuavaModule: AbstractModule() {
-    override fun configure() {
-        bind(ResourceMarshaller::class.java).to(JacksonMarshaller::class.java)
-    }
+class DeviceRegistryService_Test {
 
-    @Provides
-    fun objectMapper(): ObjectMapper {
-        return Mapper.mapper
+    @Test
+    fun registerDevice() {
+        // TODO need to finish the persistence layer implementation before these tests can be written
     }
 }

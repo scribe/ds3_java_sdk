@@ -13,8 +13,22 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.api.monitoring
+package com.spectralogic.escapepod.util
 
-const val HTTP_METHOD_TAG = "http.method"
-const val HTTP_URI = "http.url"
-const val HTTP_STATUS_CODE = "http.status_code"
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.inject.AbstractModule
+import com.google.inject.Provides
+import com.spectralogic.escapepod.util.json.JacksonMarshaller
+import com.spectralogic.escapepod.util.json.Mapper
+import com.spectralogic.escapepod.util.resource.ResourceMarshaller
+
+class UtilGuiceModule : AbstractModule() {
+    override fun configure() {
+        bind(ResourceMarshaller::class.java).to(JacksonMarshaller::class.java)
+    }
+
+    @Provides
+    fun objectMapper(): ObjectMapper {
+        return Mapper.mapper
+    }
+}

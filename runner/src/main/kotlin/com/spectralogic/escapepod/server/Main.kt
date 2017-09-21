@@ -17,7 +17,7 @@ package com.spectralogic.escapepod.server
 
 import com.google.inject.Guice
 import com.spectralogic.escapepod.api.ModuleRegistration
-import com.spectralogic.escapepod.util.UtilGuavaModule
+import com.spectralogic.escapepod.util.UtilGuiceModule
 import com.spectralogic.escapepod.util.append
 
 import com.spectralogic.escapepod.util.collections.toImmutableList
@@ -33,7 +33,7 @@ fun main(arg: Array<String>) {
 
     val loadedModules = moduleLoader.loadModules()
 
-    val injector = Guice.createInjector(loadedModules.map(ModuleRegistration<*>::guiceModule).append(UtilGuavaModule()).asIterable())
+    val injector = Guice.createInjector(loadedModules.map(ModuleRegistration<*>::guiceModule).append(UtilGuiceModule()).asIterable())
 
     val moduleInstances = loadedModules.map(ModuleRegistration<*>::module).map { injector.getInstance(it) }.toImmutableList()
 

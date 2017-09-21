@@ -45,6 +45,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
                     .flatMapObservable(ClusterService::clusterNodes)
                     .toPromise()
                     .onError {
+                        LOG.error("Failed to get cluster members", it)
                         ctx.response.status(400).send("Encountered an error with the cluster: " + it.message)
                     }
                     .then { clusterList ->
@@ -88,7 +89,6 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
                             ctx.response.status(400).send("Failed to remove system from cluster")
                         }
                         .then {
-
                             ctx.response.status(204).send("Successfully removed from cluster")
                         }
             }}
@@ -104,7 +104,6 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
                     .observeOn(scheduler)
                     .toPromise()
                     .onError { t ->
-
                         LOG.error("Failed to join cluster", t)
                         ctx.response.status(400).send("Failed to join cluster because: " + t.message)
                     }
