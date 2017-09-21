@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>
-        Escape Pod
-    </title>
+    <link href=”https://fonts.googleapis.com/icon?family=Material+Icons" rel=”stylesheet”>
 
-    <script src="node_modules/jquery/dist/jquery.js"></script>
+    <title>Escape Pod</title>
+
+    <base href="/">
+
+    <script src="https://cdn.polyfill.io/v2/polyfill.js?features=Intl.~locale.en"></script>
 
     <script src="node_modules/core-js/client/shim.min.js"></script>
     <script src="node_modules/zone.js/dist/zone.js"></script>
@@ -14,22 +15,11 @@
     <script src="node_modules/typescript/lib/typescript.js"></script>
     <script src="node_modules/systemjs/dist/system.src.js"></script>
     <script src="systemjs.config.js"></script>
-
     <script>
         System.import('app').catch(function (err) {console.error(err);});
     </script>
 </head>
-
-<style>
-    .title h1 {
-        text-align: center;
-    }
-</style>
-
 <body>
-    <div class="title">
-        <h1>Escape Pod -- We Really Need to Decide on a Name</h1>
-    </div>
+<app-root>Loading...</app-root>
 </body>
-
 </html>

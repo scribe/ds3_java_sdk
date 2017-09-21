@@ -1,5 +1,5 @@
-dist
-jspm_packages
-typings
-node_modules
+.idea/
+build/
+node_modules/
+typings/
 
