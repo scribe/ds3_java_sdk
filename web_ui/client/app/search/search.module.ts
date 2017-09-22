@@ -14,4 +14,4 @@ import { routing } from "./search.routing";
         SearchComponent
     ]
 })
-export default class SearchModule { }
+export class SearchModule { }
