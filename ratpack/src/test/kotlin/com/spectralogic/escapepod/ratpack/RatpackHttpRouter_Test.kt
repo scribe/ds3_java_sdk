@@ -15,12 +15,15 @@
 
 package com.spectralogic.escapepod.ratpack
 
+import com.spectralogic.escapepod.httpservice.ExceptionHandlerMapper
+import com.spectralogic.escapepod.util.json.Mapper
 import org.assertj.core.api.Assertions.assertThat
 
 import org.junit.Test
 import ratpack.func.Action
 import ratpack.handling.Chain
 import ratpack.test.handling.RequestFixture
+import java.util.concurrent.atomic.AtomicBoolean
 
 class RatpackHttpRouter_Test {
     @Test
@@ -91,7 +94,56 @@ class RatpackHttpRouter_Test {
 
         assertThat(firstChain.count).isEqualTo(1)
         assertThat(secondResult.rendered(String::class.java)).isNullOrEmpty()
+    }
 
+    @Test
+    fun registerExceptionHandler() {
+        val router = RatpackHttpRouter()
+
+        val handlerCalled = AtomicBoolean(false)
+        router.registerExceptionHandler(TestException::class.java) { ctx, t ->
+            handlerCalled.set(true)
+            ctx.response.status(404).send("Could not find file: ${t.testProp}")
+        }
+
+        router.register("prefix", ExceptionChain())
+
+        val result = RequestFixture.handle(router, Action<RequestFixture> {
+            it.uri("prefix").method("GET")
+        })
+
+        assertThat(result.status.code).isEqualTo(404)
+
+        assertThat(handlerCalled).isTrue
+    }
+
+    @Test
+    fun verifyDefaultHandler() {
+        val router = RatpackHttpRouter()
+        router.register("prefix", ExceptionChain())
+
+        val result = RequestFixture.handle(router, Action<RequestFixture> {
+            it.uri("prefix").method("GET")
+        })
+        assertThat(result.status.code).isEqualTo(400)
+
+        val defaultException = Mapper.mapper.readValue(result.bodyText, DefaultException::class.java)
+        assertThat(defaultException.statusCode).isEqualTo(400)
+        assertThat(defaultException.message).isEqualTo("This is a test")
+    }
+}
+
+internal class TestException : Exception("This is a test") {
+    val testProp = "test"
+}
+
+internal class ExceptionChain: Action<Chain> {
+    override fun execute(t: Chain) {
+        t.all { ctx ->
+            val exceptionMapper = ctx.get(ExceptionHandlerMapper::class.java)
+
+            exceptionMapper.handle(ctx, TestException())
+        }
     }
 }
 

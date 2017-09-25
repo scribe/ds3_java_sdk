@@ -15,25 +15,49 @@
 
 package com.spectralogic.escapepod.ratpack
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableList
+import com.spectralogic.escapepod.httpservice.ExceptionHandlerMapper
 import com.spectralogic.escapepod.httpservice.HttpHandlerDeregistration
 import com.spectralogic.escapepod.httpservice.HttpRouter
 import com.spectralogic.escapepod.util.collections.toImmutableList
+import io.vavr.collection.HashMap
 import org.slf4j.LoggerFactory
 import ratpack.func.Action
 import ratpack.handling.Chain
+import ratpack.handling.Context
+
+const private val DEFAULT_ERROR_STATUS_CODE = 400
 
 internal class RatpackHttpRouter : HttpRouter, Action<Chain>{
-
     private companion object {
         private val LOG = LoggerFactory.getLogger(RatpackHttpRouter::class.java)
     }
 
     @Volatile
+    private var exceptionMap: HashMap<Class<out Throwable>, (Context, Throwable) -> Unit> = HashMap.empty()
+
+    @Volatile
     private var actionChains: ImmutableList<ActionChainRegistration> = ImmutableList.of()
 
+    override fun <T: Throwable> registerExceptionHandler(exceptionClass: Class<out T>, handler: (Context, T) -> Unit) {
+        if (exceptionMap.containsKey(exceptionClass)) {
+            throw Exception("Handler for exception $exceptionClass already exists")
+        }
+
+        exceptionMap = exceptionMap.put(exceptionClass) { ctx, t ->
+            handler.invoke(ctx, t as T)
+        }
+    }
+
     override fun execute(t: Chain) {
-        actionChains.forEach {t.prefix(it.prefix, it.actionChain)}
+        actionChains.forEach {
+            t.register {
+                it.add(ExceptionHandlerMapperImpl(exceptionMap))
+            }.prefix(it.prefix, it.actionChain)
+        }
     }
 
     override fun register(prefix: String, action: Action<Chain>): HttpHandlerDeregistration {
@@ -53,6 +77,19 @@ internal class RatpackHttpRouter : HttpRouter, Action<Chain>{
         }
     }
 }
+
+internal class ExceptionHandlerMapperImpl constructor(private val exceptionMap: HashMap<Class<out Throwable>, (Context, Throwable) -> Unit>): ExceptionHandlerMapper {
+    override fun handle(context: Context, throwable: Throwable) {
+        val handler = exceptionMap.getOrElse(throwable::class.java) { ctx, t ->
+            val objectMapper = ctx.get(ObjectMapper::class.java)
+            ctx.response.status(DEFAULT_ERROR_STATUS_CODE).send(objectMapper.writeValueAsString(DefaultException(t.localizedMessage, DEFAULT_ERROR_STATUS_CODE)))
+        }
+
+        handler(context, throwable)
+    }
+}
+
+internal data class DefaultException @JsonCreator constructor(@JsonProperty("message") val message: String, @JsonProperty("statusCode") val statusCode: Int)
 
 internal data class ActionChainRegistration(val prefix: String, val actionChain: Action<Chain>)
 
