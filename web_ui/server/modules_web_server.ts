@@ -9,8 +9,7 @@ import * as path from "path";
 const app = express();
 
 class ModuleDescriptor {
-    constructor(public name: string, public url: string) {
-    }
+    constructor(public name: string) { }
 }
 
 app.use('/', express.static(path.join(__dirname, '..', 'client')));
@@ -29,7 +28,7 @@ function getModuleDescriptors(): ModuleDescriptor[] {
 }
 
 const moduleDescriptors = [
-    new ModuleDescriptor('Search', 'search')
+    new ModuleDescriptor('Search')
 ];
 
 function getModuleByName(moduleName: string) : ModuleDescriptor {

@@ -13,6 +13,20 @@
  *  ****************************************************************************
  */
 
-include 'api', 'avidmamclient', 'localcache', 'hazelcast', 'restclientutils', 'util', 'gui', 'planner',
-  'runner', 'bpclient', 'scheduler', 'divaclient', 'flashnetclient', 'migrate', 'xoduspersistence', 'ratpack',
-  'httpservice', 'metadatasearch', 'deviceregistry', 'testutils', 'web_ui'
+package com.spectralogic.escapepod.ratpack
+
+import ratpack.func.Action
+import ratpack.handling.Chain
+import javax.inject.Inject
+
+internal class RootApiChain
+@Inject constructor(
+        private val ratpackHttpRouter: RatpackHttpRouter
+) : Action<Chain> {
+
+    override fun execute(chain: Chain) {
+        chain.all(TracerHandler())
+
+        ratpackHttpRouter.execute(chain)
+    }
+}

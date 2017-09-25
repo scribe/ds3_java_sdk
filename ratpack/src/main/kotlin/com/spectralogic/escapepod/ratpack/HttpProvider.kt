@@ -21,12 +21,13 @@ import com.google.inject.name.Named
 import com.spectralogic.escapepod.api.RequestContext
 import com.spectralogic.escapepod.httpservice.HttpService
 import com.spectralogic.escapepod.httpservice.HttpServiceProvider
+import com.spectralogic.escapepod.httpservice.WebUi
 import io.reactivex.Completable
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
 import ratpack.server.RatpackServer
 
-internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootHandler : RootHandler, private val objectMapper: ObjectMapper) : HttpServiceProvider {
+internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootApiChain: RootApiChain, private val objectMapper: ObjectMapper, private val webUi: WebUi) : HttpServiceProvider {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(HttpProvider::class.java)
@@ -55,7 +56,8 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
                 }
 
                 server.handlers {
-                    it.prefix("api", rootHandler)
+                    it.prefix("api", rootApiChain)
+                    it.all(webUi.slashHandler())
                 }
 
             }

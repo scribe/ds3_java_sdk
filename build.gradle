@@ -14,7 +14,7 @@
  */
 
 buildscript {
-    ext.kotlin_version = '1.1.4-3'
+    ext.kotlin_version = '1.1.50'
 
     repositories {
         maven {
@@ -166,6 +166,7 @@ project(":runner") {
         compile project(":metadatasearch")
         compile project(":ratpack")
         compile project(":migrate")
+	compile project(":web_ui")             
     }
 }
 
@@ -199,5 +200,12 @@ project(":deviceregistry") {
     dependencies {
         compile project(":api")
         compile project(":util")
+    }
+}
+
+project(":web_ui") {
+    dependencies {
+        compile project(":api")
+        compile project(":httpservice")
     }
 }
