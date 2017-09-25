@@ -166,7 +166,7 @@ project(":runner") {
         compile project(":metadatasearch")
         compile project(":ratpack")
         compile project(":migrate")
-	compile project(":web_ui")             
+        compile project(":web_ui")
     }
 }
 
