@@ -7,7 +7,6 @@ import com.spectralogic.escapepod.util.maxLong
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
-import io.reactivex.SingleEmitter
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.Executor
@@ -97,9 +96,11 @@ constructor(username: String, password: String, endpoint: String,
 
                     val res = jobsSoapClient.getProfiles(profiles, credentials)
 
-                    emitter.onSuccess(GetProfilesResponse(
-                            TransformUtils.profileTypeToGetProfileResult(res.results),
-                            TransformUtils.errorTypeToWsError(res.errors)))
+                    if (res.errors != null) {
+                        emitter.onError(TransformUtils.errorTypeToThroable(res.errors))
+                    }
+
+                    emitter.onSuccess(GetProfilesResponse(TransformUtils.profileTypeToGetProfileResult(res.results)))
                 } catch (t: Throwable) {
                     emitter.onError(t)
                 }
@@ -118,7 +119,11 @@ constructor(username: String, password: String, endpoint: String,
 
                     val res = jobsSoapClient.submitJobUsingProfile(submitJobUsingProfileType, credentials)
 
-                    emitter.onSuccess(JobResponse(interplayURI, res.jobURI, TransformUtils.errorTypeToWsError(res.errors)))
+                    if (res.errors != null) {
+                        emitter.onError(TransformUtils.errorTypeToThroable(res.errors))
+                    }
+
+                    emitter.onSuccess(JobResponse(interplayURI, res.jobURI))
                 } catch (t: Throwable) {
                     emitter.onError(t)
                 }
@@ -137,7 +142,11 @@ constructor(username: String, password: String, endpoint: String,
 
                     val res = jobsSoapClient.submitJobUsingProfile(submitJobUsingProfileType, credentials)
 
-                    emitter.onSuccess(JobResponse(interplayURI, res.jobURI, TransformUtils.errorTypeToWsError(res.errors)))
+                    if (res.errors != null) {
+                        emitter.onError(TransformUtils.errorTypeToThroable(res.errors))
+                    }
+
+                    emitter.onSuccess(JobResponse(interplayURI, res.jobURI))
                 } catch (t: Throwable) {
                     emitter.onError(t)
                 }
@@ -153,9 +162,12 @@ constructor(username: String, password: String, endpoint: String,
                     getJobStatusType.jobURIs = jobsURI
                     val res = jobsSoapClient.getJobStatus(getJobStatusType, credentials)
 
+                    if (res.errors != null) {
+                        emitter.onError(TransformUtils.errorTypeToThroable(res.errors))
+                    }
+
                     emitter.onSuccess(JobsStatusResponse(
-                            TransformUtils.jobStatusTypeToJobStatusResult(res.jobStatusTypes),
-                            TransformUtils.errorTypeToWsError(res.errors)))
+                            TransformUtils.jobStatusTypeToJobStatusResult(res.jobStatusTypes)))
                 } catch (t: Throwable) {
                     emitter.onError(t)
                 }
@@ -170,7 +182,7 @@ constructor(username: String, password: String, endpoint: String,
             } else {
                 0L
             }
-        }.maxLong().map { max -> GetMaxArchiveAssetSize(max, emptyList()) }
+        }.maxLong().map { max -> GetMaxArchiveAssetSize(max) }
     }
 
     override fun getWorkGroups(): Single<GetWorkGroupsResponse> {
@@ -180,10 +192,13 @@ constructor(username: String, password: String, endpoint: String,
                     val getConfigurationInformationType = GetConfigurationInformationType()
 
                     val res = infrastructureSoapClient.getConfigurationInformation(getConfigurationInformationType)
+
+                    if (res.errors != null) {
+                        emitter.onError(TransformUtils.errorTypeToThroable(res.errors))
+                    }
+
                     emitter.onSuccess(GetWorkGroupsResponse(
-                            TransformUtils.getConfigurationInformationTypeToGetWorkGroupResult(res.results),
-                            TransformUtils.errorTypeToWsError(res.errors)
-                    ))
+                            TransformUtils.getConfigurationInformationTypeToGetWorkGroupResult(res.results)))
                 } catch (t: Throwable) {
                     emitter.onError(t)
                 }

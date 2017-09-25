@@ -16,14 +16,6 @@ interface AvidPamWsClient {
     fun archive(profile: String, interplayURI: String): Single<JobResponse>
 }
 
-data class WsError(
-        @JsonProperty("message")
-        val message: String,
-
-        @JsonProperty("details")
-        val details: String
-)
-
 data class GetChildrenResult(
         @JsonProperty("interplayURI")
         val interplayURI: String,
@@ -49,10 +41,7 @@ data class GetChildrenResult(
 
 data class GetProfilesResponse(
         @JsonProperty("results")
-        val results: List<GetProfilesResult>,
-
-        @JsonProperty("errors")
-        val errors: List<WsError>
+        val results: List<GetProfilesResult>
 )
 
 data class GetProfilesResult(
@@ -68,18 +57,12 @@ data class JobResponse(
         val interplayURI: String,
 
         @JsonProperty("jobUri")
-        val jobURI: String,
-
-        @JsonProperty("errors")
-        val errors: List<WsError>
+        val jobURI: String
 )
 
 data class JobsStatusResponse(
         @JsonProperty("results")
-        val results: List<JobStatus>,
-
-        @JsonProperty("errors")
-        val errors: List<WsError>
+        val results: List<JobStatus>
 )
 
 data class JobStatus(
@@ -95,10 +78,7 @@ data class JobStatus(
 
 data class GetMaxArchiveAssetSize(
         @JsonProperty("Size")
-        val size: Long,
-
-        @JsonProperty("errors")
-        val errors: List<WsError>
+        val size: Long
 )
 
 data class GetFoldersResult(
@@ -108,10 +88,7 @@ data class GetFoldersResult(
 
 data class GetWorkGroupsResponse(
         @JsonProperty("results")
-        val results: List<GetWorkGroupsResult>,
-
-        @JsonProperty("errors")
-        val errors: List<WsError>
+        val results: List<GetWorkGroupsResult>
 )
 
 data class GetWorkGroupsResult(
