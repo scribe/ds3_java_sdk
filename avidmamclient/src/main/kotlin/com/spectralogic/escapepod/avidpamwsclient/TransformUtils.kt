@@ -7,7 +7,7 @@ import com.spectralogic.escapepod.api.JobStatus
 import com.spectralogic.escapepod.avidpamclient.soap.ws.*
 
 internal object TransformUtils {
-    fun errorTypeToThroable(errors: Array<ErrorType>?): Throwable {
+    fun errorTypeToThrowable(errors: Array<ErrorType>?): Throwable {
         if (errors == null) {
             return Throwable()
         }

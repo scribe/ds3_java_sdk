@@ -67,18 +67,17 @@ class PamMigrateProvider {
         return avidPamWsClient.getWorkGroups()
     }
 
-    fun restore(workGroup: String, profile:String, mobid: String): Single<JobResponse> {
+    fun restoreFile(workGroup: String, profile:String, mobid: String): Single<JobResponse> {
         val fileUri = "interplay://$workGroup?mobid=$mobid"
         LOG.info("Restoring '$fileUri' using '$profile' profile")
 
         return avidPamWsClient.restore(profile, fileUri)
     }
 
-    fun archive(workGroup: String, profile:String, mobid: String): Single<JobResponse> {
+    fun archiveFile(workGroup: String, profile:String, mobid: String): Single<JobResponse> {
         val fileUri = "interplay://$workGroup?mobid=$mobid"
         LOG.info("Archiving '$fileUri' using '$profile' profile")
 
         return avidPamWsClient.archive(profile, fileUri)
     }
-
 }

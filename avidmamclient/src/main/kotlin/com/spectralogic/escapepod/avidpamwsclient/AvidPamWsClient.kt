@@ -97,10 +97,10 @@ constructor(username: String, password: String, endpoint: String,
                     val res = jobsSoapClient.getProfiles(profiles, credentials)
 
                     if (res.errors != null) {
-                        emitter.onError(TransformUtils.errorTypeToThroable(res.errors))
+                        emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
+                    } else {
+                        emitter.onSuccess(GetProfilesResponse(TransformUtils.profileTypeToGetProfileResult(res.results)))
                     }
-
-                    emitter.onSuccess(GetProfilesResponse(TransformUtils.profileTypeToGetProfileResult(res.results)))
                 } catch (t: Throwable) {
                     emitter.onError(t)
                 }
@@ -120,10 +120,10 @@ constructor(username: String, password: String, endpoint: String,
                     val res = jobsSoapClient.submitJobUsingProfile(submitJobUsingProfileType, credentials)
 
                     if (res.errors != null) {
-                        emitter.onError(TransformUtils.errorTypeToThroable(res.errors))
+                        emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
+                    } else {
+                        emitter.onSuccess(JobResponse(interplayURI, res.jobURI))
                     }
-
-                    emitter.onSuccess(JobResponse(interplayURI, res.jobURI))
                 } catch (t: Throwable) {
                     emitter.onError(t)
                 }
@@ -143,10 +143,10 @@ constructor(username: String, password: String, endpoint: String,
                     val res = jobsSoapClient.submitJobUsingProfile(submitJobUsingProfileType, credentials)
 
                     if (res.errors != null) {
-                        emitter.onError(TransformUtils.errorTypeToThroable(res.errors))
+                        emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
+                    } else {
+                        emitter.onSuccess(JobResponse(interplayURI, res.jobURI))
                     }
-
-                    emitter.onSuccess(JobResponse(interplayURI, res.jobURI))
                 } catch (t: Throwable) {
                     emitter.onError(t)
                 }
@@ -163,11 +163,11 @@ constructor(username: String, password: String, endpoint: String,
                     val res = jobsSoapClient.getJobStatus(getJobStatusType, credentials)
 
                     if (res.errors != null) {
-                        emitter.onError(TransformUtils.errorTypeToThroable(res.errors))
+                        emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
+                    } else {
+                        emitter.onSuccess(JobsStatusResponse(
+                                TransformUtils.jobStatusTypeToJobStatusResult(res.jobStatusTypes)))
                     }
-
-                    emitter.onSuccess(JobsStatusResponse(
-                            TransformUtils.jobStatusTypeToJobStatusResult(res.jobStatusTypes)))
                 } catch (t: Throwable) {
                     emitter.onError(t)
                 }
@@ -194,11 +194,11 @@ constructor(username: String, password: String, endpoint: String,
                     val res = infrastructureSoapClient.getConfigurationInformation(getConfigurationInformationType)
 
                     if (res.errors != null) {
-                        emitter.onError(TransformUtils.errorTypeToThroable(res.errors))
+                        emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
+                    } else {
+                        emitter.onSuccess(GetWorkGroupsResponse(
+                                TransformUtils.getConfigurationInformationTypeToGetWorkGroupResult(res.results)))
                     }
-
-                    emitter.onSuccess(GetWorkGroupsResponse(
-                            TransformUtils.getConfigurationInformationTypeToGetWorkGroupResult(res.results)))
                 } catch (t: Throwable) {
                     emitter.onError(t)
                 }
@@ -207,7 +207,6 @@ constructor(username: String, password: String, endpoint: String,
     }
 
     private fun getChildrenHelper(interplayURI: String, emitter: ObservableEmitter<GetChildrenResult>) {
-
         val foldersQueue: Queue<String> = LinkedList<String>()
 
         val getChildrenType = GetChildrenType()
@@ -242,7 +241,7 @@ constructor(username: String, password: String, endpoint: String,
             }
         }
 
-        while (foldersQueue.isNotEmpty()) {
+        while (foldersQueue.isNotEmpty() && !emitter.isDisposed) {
             getChildrenType.interplayURI = foldersQueue.poll()
             res = assetsSoapClient.getChildren(getChildrenType, credentials)
 
@@ -273,7 +272,6 @@ constructor(username: String, password: String, endpoint: String,
     }
 
     private fun getFoldersHelper(interplayURI: String, emitter: ObservableEmitter<GetFoldersResult>) {
-
         val foldersQueue: Queue<String> = LinkedList<String>()
 
         val getChildrenType = GetChildrenType()
@@ -295,7 +293,7 @@ constructor(username: String, password: String, endpoint: String,
             emitter.onNext(GetFoldersResult(uri))
         }
 
-        while (foldersQueue.isNotEmpty()) {
+        while (foldersQueue.isNotEmpty() && !emitter.isDisposed) {
             getChildrenType.interplayURI = foldersQueue.poll()
             res = assetsSoapClient.getChildren(getChildrenType, credentials)
 

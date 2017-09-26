@@ -47,11 +47,19 @@ class PamMigrateHandlerChain
 
 
         chain.post("archive") { ctx ->
-            archive(ctx)
+            when {
+                "mobid" in ctx.request.queryParams -> archiveFile(ctx)
+                "folder" in ctx.request.queryParams -> archiveFolder(ctx)
+                else -> ctx.response.status(400).send("The request must have either mobid or folder set")
+            }
         }
 
-        chain.post("restore") { ctx ->
-            restore(ctx)
+        chain.post("restoreFile") { ctx ->
+            when {
+                "mobid" in ctx.request.queryParams -> restoreFile(ctx)
+                "folder" in ctx.request.queryParams -> restoreFolder(ctx)
+                else -> ctx.response.status(400).send("The request must have either mobid or folder set")
+            }
         }
     }
 
@@ -165,7 +173,7 @@ class PamMigrateHandlerChain
         }
     }
 
-    private fun restore(ctx: Context) {
+    private fun restoreFile(ctx: Context) {
         val workGroup = ctx.request.queryParams["workgroup"]
         val profile = ctx.request.queryParams["profile"]
         val mobid = ctx.request.queryParams["mobid"]
@@ -173,7 +181,7 @@ class PamMigrateHandlerChain
         if (workGroup.isNullOrEmpty() || profile.isNullOrEmpty() || mobid.isNullOrEmpty()) {
             ctx.response.status(400).send("'workgroup', 'profile' and 'mobid' cannot be empty")
         } else {
-            pamMigrateProvider.restore(workGroup!!, profile!!, mobid!!).observeOn(scheduler)
+            pamMigrateProvider.restoreFile(workGroup!!, profile!!, mobid!!).observeOn(scheduler)
                     .toPromise()
                     .onError { t ->
                         val message = "Encountered an error when restoring an asset: "
@@ -186,7 +194,7 @@ class PamMigrateHandlerChain
         }
     }
 
-    private fun archive(ctx: Context) {
+    private fun archiveFile(ctx: Context) {
         val workGroup = ctx.request.queryParams["workgroup"]
         val profile = ctx.request.queryParams["profile"]
         val mobid = ctx.request.queryParams["mobid"]
@@ -194,7 +202,7 @@ class PamMigrateHandlerChain
         if (workGroup.isNullOrEmpty() || profile.isNullOrEmpty() || mobid.isNullOrEmpty()) {
             ctx.response.status(400).send("'workgroup', 'profile' and 'mobid' cannot be empty")
         } else {
-            pamMigrateProvider.archive(workGroup!!, profile!!, mobid!!).observeOn(scheduler)
+            pamMigrateProvider.archiveFile(workGroup!!, profile!!, mobid!!).observeOn(scheduler)
                     .toPromise()
                     .onError { t ->
                         val message = "Encountered an error when archiving an asset: "
@@ -205,5 +213,13 @@ class PamMigrateHandlerChain
                         ctx.render(json(res))
                     }
         }
+    }
+
+    private fun archiveFolder(ctx: Context){
+        ctx.render(json("TBD"))
+    }
+
+    private fun restoreFolder(ctx: Context){
+        ctx.render(json("TBD"))
     }
 }
