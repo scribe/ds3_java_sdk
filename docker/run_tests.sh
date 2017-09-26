@@ -1,5 +1,5 @@
 #!/bin/bash
-echo Using Git Repo: ${GIT_REPO:="https://github.com/SpectraLogic/escape_pod.git"}
+echo Using Git Repo: ${GIT_REPO:="git@github.com:SpectraLogic/escape_pod.git"}
 echo Using Git Branch: ${GIT_BRANCH:="master"}
 
 echo DS3_ENDPOINT ${DS3_ENDPOINT}
