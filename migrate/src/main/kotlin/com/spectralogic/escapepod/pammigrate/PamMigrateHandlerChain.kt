@@ -54,7 +54,7 @@ class PamMigrateHandlerChain
             }
         }
 
-        chain.post("restoreFile") { ctx ->
+        chain.post("restore") { ctx ->
             when {
                 "mobid" in ctx.request.queryParams -> restoreFile(ctx)
                 "folder" in ctx.request.queryParams -> restoreFolder(ctx)
