@@ -62,6 +62,9 @@ class ClusterModule @Inject constructor(private val clusterServiceProvider: Clus
 
         return Completable.create { emitter ->
             deregistrationAggregator.addDeregistration(httpRouter.register("cluster", clusterHandler))
+            httpRouter.registerExceptionHandler(ClusterException::class.java) { ctx, t ->
+                ctx.response.status(400).send()
+            }
             emitter.onComplete()
         }.mergeWith(clusterServiceProvider.startService())
     }

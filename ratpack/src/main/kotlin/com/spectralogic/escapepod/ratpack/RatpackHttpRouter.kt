@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableList
+import com.spectralogic.escapepod.httpservice.DefaultException
 import com.spectralogic.escapepod.httpservice.ExceptionHandlerMapper
 import com.spectralogic.escapepod.httpservice.HttpHandlerDeregistration
 import com.spectralogic.escapepod.httpservice.HttpRouter
@@ -89,7 +90,6 @@ internal class ExceptionHandlerMapperImpl constructor(private val exceptionMap: 
     }
 }
 
-internal data class DefaultException @JsonCreator constructor(@JsonProperty("message") val message: String, @JsonProperty("statusCode") val statusCode: Int)
 
 internal data class ActionChainRegistration(val prefix: String, val actionChain: Action<Chain>)
 
