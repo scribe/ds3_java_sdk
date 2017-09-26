@@ -11,10 +11,10 @@ import ratpack.jackson.Jackson.json
 import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 
-class PamMigrateHandlerChain
+internal class PamMigrateHandlerChain
 @Inject constructor(workers: ExecutorService, private val pamMigrateProvider: PamMigrateProvider) : Action<Chain> {
 
-    companion object {
+    private companion object {
         private val LOG = LoggerFactory.getLogger(PamMigrateHandlerChain::class.java)
     }
 
@@ -80,7 +80,7 @@ class PamMigrateHandlerChain
         val workGroup = ctx.request.queryParams["workgroup"]
 
         if (workGroup.isNullOrEmpty()) {
-            ctx.response.status(400).send("'workgroup' cannot be empty")
+            ctx.response.status(400).send("'workgroup' must be set")
         } else {
             pamMigrateProvider.getMaxArchiveAssetSize(workGroup!!).observeOn(scheduler)
                     .toPromise()
@@ -99,7 +99,7 @@ class PamMigrateHandlerChain
         val workGroup = ctx.request.queryParams["workgroup"]
 
         if (workGroup.isNullOrEmpty()) {
-            ctx.response.status(400).send("'workgroup' cannot be empty")
+            ctx.response.status(400).send("'workgroup' must be set")
         } else {
             pamMigrateProvider.getFolders(workGroup!!).observeOn(scheduler)
                     .toPromise()
@@ -119,7 +119,7 @@ class PamMigrateHandlerChain
         val folder = ctx.request.queryParams["folder"]
 
         if (workGroup.isNullOrEmpty() || folder.isNullOrEmpty()) {
-            ctx.response.status(400).send("'workgroup' and 'folder' cannot be empty")
+            ctx.response.status(400).send("'workgroup' and 'folder' must be set")
         } else {
             pamMigrateProvider.getFiles(workGroup!!, folder!!).observeOn(scheduler)
                     .toPromise()
@@ -138,7 +138,7 @@ class PamMigrateHandlerChain
         val workGroup = ctx.request.queryParams["workgroup"]
 
         if (workGroup.isNullOrEmpty()) {
-            ctx.response.status(400).send("'workgroup' cannot be empty")
+            ctx.response.status(400).send("'workgroup' must be set")
         } else {
             pamMigrateProvider.getProfiles(workGroup!!).observeOn(scheduler)
                     .toPromise()
@@ -158,7 +158,7 @@ class PamMigrateHandlerChain
         val jobId = ctx.request.queryParams["jobid"]
 
         if (workGroup.isNullOrEmpty() || jobId.isNullOrEmpty()) {
-            ctx.response.status(400).send("'workgroup' and 'jobid' cannot be empty")
+            ctx.response.status(400).send("'workgroup' and 'jobid' must be set")
         } else {
             pamMigrateProvider.getJobStatus(workGroup!!, jobId!!).observeOn(scheduler)
                     .toPromise()
@@ -179,7 +179,7 @@ class PamMigrateHandlerChain
         val mobid = ctx.request.queryParams["mobid"]
 
         if (workGroup.isNullOrEmpty() || profile.isNullOrEmpty() || mobid.isNullOrEmpty()) {
-            ctx.response.status(400).send("'workgroup', 'profile' and 'mobid' cannot be empty")
+            ctx.response.status(400).send("'workgroup', 'profile' and 'mobid' must be set")
         } else {
             pamMigrateProvider.restoreFile(workGroup!!, profile!!, mobid!!).observeOn(scheduler)
                     .toPromise()
@@ -200,7 +200,7 @@ class PamMigrateHandlerChain
         val mobid = ctx.request.queryParams["mobid"]
 
         if (workGroup.isNullOrEmpty() || profile.isNullOrEmpty() || mobid.isNullOrEmpty()) {
-            ctx.response.status(400).send("'workgroup', 'profile' and 'mobid' cannot be empty")
+            ctx.response.status(400).send("'workgroup', 'profile' and 'mobid' must be set")
         } else {
             pamMigrateProvider.archiveFile(workGroup!!, profile!!, mobid!!).observeOn(scheduler)
                     .toPromise()

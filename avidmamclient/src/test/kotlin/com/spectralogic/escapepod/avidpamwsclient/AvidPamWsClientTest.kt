@@ -29,8 +29,6 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun getChildrenTest() {
-//        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1/sharon"
-//        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1"
         val interplayURI = "interplay://AvidWorkgroup/"
         avidPamWsClient.getChildren(interplayURI)
                 .doOnError { t ->
