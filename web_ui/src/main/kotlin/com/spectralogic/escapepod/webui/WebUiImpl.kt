@@ -18,17 +18,46 @@ package com.spectralogic.escapepod.webui
 import com.spectralogic.escapepod.httpservice.WebUi
 import ratpack.handling.Context
 import ratpack.handling.Handler
+import ratpack.server.BaseDir
+import java.nio.file.Paths
+import org.slf4j.LoggerFactory
 
 internal class WebUiImpl: WebUi {
     override fun slashHandler(): Handler {
-        return TestHandler()
+        return StaticFilesHandler()
     }
 }
 
+internal class StaticFilesHandler: Handler {
+    private companion object {
+        private val LOG = LoggerFactory.getLogger(StaticFilesHandler::class.java)
+        private val staticFilesLoaderPage = "index.html"
+    }
 
-internal class TestHandler: Handler {
+    private val staticFilesPath: String?
+
+    init {
+        staticFilesPath = findStaticFilesPath()
+
+        if (staticFilesPath == null) {
+            LOG.error("Could not locate web ui static files.")
+        }
+    }
+
+    private fun findStaticFilesPath(): String? {
+        val staticFilesFolderPath = BaseDir.find(staticFilesLoaderPage)
+
+        return staticFilesFolderPath?.toString()
+    }
+
     override fun handle(ctx: Context) {
-
-        ctx.response.status(200).send("I'm a test!")
+        if (staticFilesPath != null) {
+            val staticFileName = ctx.pathBinding.pastBinding
+            if (staticFileName.isNullOrBlank()) {
+                ctx.response.sendFile(Paths.get(staticFilesPath, staticFilesLoaderPage))
+            } else {
+                ctx.response.sendFile(Paths.get(staticFilesPath, staticFileName))
+            }
+        }
     }
 }

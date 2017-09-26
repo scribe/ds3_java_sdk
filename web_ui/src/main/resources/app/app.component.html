@@ -1,16 +1,14 @@
-
 <div class="app-content">
     <md-sidenav-layout class="background-primary-color white-text" fullscreen>
-        <!-- <md-sidenav #leftNavigationPane mode="side" opened="true"> -->
-        <md-sidenav #leftNavigationPane mode="side">
-            <md-toolbar>
+        <md-sidenav #leftNavigationPane class="background-primary-color white-text" mode="side">
+            <md-toolbar class="background-primary-color white-text">
                 <span>Modules</span>
                 <md-toolbar-row *ngFor="let module of modules">
                     <span><a routerLink="{{ module.url }}" routerLinkActive="active">{{ module.name }}</a></span>
                 </md-toolbar-row>
             </md-toolbar>
         </md-sidenav>
-        <md-toolbar>
+        <md-toolbar class="background-primary-color white-text">
             <button md-button style="margin-top: 15px" class="background-primary-color white-text" (click)="leftNavigationPane.toggle()">
                 <md-icon [fontIcon]="menu">menu</md-icon>
             </button>
