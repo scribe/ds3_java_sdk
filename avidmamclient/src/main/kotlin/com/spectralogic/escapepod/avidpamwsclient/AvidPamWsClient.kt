@@ -15,7 +15,7 @@ import java.util.concurrent.ForkJoinPool
 class AvidPamWsClient
 constructor(username: String, password: String, endpoint: String,
             private val executor: Executor = ForkJoinPool.commonPool()) : AvidPamWsClient {
-    companion object {
+    private companion object {
 
 
         private val LOG = LoggerFactory.getLogger(AvidPamWsClient::class.java)
