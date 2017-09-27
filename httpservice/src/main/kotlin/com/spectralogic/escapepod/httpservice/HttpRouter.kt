@@ -17,6 +17,7 @@ package com.spectralogic.escapepod.httpservice
 
 import ratpack.func.Action
 import ratpack.handling.Chain
+import ratpack.handling.Context
 
 /**
  * The HttpRouter is used to register RatPack handlers with the Http Module so that
@@ -24,6 +25,18 @@ import ratpack.handling.Chain
  */
 interface HttpRouter {
     fun register(prefix: String, action: Action<Chain>) : HttpHandlerDeregistration
+
+    /**
+     * This adds a new handler that will be used when the mapped exception is received in the normal error handling chain.
+     * A user of the HttpRouter can in their Action<Chain> handler, access the error handlers by getting the
+     * ExceptionHandlerMapper instance from the request context, and then passing the ExceptionHandlingMapper
+     * via a method reference to the RxJava doOnError handler.
+     */
+    fun <T: Throwable> registerExceptionHandler(exceptionClass: Class<out T>, handler: (Context, T) -> Unit)
+}
+
+interface ExceptionHandlerMapper {
+    fun handle(context: Context, throwable: Throwable)
 }
 
 /**

@@ -15,8 +15,10 @@
 
 package com.spectralogic.escapepod.cluster
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.AbstractModule
 import com.spectralogic.escapepod.api.*
+import com.spectralogic.escapepod.httpservice.DefaultException
 import com.spectralogic.escapepod.httpservice.HttpDeregistrationAggregator
 import com.spectralogic.escapepod.httpservice.HttpRouter
 import io.reactivex.Completable
@@ -62,6 +64,10 @@ class ClusterModule @Inject constructor(private val clusterServiceProvider: Clus
 
         return Completable.create { emitter ->
             deregistrationAggregator.addDeregistration(httpRouter.register("cluster", clusterHandler))
+            httpRouter.registerExceptionHandler(ClusterException::class.java) { ctx, t ->
+                val objectMapper = ctx.get(ObjectMapper::class.java)
+                ctx.response.status(400).send(objectMapper.writeValueAsBytes(DefaultException(t.message?: "Encountered an error when communicating with the cluster", 400)))
+            }
             emitter.onComplete()
         }.mergeWith(clusterServiceProvider.startService())
     }
