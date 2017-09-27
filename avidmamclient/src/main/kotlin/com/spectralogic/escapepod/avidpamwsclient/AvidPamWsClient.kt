@@ -57,7 +57,7 @@ constructor(username: String, password: String, endpoint: String,
         infrastructureSoapClient = infrastructureLocator.infrastructurePort
     }
 
-    override fun getChildren(interplayURI: String): Observable<GetChildrenResult> {
+    override fun getPamAssets(interplayURI: String): Observable<PamAssets> {
         return Observable.create { emitter ->
             executor.execute {
                 try {
@@ -70,7 +70,7 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun getFolders(interplayURI: String): Observable<GetFoldersResult> {
+    override fun getPamFolders(interplayURI: String): Observable<PamFolder> {
         return Observable.create { emitter ->
             executor.execute {
                 try {
@@ -83,8 +83,8 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun getProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean):
-            Single<GetProfilesResponse> {
+    override fun getPamProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean):
+            Single<PamProfiles> {
 
         return Single.create { emitter ->
             executor.execute {
@@ -99,7 +99,7 @@ constructor(username: String, password: String, endpoint: String,
                     if (res.errors != null) {
                         emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
                     } else {
-                        emitter.onSuccess(GetProfilesResponse(TransformUtils.profileTypeToGetProfileResult(res.results)))
+                        emitter.onSuccess(PamProfiles(TransformUtils.profileTypeToGetProfileResult(res.results)))
                     }
                 } catch (t: Throwable) {
                     emitter.onError(t)
@@ -108,7 +108,7 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun restore(profile: String, interplayURI: String): Single<JobResponse> {
+    override fun restorePamAsset(profile: String, interplayURI: String): Single<PamJob> {
         return Single.create { emitter ->
             executor.execute {
                 try {
@@ -122,7 +122,7 @@ constructor(username: String, password: String, endpoint: String,
                     if (res.errors != null) {
                         emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
                     } else {
-                        emitter.onSuccess(JobResponse(interplayURI, res.jobURI))
+                        emitter.onSuccess(PamJob(interplayURI, res.jobURI))
                     }
                 } catch (t: Throwable) {
                     emitter.onError(t)
@@ -131,7 +131,7 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun archive(profile: String, interplayURI: String): Single<JobResponse> {
+    override fun archivePamAsset(profile: String, interplayURI: String): Single<PamJob> {
         return Single.create { emitter ->
             executor.execute {
                 try {
@@ -145,7 +145,7 @@ constructor(username: String, password: String, endpoint: String,
                     if (res.errors != null) {
                         emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
                     } else {
-                        emitter.onSuccess(JobResponse(interplayURI, res.jobURI))
+                        emitter.onSuccess(PamJob(interplayURI, res.jobURI))
                     }
                 } catch (t: Throwable) {
                     emitter.onError(t)
@@ -154,7 +154,7 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun getJobsStatus(jobsURI: Array<String>): Single<JobsStatusResponse> {
+    override fun getPamJobsStatus(jobsURI: Array<String>): Single<PamJobsStatus> {
         return Single.create { emitter ->
             executor.execute {
                 try {
@@ -165,7 +165,7 @@ constructor(username: String, password: String, endpoint: String,
                     if (res.errors != null) {
                         emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
                     } else {
-                        emitter.onSuccess(JobsStatusResponse(
+                        emitter.onSuccess(PamJobsStatus(
                                 TransformUtils.jobStatusTypeToJobStatusResult(res.jobStatusTypes)))
                     }
                 } catch (t: Throwable) {
@@ -175,17 +175,17 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun getMaxArchiveAssetSize(interplayURI: String): Single<GetMaxArchiveAssetSize> {
-        return getChildren(interplayURI).map { it ->
+    override fun getPamMaxArchiveAssetSize(interplayURI: String): Single<PamMaxArchiveAssetSize> {
+        return getPamAssets(interplayURI).map { it ->
             if (it.mediaSize != "N/A") {
                 it.mediaSize.toLong()
             } else {
                 0L
             }
-        }.maxLong().map { max -> GetMaxArchiveAssetSize(max) }
+        }.maxLong().map { max -> PamMaxArchiveAssetSize(max) }
     }
 
-    override fun getWorkGroups(): Single<GetWorkGroupsResponse> {
+    override fun getPamWorkGroups(): Single<PamWorkGroups> {
         return Single.create { emitter ->
             executor.execute {
                 try {
@@ -196,7 +196,7 @@ constructor(username: String, password: String, endpoint: String,
                     if (res.errors != null) {
                         emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
                     } else {
-                        emitter.onSuccess(GetWorkGroupsResponse(
+                        emitter.onSuccess(PamWorkGroups(
                                 TransformUtils.getConfigurationInformationTypeToGetWorkGroupResult(res.results)))
                     }
                 } catch (t: Throwable) {
@@ -206,7 +206,7 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    private fun getChildrenHelper(interplayURI: String, emitter: ObservableEmitter<GetChildrenResult>) {
+    private fun getChildrenHelper(interplayURI: String, emitter: ObservableEmitter<PamAssets>) {
         val foldersQueue: Queue<String> = LinkedList<String>()
 
         val getChildrenType = GetChildrenType()
@@ -229,7 +229,7 @@ constructor(username: String, password: String, endpoint: String,
             if (attributeMap.getOrDefault("Path", "N/A").endsWith("/")) {
                 foldersQueue.add(uri)
             } else {
-                emitter.onNext(GetChildrenResult(
+                emitter.onNext(PamAssets(
                         uri,
                         attributeMap.getOrDefault("MOB ID", "N/A"),
                         attributeMap.getOrDefault("Path", "N/A"),
@@ -257,7 +257,7 @@ constructor(username: String, password: String, endpoint: String,
                 if (attributeMap.getOrDefault("Path", "N/A").endsWith("/")) {
                     foldersQueue.add(uri)
                 } else {
-                    emitter.onNext(GetChildrenResult(
+                    emitter.onNext(PamAssets(
                             uri,
                             attributeMap.getOrDefault("MOB ID", "N/A"),
                             attributeMap.getOrDefault("Path", "N/A"),
@@ -271,7 +271,7 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    private fun getFoldersHelper(interplayURI: String, emitter: ObservableEmitter<GetFoldersResult>) {
+    private fun getFoldersHelper(interplayURI: String, emitter: ObservableEmitter<PamFolder>) {
         val foldersQueue: Queue<String> = LinkedList<String>()
 
         val getChildrenType = GetChildrenType()
@@ -290,7 +290,7 @@ constructor(username: String, password: String, endpoint: String,
         for (r in res.results) {
             val uri = r.interplayURI
             foldersQueue.add(uri)
-            emitter.onNext(GetFoldersResult(uri))
+            emitter.onNext(PamFolder(uri))
         }
 
         while (foldersQueue.isNotEmpty() && !emitter.isDisposed) {
@@ -305,7 +305,7 @@ constructor(username: String, password: String, endpoint: String,
             for (r in res.results) {
                 val uri = r.interplayURI
                 foldersQueue.add(uri)
-                emitter.onNext(GetFoldersResult(uri))
+                emitter.onNext(PamFolder(uri))
             }
         }
     }

@@ -30,7 +30,7 @@ internal class AvidPamWsClientTest {
     @Test
     fun getChildrenTest() {
         val interplayURI = "interplay://AvidWorkgroup/"
-        avidPamWsClient.getChildren(interplayURI)
+        avidPamWsClient.getPamAssets(interplayURI)
                 .doOnError { t ->
                     println(t)
                 }
@@ -150,7 +150,7 @@ internal class AvidPamWsClientTest {
         val services = arrayOf("com.avid.dms.restore", "com.avid.dms.archive")
         val showParameters = true
 
-        avidPamWsClient.getProfiles(workgroupURI, services, showParameters)
+        avidPamWsClient.getPamProfiles(workgroupURI, services, showParameters)
                 .doOnError { t ->
                     println(t)
                 }
@@ -234,7 +234,7 @@ internal class AvidPamWsClientTest {
         val interplayURI =
                 "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49938e8335f83-060e2b347f7f-2a80"
 
-        avidPamWsClient.restore(profile, interplayURI)
+        avidPamWsClient.restorePamAsset(profile, interplayURI)
                 .doOnError { t ->
                     println(t)
                 }
@@ -256,7 +256,7 @@ internal class AvidPamWsClientTest {
         val interplayURI =
                 "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49938e8335f83-060e2b347f7f-2a80"
 
-        avidPamWsClient.archive(profile, interplayURI)
+        avidPamWsClient.archivePamAsset(profile, interplayURI)
                 .doOnError { t ->
                     println(t)
                 }
@@ -277,7 +277,7 @@ internal class AvidPamWsClientTest {
         val jobURIs = arrayOf(
                 "interplay://AvidWorkgroup/DMS?jobid=1505159604061.1")
 
-        avidPamWsClient.getJobsStatus(jobURIs)
+        avidPamWsClient.getPamJobsStatus(jobURIs)
                 .doOnError { t ->
                     println(t)
                 }

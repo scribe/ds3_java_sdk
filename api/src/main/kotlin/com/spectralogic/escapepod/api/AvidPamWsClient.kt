@@ -4,18 +4,18 @@ import io.reactivex.Observable
 import io.reactivex.Single
 
 interface AvidPamWsClient {
-    fun getChildren(interplayURI: String): Observable<GetChildrenResult>
-    fun getFolders(interplayURI: String): Observable<GetFoldersResult>
-    fun getProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean): Single<GetProfilesResponse>
-    fun getJobsStatus(jobsURI: Array<String>): Single<JobsStatusResponse>
-    fun getMaxArchiveAssetSize(interplayURI: String): Single<GetMaxArchiveAssetSize>
-    fun getWorkGroups(): Single<GetWorkGroupsResponse>
+    fun getPamAssets(interplayURI: String): Observable<PamAssets>
+    fun getPamFolders(interplayURI: String): Observable<PamFolder>
+    fun getPamProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean): Single<PamProfiles>
+    fun getPamJobsStatus(jobsURI: Array<String>): Single<PamJobsStatus>
+    fun getPamMaxArchiveAssetSize(interplayURI: String): Single<PamMaxArchiveAssetSize>
+    fun getPamWorkGroups(): Single<PamWorkGroups>
 
-    fun restore(profile: String, interplayURI: String): Single<JobResponse>
-    fun archive(profile: String, interplayURI: String): Single<JobResponse>
+    fun restorePamAsset(profile: String, interplayURI: String): Single<PamJob>
+    fun archivePamAsset(profile: String, interplayURI: String): Single<PamJob>
 }
 
-data class GetChildrenResult(
+data class PamAssets(
         val interplayURI: String,
         val mobid: String,
         val path: String,
@@ -25,43 +25,43 @@ data class GetChildrenResult(
         val type: String
 )
 
-data class GetProfilesResponse(
-        val results: List<GetProfilesResult>
+data class PamProfiles(
+        val results: List<PamProfile>
 )
 
-data class GetProfilesResult(
+data class PamProfile(
         val name: String,
         val service: String
 )
 
-data class JobResponse(
+data class PamJob(
         val interplayURI: String,
         val jobURI: String
 )
 
-data class JobsStatusResponse(
-        val results: List<JobStatus>
+data class PamJobsStatus(
+        val results: List<PamJobStatus>
 )
 
-data class JobStatus(
+data class PamJobStatus(
         val jobURI: String,
         val jobStatus: String,
         val percentComplete: Int?
 )
 
-data class GetMaxArchiveAssetSize(
+data class PamMaxArchiveAssetSize(
         val size: Long
 )
 
-data class GetFoldersResult(
+data class PamFolder(
         val name: String
 )
 
-data class GetWorkGroupsResponse(
-        val results: List<GetWorkGroupsResult>
+data class PamWorkGroups(
+        val results: List<PamWorkGroup>
 )
 
-data class GetWorkGroupsResult(
+data class PamWorkGroup(
         val workgroupName: String,
         val interplayEngineHost: String,
         val archiveEngineHost: String,

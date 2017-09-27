@@ -1,9 +1,9 @@
 package com.spectralogic.escapepod.avidpamwsclient
 
 import com.google.common.collect.ImmutableMap
-import com.spectralogic.escapepod.api.GetProfilesResult
-import com.spectralogic.escapepod.api.GetWorkGroupsResult
-import com.spectralogic.escapepod.api.JobStatus
+import com.spectralogic.escapepod.api.PamProfile
+import com.spectralogic.escapepod.api.PamWorkGroup
+import com.spectralogic.escapepod.api.PamJobStatus
 import com.spectralogic.escapepod.avidpamclient.soap.ws.*
 
 internal object TransformUtils {
@@ -11,23 +11,23 @@ internal object TransformUtils {
         return Throwable(errors.joinToString("\n") { "${it.message}, ${it.details}"})
     }
 
-    fun profileTypeToGetProfileResult(results: Array<ProfileType>?): List<GetProfilesResult> {
+    fun profileTypeToGetProfileResult(results: Array<ProfileType>?): List<PamProfile> {
         if (results == null) {
             return emptyList()
         }
 
         return results.map { it ->
-            GetProfilesResult(it.name, it.service)
+            PamProfile(it.name, it.service)
         }.toList()
     }
 
-    fun jobStatusTypeToJobStatusResult(results: Array<JobStatusType>?): List<JobStatus> {
+    fun jobStatusTypeToJobStatusResult(results: Array<JobStatusType>?): List<PamJobStatus> {
         if (results == null) {
             return emptyList()
         }
 
         return results.map { it ->
-            JobStatus(it.jobURI, it.status, it.percentComplete)
+            PamJobStatus(it.jobURI, it.status, it.percentComplete)
         }.toList()
     }
 
@@ -40,13 +40,13 @@ internal object TransformUtils {
         return ImmutableMap.copyOf(attributes.associateBy({ it.name }, { it._value }))
     }
 
-    fun getConfigurationInformationTypeToGetWorkGroupResult(results: Array<WorkgroupType>?): List<GetWorkGroupsResult> {
+    fun getConfigurationInformationTypeToGetWorkGroupResult(results: Array<WorkgroupType>?): List<PamWorkGroup> {
         if (results == null) {
             return emptyList()
         }
 
         return results.map { it->
-            GetWorkGroupsResult(it.workgroupName, it.interplayEngineHost, it.archiveEngineHost, it.mediaServicesEngineHost)
+            PamWorkGroup(it.workgroupName, it.interplayEngineHost, it.archiveEngineHost, it.mediaServicesEngineHost)
         }.toList()
     }
 }
