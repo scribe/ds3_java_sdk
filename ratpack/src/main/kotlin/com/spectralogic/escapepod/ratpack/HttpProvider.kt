@@ -26,11 +26,14 @@ import io.reactivex.Completable
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
 import ratpack.server.RatpackServer
+import ratpack.server.ServerConfigBuilder
+import java.io.File
 
 internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootApiChain: RootApiChain, private val objectMapper: ObjectMapper, private val webUi: WebUi) : HttpServiceProvider {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(HttpProvider::class.java)
+        private val staticFilesLoaderPage = "index.html"
     }
 
     var server : RatpackServer? = null
@@ -53,6 +56,7 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
 
                 server.serverConfig {
                     it.port(port)
+                    maybeSetStaticFileBaseFolder(it)
                 }
 
                 server.handlers {
@@ -62,6 +66,15 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
 
             }
             emitter.onComplete()
+        }
+    }
+
+    private fun maybeSetStaticFileBaseFolder(serverConfigBuilder: ServerConfigBuilder) {
+        try {
+            val webUiResources = File(webUi.javaClass.classLoader.getResource(staticFilesLoaderPage).path).parentFile
+            serverConfigBuilder.baseDir(webUiResources)
+        } catch (throwable: Throwable) {
+            LOG.error("Could not find folder with web UI files.", throwable)
         }
     }
 
