@@ -27,8 +27,8 @@ internal object ReactivexAdapters {
             } catch (ex: ResponseException) {
                 emitter.onError(MetadataException(ex.response.statusLine.statusCode,
                         ex.response.statusLine.reasonPhrase, ex))
-            } catch (ex: Exception) {
-                emitter.onError(ex)
+            } catch (t: Throwable) {
+                emitter.onError(t)
             }
         }
     }
@@ -40,8 +40,8 @@ internal object ReactivexAdapters {
             } catch (ex: ResponseException) {
                 emitter.onError(MetadataException(ex.response.statusLine.statusCode,
                         ex.response.statusLine.reasonPhrase, ex))
-            } catch (ex: Exception) {
-                emitter.onError(ex)
+            } catch (t: Throwable) {
+                emitter.onError(t)
             }
         }
     }
@@ -53,8 +53,8 @@ internal object ReactivexAdapters {
             } catch (ex: ResponseException) {
                 emitter.onError(MetadataException(ex.response.statusLine.statusCode,
                         ex.response.statusLine.reasonPhrase, ex))
-            } catch (ex: Exception) {
-                emitter.onError(ex)
+            } catch (t: Throwable) {
+                emitter.onError(t)
             }
         }
     }
