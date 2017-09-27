@@ -15,6 +15,7 @@
 
 package com.spectralogic.escapepod.ratpack
 
+import com.spectralogic.escapepod.httpservice.DefaultException
 import com.spectralogic.escapepod.httpservice.ExceptionHandlerMapper
 import com.spectralogic.escapepod.util.json.Mapper
 import org.assertj.core.api.Assertions.assertThat
