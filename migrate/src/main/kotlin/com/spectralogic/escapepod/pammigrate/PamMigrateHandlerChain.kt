@@ -48,19 +48,11 @@ internal class PamMigrateHandlerChain
 
 
         chain.post("archive") { ctx ->
-            when {
-                "mobid" in ctx.request.queryParams -> archiveFile(ctx)
-                "folder" in ctx.request.queryParams -> archiveFolder(ctx)
-                else -> ctx.response.status(400).send("The request must have either mobid or folder set")
-            }
+            archiveFile(ctx)
         }
 
         chain.post("restore") { ctx ->
-            when {
-                "mobid" in ctx.request.queryParams -> restoreFile(ctx)
-                "folder" in ctx.request.queryParams -> restoreFolder(ctx)
-                else -> ctx.response.status(400).send("The request must have either mobid or folder set")
-            }
+            restoreFile(ctx)
         }
     }
 
@@ -214,13 +206,5 @@ internal class PamMigrateHandlerChain
                         ctx.render(json(res))
                     }
         }
-    }
-
-    private fun archiveFolder(ctx: Context){
-        ctx.render(json("TBD"))
-    }
-
-    private fun restoreFolder(ctx: Context){
-        ctx.render(json("TBD"))
     }
 }
