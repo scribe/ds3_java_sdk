@@ -15,7 +15,9 @@
 
 package com.spectralogic.escapepod.httpservice
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
+import ratpack.handling.Context
 
-data class DefaultException @JsonCreator constructor(@JsonProperty("message") val message: String, @JsonProperty("statusCode") val statusCode: Int)
+fun Context.handleError(throwable: Throwable) {
+    val exceptionMapper = this.get(ExceptionHandlerMapper::class.java)
+    exceptionMapper.handle(this, throwable)
+}

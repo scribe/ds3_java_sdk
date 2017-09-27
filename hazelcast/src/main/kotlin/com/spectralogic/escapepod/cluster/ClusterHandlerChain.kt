@@ -18,7 +18,7 @@ package com.spectralogic.escapepod.cluster
 import com.spectralogic.escapepod.api.ClusterService
 import com.spectralogic.escapepod.api.ClusterServiceProvider
 import com.spectralogic.escapepod.api.RequestContext
-import com.spectralogic.escapepod.httpservice.ExceptionHandlerMapper
+import com.spectralogic.escapepod.httpservice.handleError
 import com.spectralogic.escapepod.httpservice.toPromise
 
 import io.reactivex.Scheduler
@@ -42,7 +42,6 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
 
         chain.get("members") { ctx ->
 
-            val exceptionMapper = ctx.get(ExceptionHandlerMapper::class.java)
 
             clusterServiceProvider.getService(ctx.get(RequestContext::class.java))
                     .observeOn(scheduler)
@@ -50,7 +49,7 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
                     .toPromise()
                     .onError {
                         LOG.error("Failed to get cluster members", it)
-                        exceptionMapper.handle(ctx, it)
+                        ctx.handleError(it)
                     }
                     .then { clusterList ->
                         ctx.render(clusterList.joinToString(", ") { it.ip + ":" + it.port })
@@ -62,16 +61,13 @@ class ClusterHandlerChain @Inject constructor(workers : ExecutorService, private
             val requestContext = ctx.get(RequestContext::class.java)
 
             it.get { ctx ->
-
-                val exceptionMapper = ctx.get(ExceptionHandlerMapper::class.java)
-
                 clusterServiceProvider.getService(requestContext)
                         .observeOn(scheduler)
                         .flatMap(ClusterService::name)
                         .toPromise()
                         .onError { t ->
                             LOG.error("Failed to get cluster name", t)
-                            exceptionMapper.handle(ctx, t)
+                            ctx.handleError(t)
                         }
                         .then { name ->
                             ctx.render(name)
