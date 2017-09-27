@@ -184,6 +184,7 @@ project(":metadatasearch") {
 project(":httpservice") {
     dependencies {
         compile project(":api")
+        compile project(":util")
     }
 }
 
