@@ -1,33 +1,26 @@
 /**
- * Talk to the web server from whence we got served and return a list of module descriptors used
- * to populate a navigation menu.
+ * Build a collection of descriptors that can be used to build a navigation menu.
  */
 
-import { Http } from "@angular/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/operator/toArray';
+import { Router } from "@angular/router";
 
 @Injectable()
 export class ModuleService {
-    constructor(private http : Http) { }
+    private moduleDescriptors: Array< { name: string, url: string } > = [];
 
-    /**
-     * Return an observable array used to map a string we will display in a navigation menu to the
-     * corresponding router link by making an http request to the server which served up the landing
-     * page.
-     * @returns {Observable<Array<{name: any; url: string}>>}
-     */
-    getModules() : Observable<Array< { name: any, url: string} >> {
-        return this.http.get('/modules')
-            .flatMap(httpResponse => httpResponse.json())
-            .map(httpResponseJson => { return { name: httpResponseJson.name, url: this.routerLinkFromModuleName(httpResponseJson.name) } })
-            .toArray()
+    constructor(private router: Router) {
+        router.config.forEach(route => {
+            this.moduleDescriptors.push( { name: this.routerPathToNavigationString(route.path), url: route.path } );
+        });
     }
 
-    private routerLinkFromModuleName(moduleName: string) : string {
-        return moduleName.toLowerCase();
+    private routerPathToNavigationString(routerPath: string) : string {
+        return routerPath.charAt(0).toUpperCase() + routerPath.slice(1);
+    }
+
+    getModules() : Observable<Array< { name: any, url: string} >> {
+        return Observable.of(this.moduleDescriptors);
     }
 }

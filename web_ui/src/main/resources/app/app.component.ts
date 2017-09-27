@@ -21,7 +21,7 @@ export class AppComponent {
      * for that instance of the service.  A module descriptor is a json payload that has the name you
      * want displayed in the navigation menu and a router URL that holds the content for a named module.
      */
-    modules: Array<string>;
+    modules: Array< { name: string, url: string } >;
 
     constructor(private moduleService : ModuleService) {
         this.getModuleDescriptors();
@@ -31,12 +31,6 @@ export class AppComponent {
         this.moduleService.getModules().subscribe(
             modules => {
                 this.modules = modules;
-            },
-            err => {
-                console.log("Can't get module list.  Error code: %s, URL: %s", err.status, err.url);
-            },
-            () => {
-                console.log("Got module list.");
             }
         );
     }
