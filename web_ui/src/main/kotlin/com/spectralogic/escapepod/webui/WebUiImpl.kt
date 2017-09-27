@@ -37,7 +37,6 @@ internal class StaticFilesHandler: Handler {
         private val ERROR_PAGE_TEXT_COLOR = "white"
         private val ERROR_PAGE_TITLE = "Error page"
         private val LANDING_PAGE_NOT_FOUND_ERROR_TEXT = "We cannot locate our application page.  Please accept our apologies."
-
     }
 
     private val staticFilesPath: String?
