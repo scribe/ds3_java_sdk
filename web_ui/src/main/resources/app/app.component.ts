@@ -1,12 +1,13 @@
 /**
  * This is the component that defines the application -- the landing page.  It populates a navigation
- * menu by contacting a web servoce that tells us which modules to load, where a module consists of a
+ * menu by contacting a web service that tells us which modules to load, where a module consists of a
  * name used for a displayed link and a url in the routing table that corresponds to the component used
  * as the presentation for a named module.
  */
 
-import { Component } from "@angular/core";
-import { ModuleService } from "./module-service/module-service";
+import { Component } from '@angular/core';
+import { ModuleService } from './module-service/module-service';
+import { ModuleDescriptor } from './module-service/module-descriptor';
 
 @Component({
     selector: 'app-root',
@@ -21,7 +22,7 @@ export class AppComponent {
      * for that instance of the service.  A module descriptor is a json payload that has the name you
      * want displayed in the navigation menu and a router URL that holds the content for a named module.
      */
-    modules: Array< { name: string, url: string } >;
+    modules: Array<ModuleDescriptor>;
 
     constructor(private moduleService : ModuleService) {
         this.getModuleDescriptors();

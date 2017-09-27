@@ -2,17 +2,18 @@
  * Build a collection of descriptors that can be used to build a navigation menu.
  */
 
-import { Injectable } from "@angular/core";
-import { Observable } from "rxjs/Observable";
-import { Router } from "@angular/router";
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
+import { Router } from '@angular/router';
+import { ModuleDescriptor } from './module-descriptor'
 
 @Injectable()
 export class ModuleService {
-    private moduleDescriptors: Array< { name: string, url: string } > = [];
+    private moduleDescriptors: Array<ModuleDescriptor> = [];
 
     constructor(private router: Router) {
         router.config.forEach(route => {
-            this.moduleDescriptors.push( { name: this.routerPathToNavigationString(route.path), url: route.path } );
+            this.moduleDescriptors.push(new ModuleDescriptor(this.routerPathToNavigationString(route.path), route.path));
         });
     }
 
@@ -20,7 +21,7 @@ export class ModuleService {
         return routerPath.charAt(0).toUpperCase() + routerPath.slice(1);
     }
 
-    getModules() : Observable<Array< { name: any, url: string} >> {
+    getModules() : Observable<Array<ModuleDescriptor>> {
         return Observable.of(this.moduleDescriptors);
     }
 }
