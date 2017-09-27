@@ -1,5 +1,6 @@
 package com.spectralogic.escapepod.pammigrate
 
+import com.spectralogic.escapepod.httpservice.handleError
 import com.spectralogic.escapepod.httpservice.toPromise
 import io.reactivex.Scheduler
 import io.reactivex.schedulers.Schedulers
@@ -69,7 +70,7 @@ internal class PamMigrateHandlerChain
                 .onError { t ->
                     val message = "Encountered an error with getting all the work groups: "
                     LOG.error(message, t)
-                    ctx.response.status(400).send(message + t.message)
+                    ctx.handleError(t)
                 }
                 .then { res ->
                     ctx.render(json(res))
@@ -87,7 +88,7 @@ internal class PamMigrateHandlerChain
                     .onError { t ->
                         val message = "Encountered an error with getting the max archive asset size: "
                         LOG.error(message, t)
-                        ctx.response.status(400).send(message + t.message)
+                        ctx.handleError(t)
                     }
                     .then { res ->
                         ctx.render(json(res))
@@ -106,7 +107,7 @@ internal class PamMigrateHandlerChain
                     .onError { t ->
                         val message = "Encountered an error with getting folders: "
                         LOG.error(message, t)
-                        ctx.response.status(400).send(message + t.message)
+                        ctx.handleError(t)
                     }
                     .then { res ->
                         ctx.render(json(res))
@@ -126,7 +127,7 @@ internal class PamMigrateHandlerChain
                     .onError { t ->
                         val message = "Encountered an error with getting files: "
                         LOG.error(message, t)
-                        ctx.response.status(400).send(message + t.message)
+                        ctx.handleError(t)
                     }
                     .then { res ->
                         ctx.render(json(res))
@@ -145,7 +146,7 @@ internal class PamMigrateHandlerChain
                     .onError { t ->
                         val message = "Encountered an error with getting the profiles: "
                         LOG.error(message, t)
-                        ctx.response.status(400).send(message + t.message)
+                        ctx.handleError(t)
                     }
                     .then { res ->
                         ctx.render(json(res))
@@ -165,7 +166,7 @@ internal class PamMigrateHandlerChain
                     .onError { t ->
                         val message = "Encountered an error when getting job status: "
                         LOG.error(message, t)
-                        ctx.response.status(400).send(message + t.message)
+                        ctx.handleError(t)
                     }
                     .then { res ->
                         ctx.render(json(res))
@@ -186,7 +187,7 @@ internal class PamMigrateHandlerChain
                     .onError { t ->
                         val message = "Encountered an error when restoring an asset: "
                         LOG.error(message, t)
-                        ctx.response.status(400).send(message + t.message)
+                        ctx.handleError(t)
                     }
                     .then { res ->
                         ctx.render(json(res))
@@ -207,7 +208,7 @@ internal class PamMigrateHandlerChain
                     .onError { t ->
                         val message = "Encountered an error when archiving an asset: "
                         LOG.error(message, t)
-                        ctx.response.status(400).send(message + t.message)
+                        ctx.handleError(t)
                     }
                     .then { res ->
                         ctx.render(json(res))
