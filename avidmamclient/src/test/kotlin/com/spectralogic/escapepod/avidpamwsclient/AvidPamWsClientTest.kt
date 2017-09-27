@@ -1,6 +1,5 @@
 package com.spectralogic.escapepod.avidpamwsclient
 
-import com.spectralogic.escapepod.util.ifNotNull
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
@@ -30,24 +29,16 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun getChildrenTest() {
-        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1/sharon"
-        val res = avidPamWsClient.getChildren(interplayURI).blockingGet()
-
-        if (res.errors.any()) {
-            for ((interplayUri, message, details) in res.errors) {
-                println("$interplayUri, $message, $details")
-            }
-        }
-
-        if (res.results.any()) {
-            for (r in res.results) {
-                println("interplayURI = $r.interplayURI")
-                for ((key, value) in r.attributes) {
-                    println("Attribute = ($key, $value)")
+        val interplayURI = "interplay://AvidWorkgroup/"
+        avidPamWsClient.getPamAssets(interplayURI)
+                .doOnError { t ->
+                    println(t)
                 }
-                println("")
-            }
-        }
+                .doOnNext { it ->
+                    println("${it.interplayURI}, ${it.displayName}, ${it.mobid}, ${it.path}, ${it.mediaSize}, ${it.mediaStatus}, ${it.type}")
+                }
+                .blockingSubscribe()
+
 
         /**
          * Output:
@@ -159,25 +150,17 @@ internal class AvidPamWsClientTest {
         val services = arrayOf("com.avid.dms.restore", "com.avid.dms.archive")
         val showParameters = true
 
-        val res = avidPamWsClient.getProfiles(workgroupURI, services, showParameters).blockingGet()
-
-        if (res.errors.any()) {
-            for ((interplayURI, message, details) in res.errors) {
-                println("$interplayURI, $message, $details")
-            }
-        }
-
-        if (res.results.any()) {
-            for ((name, service, parameters) in res.results) {
-                println("Name = $name ; Service = $service")
-                parameters.ifNotNull {
-                    for ((key, value) in it) {
-                        println("Param = ($key, $value)")
+        avidPamWsClient.getPamProfiles(workgroupURI, services, showParameters)
+                .doOnError { t ->
+                    println(t)
+                }
+                .doOnSuccess { (results) ->
+                    for ((name, service) in results) {
+                        println("Name = $name ; Service = $service")
                     }
                 }
-                println("")
-            }
-        }
+                .blockingGet()
+
 
         /**
          * Output:
@@ -251,17 +234,15 @@ internal class AvidPamWsClientTest {
         val interplayURI =
                 "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49938e8335f83-060e2b347f7f-2a80"
 
-        val res = avidPamWsClient.restore(profile, interplayURI).blockingGet()
+        avidPamWsClient.restorePamAsset(profile, interplayURI)
+                .doOnError { t ->
+                    println(t)
+                }
+                .doOnSuccess { res ->
+                    println("${res.interplayURI}, ${res.jobURI}")
+                }
+                .blockingGet()
 
-        if (res.errors.any()) {
-            for ((interplayUri, message, details) in res.errors) {
-                println("$interplayUri, $message, $details")
-            }
-        }
-
-        res.jobURI.ifNotNull {
-            println("jobURI = $it")
-        }
 
         /**
          * Output example:
@@ -275,17 +256,15 @@ internal class AvidPamWsClientTest {
         val interplayURI =
                 "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49938e8335f83-060e2b347f7f-2a80"
 
-        val res = avidPamWsClient.archive(profile, interplayURI).blockingGet()
+        avidPamWsClient.archivePamAsset(profile, interplayURI)
+                .doOnError { t ->
+                    println(t)
+                }
+                .doOnSuccess { res ->
+                    println("${res.interplayURI}, ${res.jobURI}")
+                }
+                .blockingGet()
 
-        if (res.errors.any()) {
-            for ((interplayUri, message, details) in res.errors) {
-                println("$interplayUri, $message, $details")
-            }
-        }
-
-        res.jobURI.ifNotNull {
-            println("jobURI = $it")
-        }
 
         /**
          * Output example:
@@ -298,20 +277,16 @@ internal class AvidPamWsClientTest {
         val jobURIs = arrayOf(
                 "interplay://AvidWorkgroup/DMS?jobid=1505159604061.1")
 
-        val res = avidPamWsClient.getJobsStatus(jobURIs).blockingGet()
-
-
-        if (res.errors.any()) {
-            for ((interplayURI, message, details) in res.errors) {
-                println("$interplayURI, $message, $details")
-            }
-        }
-
-        if (res.results.any()) {
-            for ((jobURI, jobStatus, percentComplete) in res.results) {
-                println("jobURI = $jobURI ; ($jobStatus , $percentComplete%)")
-            }
-        }
+        avidPamWsClient.getPamJobsStatus(jobURIs)
+                .doOnError { t ->
+                    println(t)
+                }
+                .doOnSuccess { (results) ->
+                    for ((jobURI, jobStatus, percentComplete) in results) {
+                        println("jobURI = $jobURI ; ($jobStatus , $percentComplete%)")
+                    }
+                }
+                .blockingGet()
 
         /**
          * Output example:

@@ -3,31 +3,40 @@ package com.spectralogic.escapepod.avidpamwsclient
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.api.AvidPamWsClient
 import com.spectralogic.escapepod.avidpamclient.soap.ws.*
+import com.spectralogic.escapepod.util.maxLong
+import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
+import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.ForkJoinPool
 
-internal class AvidPamWsClient
+class AvidPamWsClient
 constructor(username: String, password: String, endpoint: String,
             private val executor: Executor = ForkJoinPool.commonPool()) : AvidPamWsClient {
+    private companion object {
 
 
-    companion object {
         private val LOG = LoggerFactory.getLogger(AvidPamWsClient::class.java)
         private val JOBS = "Jobs"
         private val ASSETS = "Assets"
+        private val INFRASTRUCTURE = "Infrastructure"
     }
 
     private val credentials = UserCredentialsType()
+
     private val jobsLocator = JobsLocator()
     private val assetsLocator = AssetsLocator()
+    private val infrastructureLocator = InfrastructureLocator()
 
     private var jobsEndpointUrl: String
     private var assetsEndpointUrl: String
+    private var infrastructureEndpointUrl: String
 
     private var jobsSoapClient: JobsPortType
     private var assetsSoapClient: AssetsPortType
+    private var infrastructureSoapClient: InfrastructurePortType
 
     init {
         LOG.info("Init AvidPamWsClient")
@@ -42,30 +51,40 @@ constructor(username: String, password: String, endpoint: String,
         assetsEndpointUrl = "http://$endpoint/services/$ASSETS"
         assetsLocator.setEndpointAddress("AssetsPort", assetsEndpointUrl)
         assetsSoapClient = assetsLocator.assetsPort
+
+        infrastructureEndpointUrl = "http://$endpoint/services/$INFRASTRUCTURE"
+        infrastructureLocator.setEndpointAddress("InfrastructurePort", infrastructureEndpointUrl)
+        infrastructureSoapClient = infrastructureLocator.infrastructurePort
     }
 
-    override fun getChildren(interplayURI: String): Single<GetChildrenResponse> {
-        return Single.create { emitter ->
+    override fun getPamAssets(interplayURI: String): Observable<PamAssets> {
+        return Observable.create { emitter ->
             executor.execute {
                 try {
-                    val getChildrenType = GetChildrenType()
-                    getChildrenType.interplayURI = interplayURI
-
-                    val res = assetsSoapClient.getChildren(getChildrenType, credentials)
-
-                    emitter.onSuccess(GetChildrenResponse(
-                            TransformUtils.assetDescriptionTypeToGetChildrenResult(res.results),
-                            TransformUtils.errorTypeToWsError(res.errors)))
+                    getChildrenHelper(interplayURI, emitter)
+                    emitter.onComplete()
                 } catch (t: Throwable) {
-                    LOG.error("Failed to get children", t)
                     emitter.onError(t)
                 }
             }
         }
     }
 
-    override fun getProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean):
-            Single<GetProfilesResponse> {
+    override fun getPamFolders(interplayURI: String): Observable<PamFolder> {
+        return Observable.create { emitter ->
+            executor.execute {
+                try {
+                    getFoldersHelper(interplayURI, emitter)
+                    emitter.onComplete()
+                } catch (t: Throwable) {
+                    emitter.onError(t)
+                }
+            }
+        }
+    }
+
+    override fun getPamProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean):
+            Single<PamProfiles> {
 
         return Single.create { emitter ->
             executor.execute {
@@ -77,18 +96,19 @@ constructor(username: String, password: String, endpoint: String,
 
                     val res = jobsSoapClient.getProfiles(profiles, credentials)
 
-                    emitter.onSuccess(GetProfilesResponse(
-                            TransformUtils.profileTypeToGetProfileResult(res.results),
-                            TransformUtils.errorTypeToWsError(res.errors)))
+                    if (res.errors != null) {
+                        emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
+                    } else {
+                        emitter.onSuccess(PamProfiles(TransformUtils.profileTypeToGetProfileResult(res.results)))
+                    }
                 } catch (t: Throwable) {
-                    LOG.error("Failed to get profiles", t)
                     emitter.onError(t)
                 }
             }
         }
     }
 
-    override fun restore(profile: String, interplayURI: String): Single<JobResponse> {
+    override fun restorePamAsset(profile: String, interplayURI: String): Single<PamJob> {
         return Single.create { emitter ->
             executor.execute {
                 try {
@@ -99,16 +119,19 @@ constructor(username: String, password: String, endpoint: String,
 
                     val res = jobsSoapClient.submitJobUsingProfile(submitJobUsingProfileType, credentials)
 
-                    emitter.onSuccess(JobResponse(res.jobURI, TransformUtils.errorTypeToWsError(res.errors)))
+                    if (res.errors != null) {
+                        emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
+                    } else {
+                        emitter.onSuccess(PamJob(interplayURI, res.jobURI))
+                    }
                 } catch (t: Throwable) {
-                    LOG.error("Failed to restore", t)
                     emitter.onError(t)
                 }
             }
         }
     }
 
-    override fun archive(profile: String, interplayURI: String): Single<JobResponse> {
+    override fun archivePamAsset(profile: String, interplayURI: String): Single<PamJob> {
         return Single.create { emitter ->
             executor.execute {
                 try {
@@ -119,16 +142,19 @@ constructor(username: String, password: String, endpoint: String,
 
                     val res = jobsSoapClient.submitJobUsingProfile(submitJobUsingProfileType, credentials)
 
-                    emitter.onSuccess(JobResponse(res.jobURI, TransformUtils.errorTypeToWsError(res.errors)))
+                    if (res.errors != null) {
+                        emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
+                    } else {
+                        emitter.onSuccess(PamJob(interplayURI, res.jobURI))
+                    }
                 } catch (t: Throwable) {
-                    LOG.error("Failed to archive", t)
                     emitter.onError(t)
                 }
             }
         }
     }
 
-    override fun getJobsStatus(jobsURI: Array<String>): Single<JobsStatusResponse> {
+    override fun getPamJobsStatus(jobsURI: Array<String>): Single<PamJobsStatus> {
         return Single.create { emitter ->
             executor.execute {
                 try {
@@ -136,13 +162,150 @@ constructor(username: String, password: String, endpoint: String,
                     getJobStatusType.jobURIs = jobsURI
                     val res = jobsSoapClient.getJobStatus(getJobStatusType, credentials)
 
-                    emitter.onSuccess(JobsStatusResponse(
-                            TransformUtils.jobStatusTypeToJobStatusResult(res.jobStatusTypes),
-                            TransformUtils.errorTypeToWsError(res.errors)))
+                    if (res.errors != null) {
+                        emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
+                    } else {
+                        emitter.onSuccess(PamJobsStatus(
+                                TransformUtils.jobStatusTypeToJobStatusResult(res.jobStatusTypes)))
+                    }
                 } catch (t: Throwable) {
-                    LOG.error("Failed to query job status", t)
                     emitter.onError(t)
                 }
+            }
+        }
+    }
+
+    override fun getPamMaxArchiveAssetSize(interplayURI: String): Single<PamMaxArchiveAssetSize> {
+        return getPamAssets(interplayURI).map { it ->
+            if (it.mediaSize != "N/A") {
+                it.mediaSize.toLong()
+            } else {
+                0L
+            }
+        }.maxLong().map { max -> PamMaxArchiveAssetSize(max) }
+    }
+
+    override fun getPamWorkGroups(): Single<PamWorkGroups> {
+        return Single.create { emitter ->
+            executor.execute {
+                try {
+                    val getConfigurationInformationType = GetConfigurationInformationType()
+
+                    val res = infrastructureSoapClient.getConfigurationInformation(getConfigurationInformationType)
+
+                    if (res.errors != null) {
+                        emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
+                    } else {
+                        emitter.onSuccess(PamWorkGroups(
+                                TransformUtils.getConfigurationInformationTypeToGetWorkGroupResult(res.results)))
+                    }
+                } catch (t: Throwable) {
+                    emitter.onError(t)
+                }
+            }
+        }
+    }
+
+    private fun getChildrenHelper(interplayURI: String, emitter: ObservableEmitter<PamAssets>) {
+        val foldersQueue: Queue<String> = LinkedList<String>()
+
+        val getChildrenType = GetChildrenType()
+        getChildrenType.interplayURI = interplayURI
+        getChildrenType.includeFolders = true
+        getChildrenType.includeFiles = true
+        getChildrenType.includeMOBs = true
+
+        var res = assetsSoapClient.getChildren(getChildrenType, credentials)
+
+        if (res.errors != null) {
+            emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
+            return
+        }
+
+        for (r in res.results) {
+            val uri = r.interplayURI
+            val attributeMap = TransformUtils.attributeTypeToAttributeMap(r.attributes)
+
+            if (attributeMap.getOrDefault("Path", "N/A").endsWith("/")) {
+                foldersQueue.add(uri)
+            } else {
+                emitter.onNext(PamAssets(
+                        uri,
+                        attributeMap.getOrDefault("MOB ID", "N/A"),
+                        attributeMap.getOrDefault("Path", "N/A"),
+                        attributeMap.getOrDefault("Display Name", "N/A"),
+                        attributeMap.getOrDefault("Media Size", "N/A"),
+                        attributeMap.getOrDefault("Media Status", "N/A"),
+                        attributeMap.getOrDefault("Type", "N/A")
+                ))
+            }
+        }
+
+        while (foldersQueue.isNotEmpty() && !emitter.isDisposed) {
+            getChildrenType.interplayURI = foldersQueue.poll()
+            res = assetsSoapClient.getChildren(getChildrenType, credentials)
+
+            if (res.errors != null) {
+                emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
+                return
+            }
+
+            for (r in res.results) {
+                val uri = r.interplayURI
+                val attributeMap = TransformUtils.attributeTypeToAttributeMap(r.attributes)
+
+                if (attributeMap.getOrDefault("Path", "N/A").endsWith("/")) {
+                    foldersQueue.add(uri)
+                } else {
+                    emitter.onNext(PamAssets(
+                            uri,
+                            attributeMap.getOrDefault("MOB ID", "N/A"),
+                            attributeMap.getOrDefault("Path", "N/A"),
+                            attributeMap.getOrDefault("Display Name", "N/A"),
+                            attributeMap.getOrDefault("Media Size", "N/A"),
+                            attributeMap.getOrDefault("Media Status", "N/A"),
+                            attributeMap.getOrDefault("Type", "N/A")
+                    ))
+                }
+            }
+        }
+    }
+
+    private fun getFoldersHelper(interplayURI: String, emitter: ObservableEmitter<PamFolder>) {
+        val foldersQueue: Queue<String> = LinkedList<String>()
+
+        val getChildrenType = GetChildrenType()
+        getChildrenType.interplayURI = interplayURI
+        getChildrenType.includeFolders = true
+        getChildrenType.includeFiles = false
+        getChildrenType.includeMOBs = false
+
+        var res = assetsSoapClient.getChildren(getChildrenType, credentials)
+
+        if (res.errors != null) {
+            emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
+            return
+        }
+
+        for (r in res.results) {
+            val uri = r.interplayURI
+            foldersQueue.add(uri)
+            emitter.onNext(PamFolder(uri))
+        }
+
+        while (foldersQueue.isNotEmpty() && !emitter.isDisposed) {
+            getChildrenType.interplayURI = foldersQueue.poll()
+            res = assetsSoapClient.getChildren(getChildrenType, credentials)
+
+            if (res.errors != null) {
+                emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
+                return
+            }
+
+            for (r in res.results) {
+                val uri = r.interplayURI
+                foldersQueue.add(uri)
+                emitter.onNext(PamFolder(uri))
             }
         }
     }

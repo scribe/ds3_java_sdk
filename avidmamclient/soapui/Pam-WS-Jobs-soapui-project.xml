@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<con:soapui-project id="d41c7a3d-0ec9-4fa7-be66-a0c69262d4d5" activeEnvironment="Default" name="Pam WS Jobs" resourceRoot="" soapui-version="5.3.0" xmlns:con="http://eviware.com/soapui/config"><con:settings/><con:interface xsi:type="con:WsdlInterface" id="d5008482-373c-4951-9837-fcb8ac6c122a" wsaVersion="NONE" name="JobsPortBinding" type="wsdl" bindingName="{http://avid.com/interplay/ws/jobs}JobsPortBinding" soapVersion="1_1" anonymous="optional" definition="file:/C:/Users/sharons/Documents/GitHub/escape_pod/avidmamclient/src/main/resources/wsdl/Jobs.wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings/><con:definitionCache type="TEXT" rootPart="file:\C:\Users\sharons\Documents\GitHub\escape_pod\avidmamclient\src\main\resources\wsdl\Jobs.wsdl"><con:part><con:url>file:\C:\Users\sharons\Documents\GitHub\escape_pod\avidmamclient\src\main\resources\wsdl\Jobs.wsdl</con:url><con:content><![CDATA[<wsdl:definitions name="Archive" targetNamespace="http://avid.com/interplay/ws/jobs" xmlns:comm="http://avid.com/interplay/ws/assets/types" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/jobs" xmlns:types="http://avid.com/interplay/ws/jobs/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<con:soapui-project id="d41c7a3d-0ec9-4fa7-be66-a0c69262d4d5" activeEnvironment="Default" name="Pam WS Jobs" resourceRoot="" soapui-version="5.3.0" abortOnError="false" runType="SEQUENTIAL" xmlns:con="http://eviware.com/soapui/config"><con:settings/><con:interface xsi:type="con:WsdlInterface" id="d5008482-373c-4951-9837-fcb8ac6c122a" wsaVersion="NONE" name="JobsPortBinding" type="wsdl" bindingName="{http://avid.com/interplay/ws/jobs}JobsPortBinding" soapVersion="1_1" anonymous="optional" definition="file:/C:/Users/sharons/Documents/GitHub/escape_pod/avidmamclient/src/main/resources/wsdl/Jobs.wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings/><con:definitionCache type="TEXT" rootPart="file:\C:\Users\sharons\Documents\GitHub\escape_pod\avidmamclient\src\main\resources\wsdl\Jobs.wsdl"><con:part><con:url>file:\C:\Users\sharons\Documents\GitHub\escape_pod\avidmamclient\src\main\resources\wsdl\Jobs.wsdl</con:url><con:content><![CDATA[<wsdl:definitions name="Archive" targetNamespace="http://avid.com/interplay/ws/jobs" xmlns:comm="http://avid.com/interplay/ws/assets/types" xmlns:mtom="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://avid.com/interplay/ws/jobs" xmlns:types="http://avid.com/interplay/ws/jobs/types" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <wsdl:types>
     <xsd:schema>
       <xsd:import namespace="http://avid.com/interplay/ws/jobs/types" schemaLocation="JobsTypes.xsd"/>
@@ -983,11 +983,11 @@
          <!--You may enter ANY elements at this point-->\r
       </typ1:PauseJobs>\r
    </soapenv:Body>\r
-</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/PauseJobsRequest"/></con:call></con:operation><con:operation id="fc41f384-b6c3-48c9-9d8d-2ee7f5dce556" isOneWay="false" action="" name="ResumeJobs" bindingOperationName="ResumeJobs" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="a13f70ef-4e5d-4638-b819-2fd63f51b5d2" name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost/services/Jobs</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://avid.com/interplay/ws/assets/types" xmlns:typ1="http://avid.com/interplay/ws/jobs/types">\r
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/PauseJobsRequest"/></con:call></con:operation><con:operation id="fc41f384-b6c3-48c9-9d8d-2ee7f5dce556" isOneWay="false" action="" name="ResumeJobs" bindingOperationName="ResumeJobs" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="a13f70ef-4e5d-4638-b819-2fd63f51b5d2" name="Request 1"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://10.1.2.164/services/Jobs</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://avid.com/interplay/ws/assets/types" xmlns:typ1="http://avid.com/interplay/ws/jobs/types">\r
    <soapenv:Header>\r
       <typ:UserCredentials>\r
-         <typ:Username>?</typ:Username>\r
-         <typ:Password>?</typ:Password>\r
+         <typ:Username>spectra</typ:Username>\r
+         <typ:Password></typ:Password>\r
          <!--Optional:-->\r
          <typ:Extension>\r
             <!--You may enter ANY elements at this point-->\r
@@ -999,7 +999,7 @@
       <typ1:ResumeJobs>\r
          <typ1:JobURIs>\r
             <!--Zero or more repetitions:-->\r
-            <typ1:JobURI>?</typ1:JobURI>\r
+            <typ1:JobURI>interplay://AvidWorkgroup/DMS?jobid=1505326066681.1</typ1:JobURI>\r
          </typ1:JobURIs>\r
          <!--Optional:-->\r
          <typ1:Extension>\r
@@ -1008,7 +1008,7 @@
          <!--You may enter ANY elements at this point-->\r
       </typ1:ResumeJobs>\r
    </soapenv:Body>\r
-</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/ResumeJobsRequest"/></con:call></con:operation><con:operation id="12935232-de45-4bc1-8582-fa637032ed94" isOneWay="false" action="" name="RetryJobs" bindingOperationName="RetryJobs" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="2fd9a7fe-6b5b-4b2c-bdd4-3f5501980da5" name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost/services/Jobs</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://avid.com/interplay/ws/assets/types" xmlns:typ1="http://avid.com/interplay/ws/jobs/types">\r
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/ResumeJobsRequest"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation id="12935232-de45-4bc1-8582-fa637032ed94" isOneWay="false" action="" name="RetryJobs" bindingOperationName="RetryJobs" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="2fd9a7fe-6b5b-4b2c-bdd4-3f5501980da5" name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://localhost/services/Jobs</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://avid.com/interplay/ws/assets/types" xmlns:typ1="http://avid.com/interplay/ws/jobs/types">\r
    <soapenv:Header>\r
       <typ:UserCredentials>\r
          <typ:Username>?</typ:Username>\r
@@ -1088,4 +1088,4 @@
          <!--You may enter ANY elements at this point-->
       </typ1:SubmitJobUsingProfile>
    </soapenv:Body>
-</soapenv:Envelope>]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/SubmitJobUsingProfileRequest"/><con:wsrmConfig version="1.2"/></con:call></con:operation></con:interface><con:properties/><con:wssContainer/><con:oAuth2ProfileContainer/><con:oAuth1ProfileContainer/></con:soapui-project>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://avid.com/interplay/ws/jobs/JobsPortType/SubmitJobUsingProfileRequest"/><con:wsrmConfig version="1.2"/></con:call></con:operation></con:interface><con:properties/><con:wssContainer/><con:oAuth2ProfileContainer/><con:oAuth1ProfileContainer/><con:sensitiveInformation/></con:soapui-project>

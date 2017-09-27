@@ -38,3 +38,8 @@ task generateWSClientsPart2(type:WsdlGenerationTask) {
     packageName = 'com.spectralogic.escapepod.avidpamclient.soap.ws'
     fileLocation = '../resources/wsdl/Jobs.wsdl'
 }
+
+task generateWSClientsPart3(type:WsdlGenerationTask) {
+    packageName = 'com.spectralogic.escapepod.avidpamclient.soap.ws'
+    fileLocation = '../resources/wsdl/Infrastructure.wsdl'
+}
