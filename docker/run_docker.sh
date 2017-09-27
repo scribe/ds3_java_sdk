@@ -1,2 +1,2 @@
 #!/bin/bash
-docker run -it --dns=10.1.0.9 escape_pod_unit_tests:lates
+docker run -v /home/spectra/.ssh/id_rsa:/tmp/id_rsa:ro spectralogic/escape_pod_unit_tests:latest
