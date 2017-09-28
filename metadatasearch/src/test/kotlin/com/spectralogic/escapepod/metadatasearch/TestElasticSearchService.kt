@@ -127,6 +127,7 @@ class TestElasticSearchService {
 
             val observable = metadataSearchService.getAllIndices()
             val expected = MetadataIndex(index, 5, 1, 1)
+
             assertThat(observable.contains(expected).blockingGet()).isTrue()
         } finally {
             metadataSearchService.deleteIndex(index).subscribe()
