@@ -99,7 +99,7 @@ constructor(username: String, password: String, endpoint: String,
                     if (res.errors != null) {
                         emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
                     } else {
-                        emitter.onSuccess(PamProfiles(TransformUtils.profileTypeToGetProfileResult(res.results)))
+                        emitter.onSuccess(PamProfiles(TransformUtils.profileTypeToPamProfile(res.results)))
                     }
                 } catch (t: Throwable) {
                     emitter.onError(t)
@@ -154,19 +154,19 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun getPamJobsStatus(jobsURI: Array<String>): Single<PamJobsStatus> {
+    override fun getPamJobStatus(jobURI: String): Single<PamJobStatus> {
         return Single.create { emitter ->
             executor.execute {
                 try {
                     val getJobStatusType = GetJobStatusType()
-                    getJobStatusType.jobURIs = jobsURI
+                    getJobStatusType.jobURIs = arrayOf(jobURI)
                     val res = jobsSoapClient.getJobStatus(getJobStatusType, credentials)
 
                     if (res.errors != null) {
                         emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
                     } else {
-                        emitter.onSuccess(PamJobsStatus(
-                                TransformUtils.jobStatusTypeToJobStatusResult(res.jobStatusTypes)))
+                        emitter.onSuccess(
+                                TransformUtils.jobStatusTypeToPamJobStatus(res.jobStatusTypes))
                     }
                 } catch (t: Throwable) {
                     emitter.onError(t)
@@ -197,7 +197,7 @@ constructor(username: String, password: String, endpoint: String,
                         emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
                     } else {
                         emitter.onSuccess(PamWorkGroups(
-                                TransformUtils.getConfigurationInformationTypeToGetWorkGroupResult(res.results)))
+                                TransformUtils.getConfigurationInformationTypeToPamWorkGroup(res.results)))
                     }
                 } catch (t: Throwable) {
                     emitter.onError(t)
