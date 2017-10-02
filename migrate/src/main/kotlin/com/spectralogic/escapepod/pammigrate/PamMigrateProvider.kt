@@ -47,11 +47,11 @@ class PamMigrateProvider {
         return avidPamWsClient.getPamFolders(interplayWorkGroup)
     }
 
-    fun getJobStatus(workGroup: String, jobId: String): Single<PamJobsStatus> {
+    fun getJobStatus(workGroup: String, jobId: String): Single<PamJobStatus> {
         val jobUri = "interplay://$workGroup/DMS?jobid=$jobId"
         LOG.info("Getting job status for: $jobUri")
 
-        return avidPamWsClient.getPamJobsStatus(arrayOf(jobUri))
+        return avidPamWsClient.getPamJobStatus(jobUri)
     }
 
     fun getMaxArchiveAssetSize(workGroup: String): Single<PamMaxArchiveAssetSize> {
