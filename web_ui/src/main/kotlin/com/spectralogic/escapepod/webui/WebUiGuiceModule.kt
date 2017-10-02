@@ -22,5 +22,6 @@ import javax.inject.Singleton
 class WebUiGuiceModule: AbstractModule() {
     override fun configure() {
         bind(WebUi::class.java).to(WebUiImpl::class.java).`in`(Singleton::class.java)
+
     }
 }

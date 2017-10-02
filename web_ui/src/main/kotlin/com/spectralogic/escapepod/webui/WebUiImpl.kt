@@ -21,6 +21,10 @@ import ratpack.handling.Handler
 import ratpack.server.BaseDir
 import java.nio.file.Paths
 import org.slf4j.LoggerFactory
+import freemarker.template.Configuration
+import freemarker.template.TemplateExceptionHandler
+import java.io.File
+import java.io.StringWriter
 
 internal class WebUiImpl: WebUi {
     override fun slashHandler(): Handler {
@@ -30,13 +34,14 @@ internal class WebUiImpl: WebUi {
 
 internal class StaticFilesHandler: Handler {
     private companion object {
-        private val LOG = LoggerFactory.getLogger(StaticFilesHandler::class.java)
-        private val STATIC_FILES_LANDING_PAGE = "index.html"
-        private val LANDING_PAGE_NOT_FOUND_STATUS = 404
-        private val ERROR_PAGE_BACKGROUND_COLOR = "cadetBlue"
-        private val ERROR_PAGE_TEXT_COLOR = "white"
-        private val ERROR_PAGE_TITLE = "Error page"
-        private val LANDING_PAGE_NOT_FOUND_ERROR_TEXT = "We cannot locate our application page.  Please accept our apologies."
+        private  val LOG = LoggerFactory.getLogger(StaticFilesHandler::class.java)
+        private const val STATIC_FILES_LANDING_PAGE = "index.html"
+        private const val LANDING_PAGE_NOT_FOUND_STATUS = 404
+        private const val ERROR_PAGE_BACKGROUND_COLOR = "cadetBlue"
+        private const val ERROR_PAGE_TEXT_COLOR = "white"
+        private const val ERROR_PAGE_TITLE = "Error page"
+        private const val LANDING_PAGE_NOT_FOUND_ERROR_TEXT = "We cannot locate our application page.  Please accept our apologies."
+        private var freeMarkerConfiguration: Configuration? = null
     }
 
     private val staticFilesPath: String?
@@ -70,21 +75,35 @@ internal class StaticFilesHandler: Handler {
     }
 
     private fun sendErrorPage(ctx: Context, httpStatus: Int, backgroundColor: String, textColor: String, pageTitle: String, errorText: String) {
-        val payloadTextBuilder = StringBuilder("<html><head><title>")
-                .append(pageTitle)
-                .append("</title>")
-                .append("<style> body { ")
-                .append("background-color: ")
-                .append(backgroundColor)
-                .append("; ")
-                .append("text-align: center; ")
-                .append("color: ")
-                .append(textColor)
-                .append("} ")
-                .append("</style></head><body><h1>")
-                .append(errorText)
-                .append("</h1></body></html>")
+        val errorPageConfigurableValues = ErrorPageConfigurableValues(LANDING_PAGE_NOT_FOUND_STATUS,
+                ERROR_PAGE_BACKGROUND_COLOR,
+                ERROR_PAGE_TEXT_COLOR,
+                ERROR_PAGE_TITLE,
+                LANDING_PAGE_NOT_FOUND_ERROR_TEXT)
 
-        ctx.response.status(httpStatus).contentType("text/html").send(payloadTextBuilder.toString())
+        val errorPageTemplate = freeMarkerConfiguration().getTemplate("errorPage.ftl")
+
+        val stringWriter = StringWriter()
+
+        errorPageTemplate.process(errorPageConfigurableValues, stringWriter)
+
+        ctx.response.status(httpStatus).contentType("text/html").send(stringWriter.toString())
+    }
+
+    private fun freeMarkerConfiguration() : Configuration {
+        synchronized(StaticFilesHandler::class.java) {
+            if (freeMarkerConfiguration == null) {
+                freeMarkerConfiguration = Configuration()
+                freeMarkerConfiguration?.setDirectoryForTemplateLoading(resourceBundleLocation())
+                freeMarkerConfiguration?.defaultEncoding = "UTF-8"
+                freeMarkerConfiguration?.templateExceptionHandler = TemplateExceptionHandler.RETHROW_HANDLER
+            }
+
+            return freeMarkerConfiguration!!
+        }
+    }
+
+    private fun resourceBundleLocation() : File {
+        return File(javaClass.classLoader.getResource("errorPage.ftl").path).parentFile
     }
 }
