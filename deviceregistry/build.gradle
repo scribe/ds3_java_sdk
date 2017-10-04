@@ -15,5 +15,4 @@
 
 dependencies {
     compile "com.spectralogic.ds3:bp-mgmt-client:$bpmgmtVersion"
-    compile "com.spectralogic.ds3:ds3-sdk:$bpclientVersion"
 }

@@ -63,6 +63,7 @@ subprojects {
         compile "org.jetbrains.kotlinx:kotlinx-coroutines-nio:$kotlincoroutineVersion"
         compile "io.vavr:vavr:$vavrVersion"
         compile "io.vavr:vavr-jackson:$vavrVersion"
+        compile "com.spectralogic.ds3:ds3-sdk:$bpclientVersion"
 
         testCompile group: 'org.slf4j', name: 'slf4j-simple', version: "$slf4jVersion"
         testCompile "junit:junit:$junitVersion"
