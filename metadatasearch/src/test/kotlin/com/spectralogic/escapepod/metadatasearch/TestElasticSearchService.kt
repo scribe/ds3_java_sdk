@@ -30,19 +30,24 @@ import org.junit.BeforeClass
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
+/**
+ * In order for the tests to pass, elastic search process needs to be running
+ */
 class TestElasticSearchService {
 
     companion object {
         lateinit internal var metadataSearchService: MetadataSearchService
         lateinit private var restClient: RestClient
 
-        @BeforeClass @JvmStatic
+        @BeforeClass
+        @JvmStatic
         fun beforeClass() {
             restClient = RestClient.builder(HttpHost("localhost", 9200), HttpHost("localhost", 9201)).build()
             metadataSearchService = ElasticSearchService(restClient, createTestRequestContext(), Mapper.mapper)
         }
 
-        @AfterClass @JvmStatic
+        @AfterClass
+        @JvmStatic
         fun afterClass() {
             restClient.close()
         }
@@ -53,12 +58,11 @@ class TestElasticSearchService {
         val single = metadataSearchService.health()
         val expected = "green"
 
-        val MetadataSearchHealthResponse = single.filter {
-            health ->
+        val metadataSearchHealthResponse = single.filter { health ->
             health.status == expected
         }.blockingGet()
 
-        if (MetadataSearchHealthResponse == null) {
+        if (metadataSearchHealthResponse == null) {
             fail("Expected cluster status to be $expected")
         }
     }
@@ -118,7 +122,7 @@ class TestElasticSearchService {
         val index = "test_index"
         val bucket = "test_bucket"
         val fileName = "test_file"
-        val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
+        val metadata = ImmutableMap.of("m1", "v1", "m2", "v2")
         try {
             metadataSearchService.indexDocument(index, bucket, fileName, metadata).subscribe()
 
@@ -153,7 +157,7 @@ class TestElasticSearchService {
         val index = "test_delete_file"
         val bucket = "test_bucket"
         val fileName = "test_file"
-        val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
+        val metadata = ImmutableMap.of("m1", "v1", "m2", "v2")
 
         try {
             metadataSearchService.indexDocument(index, bucket, fileName, metadata).subscribe()
@@ -181,7 +185,7 @@ class TestElasticSearchService {
         val bucket1 = "test_bucket_1"
         val bucket2 = "test_bucket_2"
         val fileName = "test_file"
-        val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
+        val metadata = ImmutableMap.of("m1", "v1", "m2", "v2")
 
         try {
             metadataSearchService.indexDocument(index1, bucket1, fileName, metadata).subscribe()
@@ -214,7 +218,7 @@ class TestElasticSearchService {
         val bucket1 = "test_bucket_1"
         val bucket2 = "test_bucket_2"
         val fileName = "test_file"
-        val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
+        val metadata = ImmutableMap.of("m1", "v1", "m2", "v2")
 
         try {
             metadataSearchService.indexDocument(index1, bucket1, fileName, metadata).subscribe()
@@ -247,7 +251,7 @@ class TestElasticSearchService {
         val bucket1 = "test_bucket_1"
         val bucket2 = "test_bucket_2"
         val fileName = "test_file"
-        val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
+        val metadata = ImmutableMap.of("m1", "v1", "m2", "v2")
 
         try {
             metadataSearchService.indexDocument(index1, bucket1, fileName, metadata).subscribe()
