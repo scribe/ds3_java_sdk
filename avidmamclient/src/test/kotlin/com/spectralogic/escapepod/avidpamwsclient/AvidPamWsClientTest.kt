@@ -1,5 +1,7 @@
 package com.spectralogic.escapepod.avidpamwsclient
 
+import com.spectralogic.ds3client.Ds3ClientBuilder
+import com.spectralogic.ds3client.models.common.Credentials
 import com.spectralogic.escapepod.api.PamProfile
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -10,18 +12,27 @@ import java.util.concurrent.TimeUnit
 
 internal class AvidPamWsClientTest {
 
-    companion object {
+    private companion object {
 
+        //Avid WS info
         private val USERNAME = "spectra"
         private val PASSWORD = ""
         private val ENDPOINT = "10.1.2.164:80"
+
+        //BP info
+        private val BP_ENDPOINT = "10.1.19.204"
+        private val ACCESS_ID = "c2hhcm9u"
+        private val SECRET_KEY = "qawsedrf"
 
         private lateinit var avidPamWsClient: AvidPamWsClient
 
         @BeforeClass
         @JvmStatic
         fun beforeClass() {
-            avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT)
+            val ds3Client = Ds3ClientBuilder.create(BP_ENDPOINT, Credentials(ACCESS_ID, SECRET_KEY))
+                    .withHttps(false)
+                    .build()
+            avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, ds3Client)
         }
 
         @AfterClass
@@ -119,5 +130,13 @@ internal class AvidPamWsClientTest {
                     }
                     .blockingGet()
         } while (pamJobStatus.jobStatus != "Completed")
+    }
+
+    @Test
+    fun archiveToBlackPearlTest() {
+        avidPamWsClient.archivePamAssetToBlackPearl(
+                "escape_pod",
+                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
+                .blockingGet()
     }
 }

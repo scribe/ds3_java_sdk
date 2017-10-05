@@ -1,5 +1,6 @@
 package com.spectralogic.escapepod.api
 
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 
@@ -13,6 +14,7 @@ interface AvidPamWsClient {
 
     fun restorePamAsset(profile: String, interplayURI: String): Single<PamJob>
     fun archivePamAsset(profile: String, interplayURI: String): Single<PamJob>
+    fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable
 }
 
 data class PamAssets(

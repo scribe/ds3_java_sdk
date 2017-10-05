@@ -1,23 +1,29 @@
 package com.spectralogic.escapepod.avidpamwsclient
 
+import com.spectralogic.ds3client.Ds3Client
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers
+import com.spectralogic.ds3client.helpers.FileObjectPutter
+import com.spectralogic.ds3client.models.bulk.Ds3Object
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.api.AvidPamWsClient
 import com.spectralogic.escapepod.avidpamclient.soap.ws.*
 import com.spectralogic.escapepod.util.maxLong
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
+import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.ForkJoinPool
 
 class AvidPamWsClient
 constructor(username: String, password: String, endpoint: String,
+            blackPealClient: Ds3Client,
             private val executor: Executor = ForkJoinPool.commonPool()) : AvidPamWsClient {
+
     private companion object {
-
-
         private val LOG = LoggerFactory.getLogger(AvidPamWsClient::class.java)
         private val JOBS = "Jobs"
         private val ASSETS = "Assets"
@@ -38,6 +44,8 @@ constructor(username: String, password: String, endpoint: String,
     private var assetsSoapClient: AssetsPortType
     private var infrastructureSoapClient: InfrastructurePortType
 
+    private var blackPearlClientHelpers: Ds3ClientHelpers
+
     init {
         LOG.info("Init AvidPamWsClient")
 
@@ -55,6 +63,8 @@ constructor(username: String, password: String, endpoint: String,
         infrastructureEndpointUrl = "http://$endpoint/services/$INFRASTRUCTURE"
         infrastructureLocator.setEndpointAddress("InfrastructurePort", infrastructureEndpointUrl)
         infrastructureSoapClient = infrastructureLocator.infrastructurePort
+
+        blackPearlClientHelpers = Ds3ClientHelpers.wrap(blackPealClient)
     }
 
     override fun getPamAssets(interplayURI: String): Observable<PamAssets> {
@@ -309,4 +319,52 @@ constructor(username: String, password: String, endpoint: String,
             }
         }
     }
+
+    //TODO test using masterclip, Sequence, regular file and more ???
+    override fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable {
+        return getFileLocations(interplayURI)
+                .map { fileLocation ->
+                    LOG.info("${fileLocation.filePath}, ${fileLocation.interplayURI}, ${fileLocation.size}, ${fileLocation.status}")
+                    Ds3Object(fileLocation.filePath, fileLocation.size)
+                }.toList()
+                .flatMapCompletable { objectsToTransfer ->
+                    try {
+                        LOG.info("Ensure bucket '$bucket' exists")
+                        blackPearlClientHelpers.ensureBucketExists(bucket)
+
+                        val job = blackPearlClientHelpers.startWriteJob(bucket, objectsToTransfer)
+                        LOG.info("Job ${job.jobId} was created")
+
+                        job.attachObjectCompletedListener { it ->
+                            LOG.info("Finished archiving $it")
+                        }
+
+                        job.transfer(FileObjectPutter(Paths.get("")))
+
+                        Completable.complete()
+                    } catch (t: Throwable) {
+                        Completable.error(t)
+                    }
+                }
+    }
+
+    private fun getFileLocations(interplayURI: String): Observable<FileLocation> {
+        return Observable.create { emitter ->
+            try {
+                val getFilesDetailsType = GetFileDetailsType()
+                getFilesDetailsType.interplayURIs = arrayOf(interplayURI)
+
+                val res = assetsSoapClient.getFileDetails(getFilesDetailsType, credentials)
+
+                res.results[0].fileLocations.map { fl ->
+                    emitter.onNext(FileLocation(fl.filePath, fl.interplayURI, fl.size.toLong(), fl.status))
+                }
+                emitter.onComplete()
+            } catch (t: Throwable) {
+                emitter.onError(t)
+            }
+        }
+    }
 }
+
+data class FileLocation(val filePath: String, val interplayURI: String, val size: Long, val status: String)
