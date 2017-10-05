@@ -332,12 +332,12 @@ constructor(username: String, password: String, endpoint: String,
                     val fileName = fileLocation.interplayURI.substring(fileLocation.interplayURI.indexOf("=") + 1)
                     mapBuilder.put(fileName, fileLocation.filePath)
 
-                    Ds3Object(fileName, fileLocation.size)
+                    Ds3Object(fileName, fileLocation.size * 1024)
                 }.toList()
                 .flatMapCompletable { objectsToTransfer ->
                     try {
                         val fileMap = mapBuilder.build()
-                        
+
                         LOG.info("Ensure bucket '$bucket' exists")
                         blackPearlClientHelpers.ensureBucketExists(bucket)
 
@@ -348,9 +348,14 @@ constructor(username: String, password: String, endpoint: String,
                             LOG.info("Finished archiving $it")
                         }
 
+                        job.attachFailureEventListener { t ->
+                            Completable.error(t.causalException)
+                        }
+
                         job.transfer { key ->
                             FileChannel.open(Paths.get(fileMap[key]), StandardOpenOption.READ)
                         }
+
 
                         Completable.complete()
                     } catch (t: Throwable) {
