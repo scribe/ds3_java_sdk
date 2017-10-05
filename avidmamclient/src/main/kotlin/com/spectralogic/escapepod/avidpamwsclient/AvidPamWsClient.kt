@@ -1,8 +1,8 @@
 package com.spectralogic.escapepod.avidpamwsclient
 
+import com.google.common.collect.ImmutableMap
 import com.spectralogic.ds3client.Ds3Client
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers
-import com.spectralogic.ds3client.helpers.FileObjectPutter
 import com.spectralogic.ds3client.models.bulk.Ds3Object
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.api.AvidPamWsClient
@@ -13,7 +13,9 @@ import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
+import java.nio.channels.FileChannel
 import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
 import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.ForkJoinPool
@@ -322,13 +324,20 @@ constructor(username: String, password: String, endpoint: String,
 
     //TODO test using masterclip, Sequence, regular file and more ???
     override fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable {
+        val mapBuilder = ImmutableMap.builder<String, String>()
         return getFileLocations(interplayURI)
                 .map { fileLocation ->
                     LOG.info("${fileLocation.filePath}, ${fileLocation.interplayURI}, ${fileLocation.size}, ${fileLocation.status}")
-                    Ds3Object(fileLocation.filePath, fileLocation.size)
+
+                    val fileName = fileLocation.interplayURI.substring(fileLocation.interplayURI.indexOf("=") + 1)
+                    mapBuilder.put(fileName, fileLocation.filePath)
+
+                    Ds3Object(fileName, fileLocation.size)
                 }.toList()
                 .flatMapCompletable { objectsToTransfer ->
                     try {
+                        val fileMap = mapBuilder.build()
+                        
                         LOG.info("Ensure bucket '$bucket' exists")
                         blackPearlClientHelpers.ensureBucketExists(bucket)
 
@@ -339,7 +348,9 @@ constructor(username: String, password: String, endpoint: String,
                             LOG.info("Finished archiving $it")
                         }
 
-                        job.transfer(FileObjectPutter(Paths.get("")))
+                        job.transfer { key ->
+                            FileChannel.open(Paths.get(fileMap[key]), StandardOpenOption.READ)
+                        }
 
                         Completable.complete()
                     } catch (t: Throwable) {
