@@ -24,28 +24,26 @@ class AvidPamWsClient
 constructor(username: String, password: String, endpoint: String,
             blackPealClient: Ds3Client,
             private val executor: Executor = ForkJoinPool.commonPool()) : AvidPamWsClient {
-
     private companion object {
         private val LOG = LoggerFactory.getLogger(AvidPamWsClient::class.java)
         private val JOBS = "Jobs"
         private val ASSETS = "Assets"
         private val INFRASTRUCTURE = "Infrastructure"
     }
-
     private val credentials = UserCredentialsType()
 
     private val jobsLocator = JobsLocator()
+
     private val assetsLocator = AssetsLocator()
     private val infrastructureLocator = InfrastructureLocator()
-
     private var jobsEndpointUrl: String
+
     private var assetsEndpointUrl: String
     private var infrastructureEndpointUrl: String
-
     private var jobsSoapClient: JobsPortType
+
     private var assetsSoapClient: AssetsPortType
     private var infrastructureSoapClient: InfrastructurePortType
-
     private var blackPearlClientHelpers: Ds3ClientHelpers
 
     init {
@@ -322,17 +320,29 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    //TODO test using masterclip, Sequence, regular file and more ???
+    //TODO test using masterclip, Sequence
     override fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable {
         val mapBuilder = ImmutableMap.builder<String, String>()
+        val pamMetadataAccess = PamMetadataAccess()
         return getFileLocations(interplayURI)
+
                 .map { fileLocation ->
                     LOG.info("${fileLocation.filePath}, ${fileLocation.interplayURI}, ${fileLocation.size}, ${fileLocation.status}")
 
-                    val fileName = fileLocation.interplayURI.substring(fileLocation.interplayURI.indexOf("=") + 1)
-                    mapBuilder.put(fileName, fileLocation.filePath)
+                    val mobid = fileLocation.interplayURI.substring(fileLocation.interplayURI.indexOf("=") + 1)
+                    mapBuilder.put(mobid, fileLocation.filePath)
 
-                    Ds3Object(fileName, fileLocation.size * 1024)
+                    pamMetadataAccess.addMedataValue(mobid,
+                            mutableMapOf(
+                                    Pair("clipid", interplayURI.substring(fileLocation.interplayURI.indexOf("=") + 1)),
+                                    Pair("filename", fileLocation.filePath),
+                                    Pair("filesize", fileLocation.size.toString()),
+                                    Pair("fileid", mobid),
+                                    Pair("fileresolution", fileLocation.format)
+                            ))
+
+
+                    Ds3Object(mobid, fileLocation.size)
                 }.toList()
                 .flatMapCompletable { objectsToTransfer ->
                     try {
@@ -351,6 +361,8 @@ constructor(username: String, password: String, endpoint: String,
                         job.attachFailureEventListener { t ->
                             Completable.error(t.causalException)
                         }
+
+                        job.withMetadata(pamMetadataAccess)
 
                         job.transfer { key ->
                             FileChannel.open(Paths.get(fileMap[key]), StandardOpenOption.READ)
@@ -373,7 +385,7 @@ constructor(username: String, password: String, endpoint: String,
                 val res = assetsSoapClient.getFileDetails(getFilesDetailsType, credentials)
 
                 res.results[0].fileLocations.map { fl ->
-                    emitter.onNext(FileLocation(fl.filePath, fl.interplayURI, fl.size.toLong(), fl.status))
+                    emitter.onNext(FileLocation(fl.filePath, fl.interplayURI, fl.size.toLong() * 1024, fl.status, fl.format))
                 }
                 emitter.onComplete()
             } catch (t: Throwable) {
@@ -383,4 +395,4 @@ constructor(username: String, password: String, endpoint: String,
     }
 }
 
-data class FileLocation(val filePath: String, val interplayURI: String, val size: Long, val status: String)
+data class FileLocation(val filePath: String, val interplayURI: String, val size: Long, val status: String, val format: String)

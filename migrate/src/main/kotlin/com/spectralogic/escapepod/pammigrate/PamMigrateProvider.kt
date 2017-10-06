@@ -1,5 +1,7 @@
 package com.spectralogic.escapepod.pammigrate
 
+import com.spectralogic.ds3client.Ds3ClientBuilder
+import com.spectralogic.ds3client.models.common.Credentials
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.avidpamwsclient.AvidPamWsClient
 import io.reactivex.Observable
@@ -17,12 +19,21 @@ class PamMigrateProvider {
         private val USERNAME = "spectra"
         private val PASSWORD = ""
         private val ENDPOINT = "10.1.2.164:80"
+
+
+        //TODO needs to be configurable
+        private val BP_ENDPOINT = "10.1.19.204"
+        private val ACCESS_ID = "c2hhcm9u"
+        private val SECRET_KEY = "qawsedrf"
     }
 
     private var avidPamWsClient: AvidPamWsClient
 
     init {
-        avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT)
+        val ds3Client = Ds3ClientBuilder.create(BP_ENDPOINT, Credentials(ACCESS_ID, SECRET_KEY))
+                .withHttps(false)
+                .build()
+        avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, ds3Client)
     }
 
     fun getProfiles(workGroup: String): Single<PamProfiles> {
