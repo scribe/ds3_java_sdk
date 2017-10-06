@@ -14,6 +14,7 @@ import io.reactivex.ObservableEmitter
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
 import java.nio.channels.FileChannel
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.util.*
@@ -325,16 +326,17 @@ constructor(username: String, password: String, endpoint: String,
         val mapBuilder = ImmutableMap.builder<String, String>()
         val pamMetadataAccess = PamMetadataAccess()
         return getFileLocations(interplayURI)
-
                 .map { fileLocation ->
                     LOG.info("${fileLocation.filePath}, ${fileLocation.interplayURI}, ${fileLocation.size}, ${fileLocation.status}")
 
                     val mobid = fileLocation.interplayURI.substring(fileLocation.interplayURI.indexOf("=") + 1)
                     mapBuilder.put(mobid, fileLocation.filePath)
 
+                    println("${fileLocation.filePath}, *** ${fileLocation.size} ***")
+
                     pamMetadataAccess.addMedataValue(mobid,
                             mutableMapOf(
-                                    Pair("clipid", interplayURI.substring(fileLocation.interplayURI.indexOf("=") + 1)),
+                                    Pair("clipid", interplayURI.substring(interplayURI.indexOf("=") + 1)),
                                     Pair("filename", fileLocation.filePath),
                                     Pair("filesize", fileLocation.size.toString()),
                                     Pair("fileid", mobid),
@@ -358,16 +360,11 @@ constructor(username: String, password: String, endpoint: String,
                             LOG.info("Finished archiving $it")
                         }
 
-                        job.attachFailureEventListener { t ->
-                            Completable.error(t.causalException)
-                        }
-
                         job.withMetadata(pamMetadataAccess)
 
                         job.transfer { key ->
                             FileChannel.open(Paths.get(fileMap[key]), StandardOpenOption.READ)
                         }
-
 
                         Completable.complete()
                     } catch (t: Throwable) {
@@ -384,8 +381,12 @@ constructor(username: String, password: String, endpoint: String,
 
                 val res = assetsSoapClient.getFileDetails(getFilesDetailsType, credentials)
 
+                println(res.results[0].fileLocations.joinToString("\n") { fl ->
+                    "${fl.filePath}, ${fl.size}"
+                })
+
                 res.results[0].fileLocations.map { fl ->
-                    emitter.onNext(FileLocation(fl.filePath, fl.interplayURI, fl.size.toLong() * 1024, fl.status, fl.format))
+                    emitter.onNext(FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format))
                 }
                 emitter.onComplete()
             } catch (t: Throwable) {
