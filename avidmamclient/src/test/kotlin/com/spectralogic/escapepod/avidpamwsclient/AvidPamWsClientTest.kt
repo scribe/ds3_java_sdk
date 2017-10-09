@@ -149,11 +149,12 @@ internal class AvidPamWsClientTest {
         testObserver.assertValueCount(4)
 
         val expected = setOf(
-            FileLocation("", "", 0L, "", "")
-        )
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_dd01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6238ef-060e2b347f7f-2a80", 965729, "Online", "Data"),
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_da01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6038ef-060e2b347f7f-2a80", 83886689, "Online", "PCM"),
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_dv01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d5f38ef-060e2b347f7f-2a80", 9858712161, "Online", "DNxHD 1080 115-120-145"),
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_da02.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6138ef-060e2b347f7f-2a80", 83886689, "Online", "PCM")
+                )
         testObserver.assertValueSet(expected)
-
-
     }
 
     @Test
