@@ -5,9 +5,9 @@ import io.reactivex.Observable
 import io.reactivex.Single
 
 interface AvidPamWsClient {
-    fun getPamAssets(interplayURI: String): Observable<PamAssets>
+    fun getPamAssets(interplayURI: String): Observable<PamAsset>
     fun getPamFolders(interplayURI: String): Observable<PamFolder>
-    fun getPamProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean): Single<PamProfiles>
+    fun getPamProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean): Observable<PamProfile>
     fun getPamJobStatus(jobURI: String): Single<PamJobStatus>
     fun getPamMaxArchiveAssetSize(interplayURI: String): Single<PamMaxArchiveAssetSize>
     fun getPamWorkGroups(): Single<PamWorkGroups>
@@ -19,7 +19,7 @@ interface AvidPamWsClient {
     fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable
 }
 
-data class PamAssets(
+data class PamAsset(
         val interplayURI: String,
         val mobid: String,
         val path: String,
@@ -27,10 +27,6 @@ data class PamAssets(
         val mediaSize: String,
         val mediaStatus: String,
         val type: String
-)
-
-data class PamProfiles(
-        val results: List<PamProfile>
 )
 
 data class PamProfile(

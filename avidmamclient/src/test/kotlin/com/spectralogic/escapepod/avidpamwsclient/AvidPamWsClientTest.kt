@@ -2,15 +2,14 @@ package com.spectralogic.escapepod.avidpamwsclient
 
 import com.spectralogic.ds3client.Ds3ClientBuilder
 import com.spectralogic.ds3client.models.common.Credentials
-import com.spectralogic.escapepod.api.FileLocation
-import com.spectralogic.escapepod.api.PamProfile
-import com.spectralogic.escapepod.api.SequenceRelative
+import com.spectralogic.escapepod.api.*
 import io.reactivex.observers.TestObserver
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 internal class AvidPamWsClientTest {
@@ -35,7 +34,7 @@ internal class AvidPamWsClientTest {
             val ds3Client = Ds3ClientBuilder.create(BP_ENDPOINT, Credentials(ACCESS_ID, SECRET_KEY))
                     .withHttps(false)
                     .build()
-            avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, ds3Client)
+            avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, ds3Client, Executors.newSingleThreadExecutor())
         }
 
         @AfterClass
@@ -45,25 +44,28 @@ internal class AvidPamWsClientTest {
         }
     }
 
-    //TODO update test with new test file in the bin
-
     @Test
     fun getChildrenTest() {
         val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1/escape_pod_test"
 
-        val observable =
-                avidPamWsClient.getPamAssets(interplayURI)
-                        .doOnNext { it ->
-                            assertThat(it.interplayURI).isEqualTo("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
-                            assertThat(it.displayName).isEqualTo("WG2_AMS3_DNx145_Vadym.16.new.02")
-                            assertThat(it.mobid).isEqualTo("060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
-                            assertThat(it.path).isEqualTo("/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
-                            assertThat(it.mediaSize).isEqualTo("9787321")
-                            assertThat(it.mediaStatus).isEqualTo("online")
-                            assertThat(it.type).isEqualTo("masterclip")
-                        }
+        val observable = avidPamWsClient.getPamAssets(interplayURI)
+        val testObserver = TestObserver<PamAsset>()
 
-        assertThat(observable.count().blockingGet()).isEqualTo(1)
+        observable.subscribe(testObserver)
+
+        val expected = setOf(
+                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80", "WG2_AMS3_DNx145_Vadym.16.new.02", "9792432", "online", "masterclip"),
+                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80", "escape_pod_sequence", "N/A", "online", "sequence"),
+                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80", "WG2_AMS3_DNx145_Vadym.15.new.02", "10823314", "online", "masterclip"),
+                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80", "WG2_AMS3_DNx145_Vadym.14.new.02", "12575270", "online", "masterclip")
+        )
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(4)
+                .assertValueSet(expected)
     }
 
     @Test
@@ -72,28 +74,38 @@ internal class AvidPamWsClientTest {
         val services = arrayOf("com.avid.dms.restore", "com.avid.dms.archive")
         val showParameters = true
 
-        avidPamWsClient.getPamProfiles(workgroupURI, services, showParameters)
-                .doOnSuccess { (results) ->
-                    assertThat(results.size).isGreaterThan(2)
-                    assertThat(results).contains(PamProfile("BlackPearl", "com.avid.dms.restore"))
-                    assertThat(results).contains(PamProfile("BlackPearl", "com.avid.dms.archive"))
-                }
-                .blockingGet()
+        val observable = avidPamWsClient.getPamProfiles(workgroupURI, services, showParameters)
+        val testObserver = TestObserver<PamProfile>()
+
+        observable.subscribe(testObserver)
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(8)
     }
 
     @Test
     fun restoreTest() {
         val profile = "BlackPearl"
-        val interplayURI =
-                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
+        val interplayURI = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
 
-        avidPamWsClient.restorePamAsset(profile, interplayURI)
-                .doOnSuccess { res ->
-                    assertThat(res).isNotNull()
-                    assertThat(res.interplayURI).isEqualTo("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
-                    assertThat(res.jobURI).isNotEmpty()
-                }
-                .blockingGet()
+        val observable = avidPamWsClient.restorePamAsset(profile, interplayURI).toObservable()
+        val testObserver = TestObserver<PamJob>()
+
+        observable.subscribe(testObserver)
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(1)
+                .values().forEach {
+            assertThat(it).isNotNull()
+            assertThat(it.interplayURI).isEqualTo("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
+            assertThat(it.jobURI).isNotEmpty()
+        }
     }
 
     @Test
@@ -102,13 +114,21 @@ internal class AvidPamWsClientTest {
         val interplayURI =
                 "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
 
-        avidPamWsClient.archivePamAsset(profile, interplayURI)
-                .doOnSuccess { res ->
-                    assertThat(res).isNotNull()
-                    assertThat(res.interplayURI).isEqualTo("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
-                    assertThat(res.jobURI).isNotEmpty()
-                }
-                .blockingGet()
+        val observable = avidPamWsClient.archivePamAsset(profile, interplayURI).toObservable()
+        val testObserver = TestObserver<PamJob>()
+
+        observable.subscribe(testObserver)
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(1)
+                .values().forEach {
+            assertThat(it).isNotNull()
+            assertThat(it.interplayURI).isEqualTo("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
+            assertThat(it.jobURI).isNotEmpty()
+        }
     }
 
     @Test
@@ -117,24 +137,32 @@ internal class AvidPamWsClientTest {
         val interplayURI =
                 "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
 
-        val pamJob = avidPamWsClient.archivePamAsset(profile, interplayURI)
-                .doOnSuccess { res ->
-                    assertThat(res).isNotNull()
-                    assertThat(res.interplayURI).isEqualTo("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
-                    assertThat(res.jobURI).isNotEmpty()
-                }
-                .blockingGet()
+        val observable = avidPamWsClient.archivePamAsset(profile, interplayURI).toObservable()
+        val testObserver = TestObserver<PamJob>()
 
-        val jobURI = pamJob.jobURI
+        observable.subscribe(testObserver)
 
-        do {
-            TimeUnit.SECONDS.sleep(5)
-            val pamJobStatus = avidPamWsClient.getPamJobStatus(jobURI)
-                    .doOnSuccess { it ->
-                        if (it.jobStatus == "Error") fail("job ${it.jobURI} failed")
-                    }
-                    .blockingGet()
-        } while (pamJobStatus.jobStatus != "Completed")
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(1)
+                .values().forEach { pamJob ->
+            assertThat(pamJob).isNotNull()
+            assertThat(pamJob.interplayURI).isEqualTo("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
+            assertThat(pamJob.jobURI).isNotEmpty()
+
+            val jobURI = pamJob.jobURI
+
+            do {
+                TimeUnit.SECONDS.sleep(5)
+                val pamJobStatus = avidPamWsClient.getPamJobStatus(jobURI)
+                        .doOnSuccess { it ->
+                            if (it.jobStatus == "Error") fail("job ${it.jobURI} failed")
+                        }
+                        .blockingGet()
+            } while (pamJobStatus.jobStatus != "Completed")
+        }
     }
 
     @Test
@@ -145,17 +173,20 @@ internal class AvidPamWsClientTest {
         val testObserver = TestObserver<FileLocation>()
 
         fileLocationObservable.subscribe(testObserver)
-        testObserver.assertNoErrors()
-        testObserver.assertComplete()
-        testObserver.assertValueCount(4)
 
         val expected = setOf(
                 FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_dd01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6238ef-060e2b347f7f-2a80", 965729, "Online", "Data"),
                 FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_da01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6038ef-060e2b347f7f-2a80", 83886689, "Online", "PCM"),
                 FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_dv01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d5f38ef-060e2b347f7f-2a80", 9858712161, "Online", "DNxHD 1080 115-120-145"),
                 FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_da02.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6138ef-060e2b347f7f-2a80", 83886689, "Online", "PCM")
-                )
-        testObserver.assertValueSet(expected)
+        )
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(4)
+                .assertValueSet(expected)
     }
 
     @Test
@@ -163,8 +194,16 @@ internal class AvidPamWsClientTest {
         val bucket = "escape_pod"
         val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
 
-        avidPamWsClient.archivePamAssetToBlackPearl(bucket, interplayURL)
-                .blockingGet()
+        val observable = avidPamWsClient.archivePamAssetToBlackPearl(bucket, interplayURL)
+                .toObservable<Unit>()
+        val testObserver = TestObserver<Unit>()
+
+        observable.subscribe(testObserver)
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
     }
 
     @Test
@@ -175,9 +214,6 @@ internal class AvidPamWsClientTest {
         val testObserver = TestObserver<SequenceRelative>()
 
         sequenceRelativesObservable.subscribe(testObserver)
-        testObserver.assertNoErrors()
-        testObserver.assertComplete()
-        testObserver.assertValueCount(3)
 
         val expected = setOf(
                 SequenceRelative("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"),
@@ -185,7 +221,13 @@ internal class AvidPamWsClientTest {
                 SequenceRelative("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80")
 
         )
-        testObserver.assertValueSet(expected)
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(3)
+                .assertValueSet(expected)
     }
 
     @Test

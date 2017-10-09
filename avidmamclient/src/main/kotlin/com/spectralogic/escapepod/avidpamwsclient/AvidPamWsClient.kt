@@ -69,7 +69,7 @@ constructor(username: String, password: String, endpoint: String,
         blackPearlClientHelpers = Ds3ClientHelpers.wrap(blackPealClient)
     }
 
-    override fun getPamAssets(interplayURI: String): Observable<PamAssets> {
+    override fun getPamAssets(interplayURI: String): Observable<PamAsset> {
         return Observable.create { emitter ->
             executor.execute {
                 try {
@@ -96,9 +96,8 @@ constructor(username: String, password: String, endpoint: String,
     }
 
     override fun getPamProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean):
-            Single<PamProfiles> {
-
-        return Single.create { emitter ->
+            Observable<PamProfile> {
+        return Observable.create { emitter ->
             executor.execute {
                 try {
                     val profiles = GetProfilesType()
@@ -111,7 +110,12 @@ constructor(username: String, password: String, endpoint: String,
                     if (res.errors != null) {
                         emitter.onError(TransformUtils.errorTypeToThrowable(res.errors))
                     } else {
-                        emitter.onSuccess(PamProfiles(TransformUtils.profileTypeToPamProfile(res.results)))
+                        res.results
+                                .map { it ->
+                                    PamProfile(it.name, it.service)
+                                }
+                                .forEach { pamProfile -> emitter.onNext(pamProfile) }
+                        emitter.onComplete()
                     }
                 } catch (t: Throwable) {
                     emitter.onError(t)
@@ -218,7 +222,7 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    private fun getChildrenHelper(interplayURI: String, emitter: ObservableEmitter<PamAssets>) {
+    private fun getChildrenHelper(interplayURI: String, emitter: ObservableEmitter<PamAsset>) {
         val foldersQueue: Queue<String> = LinkedList<String>()
 
         val getChildrenType = GetChildrenType()
@@ -241,7 +245,7 @@ constructor(username: String, password: String, endpoint: String,
             if (attributeMap.getOrDefault("Path", "N/A").endsWith("/")) {
                 foldersQueue.add(uri)
             } else {
-                emitter.onNext(PamAssets(
+                emitter.onNext(PamAsset(
                         uri,
                         attributeMap.getOrDefault("MOB ID", "N/A"),
                         attributeMap.getOrDefault("Path", "N/A"),
@@ -269,7 +273,7 @@ constructor(username: String, password: String, endpoint: String,
                 if (attributeMap.getOrDefault("Path", "N/A").endsWith("/")) {
                     foldersQueue.add(uri)
                 } else {
-                    emitter.onNext(PamAssets(
+                    emitter.onNext(PamAsset(
                             uri,
                             attributeMap.getOrDefault("MOB ID", "N/A"),
                             attributeMap.getOrDefault("Path", "N/A"),
@@ -346,78 +350,84 @@ constructor(username: String, password: String, endpoint: String,
                 }.toList()
                 .flatMapCompletable { objectsToTransfer ->
                     bpArchive(bucket, objectsToTransfer, mapBuilder.build(), pamMetadataAccess)
-                 }
+                }
     }
 
     private fun bpArchive(bucket: String, objectsToTransfer: Iterable<Ds3Object>, fileMap: ImmutableMap<String, String>, pamMetadataAccess: PamMetadataAccess): Completable {
         return Completable.create { emitter ->
-            try {
-                LOG.info("Ensure bucket '$bucket' exists")
-                blackPearlClientHelpers.ensureBucketExists(bucket)
+            executor.execute {
+                try {
+                    LOG.info("Ensure bucket '$bucket' exists")
+                    blackPearlClientHelpers.ensureBucketExists(bucket)
 
-                val job = blackPearlClientHelpers.startWriteJob(bucket, objectsToTransfer)
-                LOG.info("Job ${job.jobId} was created")
+                    val job = blackPearlClientHelpers.startWriteJob(bucket, objectsToTransfer)
+                    LOG.info("Job ${job.jobId} was created")
 
-                job.attachObjectCompletedListener { it ->
-                    LOG.info("Finished archiving $it")
+                    job.attachObjectCompletedListener { it ->
+                        LOG.info("Finished archiving $it")
+                    }
+
+                    job.withMetadata(pamMetadataAccess)
+
+                    job.transfer { key ->
+                        FileChannel.open(Paths.get(fileMap[key]), StandardOpenOption.READ)
+                    }
+
+                    emitter.onComplete()
+
+                } catch (t: Throwable) {
+                    emitter.onError(t)
                 }
-
-                job.withMetadata(pamMetadataAccess)
-
-                job.transfer { key ->
-                    FileChannel.open(Paths.get(fileMap[key]), StandardOpenOption.READ)
-                }
-
-                emitter.onComplete()
-
-            } catch (t: Throwable) {
-                emitter.onError(t)
             }
         }
     }
 
     override fun getFileLocations(interplayURI: String): Observable<FileLocation> {
         return Observable.create { emitter ->
-            try {
-                val getFilesDetailsType = GetFileDetailsType()
-                getFilesDetailsType.interplayURIs = arrayOf(interplayURI)
+            executor.execute {
+                try {
+                    val getFilesDetailsType = GetFileDetailsType()
+                    getFilesDetailsType.interplayURIs = arrayOf(interplayURI)
 
-                val res = assetsSoapClient.getFileDetails(getFilesDetailsType, credentials)
+                    val res = assetsSoapClient.getFileDetails(getFilesDetailsType, credentials)
 
-                if (res.errors != null) {
-                    emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
-                } else {
-                    res.results[0].fileLocations
-                            .map { fl ->
-                                FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format)
-                            }
-                            .forEach { emitter.onNext(it) }
-                    emitter.onComplete()
+                    if (res.errors != null) {
+                        emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
+                    } else {
+                        res.results[0].fileLocations
+                                .map { fl ->
+                                    FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format)
+                                }
+                                .forEach { emitter.onNext(it) }
+                        emitter.onComplete()
+                    }
+                } catch (t: Throwable) {
+                    emitter.onError(t)
                 }
-            } catch (t: Throwable) {
-                emitter.onError(t)
             }
         }
     }
 
     override fun getSequenceRelatives(interplayURI: String): Observable<SequenceRelative> {
         return Observable.create { emitter ->
-            try {
-                val findRelativeType = FindRelativesType()
-                findRelativeType.interplayURI = interplayURI
+            executor.execute {
+                try {
+                    val findRelativeType = FindRelativesType()
+                    findRelativeType.interplayURI = interplayURI
 
-                val res = assetsSoapClient.findRelatives(findRelativeType, credentials)
+                    val res = assetsSoapClient.findRelatives(findRelativeType, credentials)
 
-                if (res.errors != null) {
-                    emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
-                } else {
-                    res.results
-                            .map { asset -> SequenceRelative(asset.interplayURI) }
-                            .forEach { emitter.onNext(it) }
-                    emitter.onComplete()
+                    if (res.errors != null) {
+                        emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
+                    } else {
+                        res.results
+                                .map { asset -> SequenceRelative(asset.interplayURI) }
+                                .forEach { emitter.onNext(it) }
+                        emitter.onComplete()
+                    }
+                } catch (t: Throwable) {
+                    emitter.onError(t)
                 }
-            } catch (t: Throwable) {
-                emitter.onError(t)
             }
         }
     }
