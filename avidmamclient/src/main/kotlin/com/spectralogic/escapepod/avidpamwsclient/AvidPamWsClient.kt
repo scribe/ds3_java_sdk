@@ -403,7 +403,6 @@ constructor(username: String, password: String, endpoint: String,
                     emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
                 } else {
                     res.results.map { asset ->
-                        println(asset.interplayURI)
                         emitter.onNext(SequenceRelative(asset.interplayURI))
                     }
                     emitter.onComplete()

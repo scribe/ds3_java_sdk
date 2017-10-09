@@ -4,6 +4,7 @@ import com.spectralogic.ds3client.Ds3ClientBuilder
 import com.spectralogic.ds3client.models.common.Credentials
 import com.spectralogic.escapepod.api.FileLocation
 import com.spectralogic.escapepod.api.PamProfile
+import com.spectralogic.escapepod.api.SequenceRelative
 import io.reactivex.observers.TestObserver
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -167,10 +168,23 @@ internal class AvidPamWsClientTest {
     }
 
     @Test
-    fun archiveSequenceToBlackPearlTest() {
-        val bucket = "escape_pod"
+    fun getSequenceRelativesTest() {
         val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
 
-        avidPamWsClient.getSequenceRelatives(interplayURL).blockingSubscribe()
+        val sequenceRelativesObservable = avidPamWsClient.getSequenceRelatives(interplayURL)
+        val testObserver = TestObserver<SequenceRelative>()
+
+        sequenceRelativesObservable.subscribe(testObserver)
+        testObserver.assertNoErrors()
+        testObserver.assertComplete()
+        testObserver.assertValueCount(3)
+
+        val expected = setOf(
+                SequenceRelative("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"),
+                SequenceRelative("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80"),
+                SequenceRelative("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80")
+
+        )
+        testObserver.assertValueSet(expected)
     }
 }
