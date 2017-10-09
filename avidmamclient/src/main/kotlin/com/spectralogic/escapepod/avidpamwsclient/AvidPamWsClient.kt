@@ -331,12 +331,12 @@ constructor(username: String, password: String, endpoint: String,
                     mapBuilder.put(mobid, fileLocation.filePath)
 
                     pamMetadataAccess.addMetadataValue(mobid,
-                            mutableMapOf(
-                                    Pair("clipid", interplayURI.substring(interplayURI.indexOf("=") + 1)),
-                                    Pair("filename", fileLocation.filePath),
-                                    Pair("filesize", fileLocation.size.toString()),
-                                    Pair("fileid", mobid),
-                                    Pair("fileresolution", fileLocation.format)
+                            ImmutableMap.of(
+                                    "clipid", interplayURI.substring(interplayURI.indexOf("=") + 1),
+                                    "filename", fileLocation.filePath,
+                                    "filesize", fileLocation.size.toString(),
+                                    "fileid", mobid,
+                                    "fileresolution", fileLocation.format
                             ))
 
 
@@ -380,7 +380,7 @@ constructor(username: String, password: String, endpoint: String,
                 if (res.errors != null) {
                     emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
                 } else {
-                    res.results[0].fileLocations.map { fl ->
+                    res.results[0].fileLocations.forEach { fl ->
                         emitter.onNext(FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format))
                     }
                     emitter.onComplete()
@@ -402,7 +402,7 @@ constructor(username: String, password: String, endpoint: String,
                 if (res.errors != null) {
                     emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
                 } else {
-                    res.results.map { asset ->
+                    res.results.forEach { asset ->
                         emitter.onNext(SequenceRelative(asset.interplayURI))
                     }
                     emitter.onComplete()

@@ -1,5 +1,6 @@
 package com.spectralogic.escapepod.avidpamwsclient
 
+import com.google.common.collect.ImmutableMap
 import com.spectralogic.ds3client.helpers.MetadataAccess
 import com.spectralogic.escapepod.api.AvidPamWsClient
 import org.slf4j.LoggerFactory
@@ -22,7 +23,7 @@ class PamMetadataAccess : MetadataAccess {
         return res
     }
 
-    fun addMetadataValue(fileName: String, metadataValue: MutableMap<String, String>) {
+    fun addMetadataValue(fileName: String, metadataValue: ImmutableMap<String, String>) {
         metadata.put(fileName, metadataValue)
     }
 }
