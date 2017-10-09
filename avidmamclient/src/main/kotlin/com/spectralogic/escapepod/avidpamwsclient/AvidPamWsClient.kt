@@ -31,6 +31,7 @@ constructor(username: String, password: String, endpoint: String,
         private val ASSETS = "Assets"
         private val INFRASTRUCTURE = "Infrastructure"
     }
+
     private val credentials = UserCredentialsType()
 
     private val jobsLocator = JobsLocator()
@@ -330,7 +331,8 @@ constructor(username: String, password: String, endpoint: String,
                     val mobid = fileLocation.interplayURI.substring(fileLocation.interplayURI.indexOf("=") + 1)
                     mapBuilder.put(mobid, fileLocation.filePath)
 
-                    pamMetadataAccess.addMetadataValue(mobid,
+                    pamMetadataAccess.addMetadataValue(
+                            mobid,
                             ImmutableMap.of(
                                     "clipid", interplayURI.substring(interplayURI.indexOf("=") + 1),
                                     "filename", fileLocation.filePath,
@@ -343,30 +345,35 @@ constructor(username: String, password: String, endpoint: String,
                     Ds3Object(mobid, fileLocation.size)
                 }.toList()
                 .flatMapCompletable { objectsToTransfer ->
-                    try {
-                        val fileMap = mapBuilder.build()
+                    bpArchive(bucket, objectsToTransfer, mapBuilder.build(), pamMetadataAccess)
+                 }
+    }
 
-                        LOG.info("Ensure bucket '$bucket' exists")
-                        blackPearlClientHelpers.ensureBucketExists(bucket)
+    private fun bpArchive(bucket: String, objectsToTransfer: Iterable<Ds3Object>, fileMap: ImmutableMap<String, String>, pamMetadataAccess: PamMetadataAccess): Completable {
+        return Completable.create { emitter ->
+            try {
+                LOG.info("Ensure bucket '$bucket' exists")
+                blackPearlClientHelpers.ensureBucketExists(bucket)
 
-                        val job = blackPearlClientHelpers.startWriteJob(bucket, objectsToTransfer)
-                        LOG.info("Job ${job.jobId} was created")
+                val job = blackPearlClientHelpers.startWriteJob(bucket, objectsToTransfer)
+                LOG.info("Job ${job.jobId} was created")
 
-                        job.attachObjectCompletedListener { it ->
-                            LOG.info("Finished archiving $it")
-                        }
-
-                        job.withMetadata(pamMetadataAccess)
-
-                        job.transfer { key ->
-                            FileChannel.open(Paths.get(fileMap[key]), StandardOpenOption.READ)
-                        }
-
-                        Completable.complete()
-                    } catch (t: Throwable) {
-                        Completable.error(t)
-                    }
+                job.attachObjectCompletedListener { it ->
+                    LOG.info("Finished archiving $it")
                 }
+
+                job.withMetadata(pamMetadataAccess)
+
+                job.transfer { key ->
+                    FileChannel.open(Paths.get(fileMap[key]), StandardOpenOption.READ)
+                }
+
+                emitter.onComplete()
+
+            } catch (t: Throwable) {
+                emitter.onError(t)
+            }
+        }
     }
 
     override fun getFileLocations(interplayURI: String): Observable<FileLocation> {
@@ -394,7 +401,7 @@ constructor(username: String, password: String, endpoint: String,
     }
 
     override fun getSequenceRelatives(interplayURI: String): Observable<SequenceRelative> {
-        return Observable.create {emitter ->
+        return Observable.create { emitter ->
             try {
                 val findRelativeType = FindRelativesType()
                 findRelativeType.interplayURI = interplayURI
@@ -405,7 +412,7 @@ constructor(username: String, password: String, endpoint: String,
                     emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
                 } else {
                     res.results
-                            .map { asset -> SequenceRelative(asset.interplayURI)}
+                            .map { asset -> SequenceRelative(asset.interplayURI) }
                             .forEach { emitter.onNext(it) }
                     emitter.onComplete()
                 }
