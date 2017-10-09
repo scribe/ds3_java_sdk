@@ -11,6 +11,8 @@ interface AvidPamWsClient {
     fun getPamJobStatus(jobURI: String): Single<PamJobStatus>
     fun getPamMaxArchiveAssetSize(interplayURI: String): Single<PamMaxArchiveAssetSize>
     fun getPamWorkGroups(): Single<PamWorkGroups>
+    fun getFileLocations(interplayURI: String): Observable<FileLocation>
+    fun getSequenceRelatives(interplayURI: String): Observable<SequenceRelative>
 
     fun restorePamAsset(profile: String, interplayURI: String): Single<PamJob>
     fun archivePamAsset(profile: String, interplayURI: String): Single<PamJob>
@@ -64,4 +66,15 @@ data class PamWorkGroup(
         val interplayEngineHost: String,
         val archiveEngineHost: String,
         val mediaServicesEngineHost: String
+)
+data class FileLocation(
+        val filePath: String,
+        val interplayURI: String,
+        val size: Long,
+        val status: String,
+        val format: String
+)
+
+data class SequenceRelative(
+        val interplayURI: String
 )

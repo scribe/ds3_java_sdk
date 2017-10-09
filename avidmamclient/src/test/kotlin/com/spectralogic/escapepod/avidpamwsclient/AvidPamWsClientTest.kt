@@ -2,7 +2,9 @@ package com.spectralogic.escapepod.avidpamwsclient
 
 import com.spectralogic.ds3client.Ds3ClientBuilder
 import com.spectralogic.ds3client.models.common.Credentials
+import com.spectralogic.escapepod.api.FileLocation
 import com.spectralogic.escapepod.api.PamProfile
+import io.reactivex.observers.TestObserver
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.AfterClass
@@ -41,6 +43,8 @@ internal class AvidPamWsClientTest {
 
         }
     }
+
+    //TODO update test with new test file in the bin
 
     @Test
     fun getChildrenTest() {
@@ -133,10 +137,39 @@ internal class AvidPamWsClientTest {
     }
 
     @Test
-    fun archiveToBlackPearlTest() {
-        avidPamWsClient.archivePamAssetToBlackPearl(
-                "escape_pod",
-                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
+    fun getFileLocationsTest() {
+        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
+
+        val fileLocationObservable = avidPamWsClient.getFileLocations(interplayURL)
+        val testObserver = TestObserver<FileLocation>()
+
+        fileLocationObservable.subscribe(testObserver)
+        testObserver.assertNoErrors()
+        testObserver.assertComplete()
+        testObserver.assertValueCount(4)
+
+        val expected = setOf(
+            FileLocation("", "", 0L, "", "")
+        )
+        testObserver.assertValueSet(expected)
+
+
+    }
+
+    @Test
+    fun archiveMasterClipToBlackPearlTest() {
+        val bucket = "escape_pod"
+        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
+
+        avidPamWsClient.archivePamAssetToBlackPearl(bucket, interplayURL)
                 .blockingGet()
+    }
+
+    @Test
+    fun archiveSequenceToBlackPearlTest() {
+        val bucket = "escape_pod"
+        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
+
+        avidPamWsClient.getSequenceRelatives(interplayURL).blockingSubscribe()
     }
 }

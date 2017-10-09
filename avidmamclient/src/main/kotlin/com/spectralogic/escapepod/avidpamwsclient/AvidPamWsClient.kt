@@ -321,7 +321,7 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    //TODO test using masterclip, Sequence
+    //TODO test using masterclip (BP job per master clip), Sequence (1 BP job for all the sequence)
     override fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable {
         val mapBuilder = ImmutableMap.builder<String, String>()
         val pamMetadataAccess = PamMetadataAccess()
@@ -369,7 +369,7 @@ constructor(username: String, password: String, endpoint: String,
                 }
     }
 
-    private fun getFileLocations(interplayURI: String): Observable<FileLocation> {
+    override fun getFileLocations(interplayURI: String): Observable<FileLocation> {
         return Observable.create { emitter ->
             try {
                 val getFilesDetailsType = GetFileDetailsType()
@@ -377,10 +377,37 @@ constructor(username: String, password: String, endpoint: String,
 
                 val res = assetsSoapClient.getFileDetails(getFilesDetailsType, credentials)
 
-                res.results[0].fileLocations.map { fl ->
-                    emitter.onNext(FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format))
+                if (res.errors != null) {
+                    emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
+                } else {
+                    res.results[0].fileLocations.map { fl ->
+                        emitter.onNext(FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format))
+                    }
+                    emitter.onComplete()
                 }
-                emitter.onComplete()
+            } catch (t: Throwable) {
+                emitter.onError(t)
+            }
+        }
+    }
+
+    override fun getSequenceRelatives(interplayURI: String): Observable<SequenceRelative> {
+        return Observable.create {emitter ->
+            try {
+                val findRelativeType = FindRelativesType()
+                findRelativeType.interplayURI = interplayURI
+
+                val res = assetsSoapClient.findRelatives(findRelativeType, credentials)
+
+                if (res.errors != null) {
+                    emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
+                } else {
+                    res.results.map { asset ->
+                        println(asset.interplayURI)
+                        emitter.onNext(SequenceRelative(asset.interplayURI))
+                    }
+                    emitter.onComplete()
+                }
             } catch (t: Throwable) {
                 emitter.onError(t)
             }
@@ -388,4 +415,4 @@ constructor(username: String, password: String, endpoint: String,
     }
 }
 
-data class FileLocation(val filePath: String, val interplayURI: String, val size: Long, val status: String, val format: String)
+
