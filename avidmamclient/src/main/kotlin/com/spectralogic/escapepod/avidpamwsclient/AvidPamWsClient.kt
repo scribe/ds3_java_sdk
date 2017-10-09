@@ -380,9 +380,11 @@ constructor(username: String, password: String, endpoint: String,
                 if (res.errors != null) {
                     emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
                 } else {
-                    res.results[0].fileLocations.forEach { fl ->
-                        emitter.onNext(FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format))
-                    }
+                    res.results[0].fileLocations
+                            .map { fl ->
+                                FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format)
+                            }
+                            .forEach { emitter.onNext(it) }
                     emitter.onComplete()
                 }
             } catch (t: Throwable) {
@@ -402,9 +404,9 @@ constructor(username: String, password: String, endpoint: String,
                 if (res.errors != null) {
                     emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
                 } else {
-                    res.results.forEach { asset ->
-                        emitter.onNext(SequenceRelative(asset.interplayURI))
-                    }
+                    res.results
+                            .map { asset -> SequenceRelative(asset.interplayURI)}
+                            .forEach { emitter.onNext(it) }
                     emitter.onComplete()
                 }
             } catch (t: Throwable) {
