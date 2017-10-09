@@ -22,7 +22,7 @@ class PamMetadataAccess : MetadataAccess {
         return res
     }
 
-    public fun addMedataValue(fileName: String, metadataValue: MutableMap<String, String>) {
+    fun addMetadataValue(fileName: String, metadataValue: MutableMap<String, String>) {
         metadata.put(fileName, metadataValue)
     }
 }

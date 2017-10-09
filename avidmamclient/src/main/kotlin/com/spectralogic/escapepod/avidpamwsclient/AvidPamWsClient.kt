@@ -327,14 +327,10 @@ constructor(username: String, password: String, endpoint: String,
         val pamMetadataAccess = PamMetadataAccess()
         return getFileLocations(interplayURI)
                 .map { fileLocation ->
-                    LOG.info("${fileLocation.filePath}, ${fileLocation.interplayURI}, ${fileLocation.size}, ${fileLocation.status}")
-
                     val mobid = fileLocation.interplayURI.substring(fileLocation.interplayURI.indexOf("=") + 1)
                     mapBuilder.put(mobid, fileLocation.filePath)
 
-                    println("${fileLocation.filePath}, *** ${fileLocation.size} ***")
-
-                    pamMetadataAccess.addMedataValue(mobid,
+                    pamMetadataAccess.addMetadataValue(mobid,
                             mutableMapOf(
                                     Pair("clipid", interplayURI.substring(interplayURI.indexOf("=") + 1)),
                                     Pair("filename", fileLocation.filePath),
@@ -380,10 +376,6 @@ constructor(username: String, password: String, endpoint: String,
                 getFilesDetailsType.interplayURIs = arrayOf(interplayURI)
 
                 val res = assetsSoapClient.getFileDetails(getFilesDetailsType, credentials)
-
-                println(res.results[0].fileLocations.joinToString("\n") { fl ->
-                    "${fl.filePath}, ${fl.size}"
-                })
 
                 res.results[0].fileLocations.map { fl ->
                     emitter.onNext(FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format))
