@@ -329,13 +329,13 @@ constructor(username: String, password: String, endpoint: String,
         val pamMetadataAccess = PamMetadataAccess()
         return getFileLocations(interplayURI)
                 .map { fileLocation ->
-                    val mobid = fileLocation.interplayURI.substring(fileLocation.interplayURI.indexOf("=") + 1)
+                    val mobid = fileLocation.interplayURI.mobid()
                     mapBuilder.put(mobid, fileLocation.filePath)
 
                     pamMetadataAccess.addMetadataValue(
                             mobid,
                             ImmutableMap.of(
-                                    "clipid", interplayURI.substring(interplayURI.indexOf("=") + 1),
+                                    "clipid", fileLocation.clipId,
                                     "filename", fileLocation.filePath,
                                     "filesize", fileLocation.size.toString(),
                                     "fileid", mobid,
@@ -359,13 +359,13 @@ constructor(username: String, password: String, endpoint: String,
                 .map { it -> it.interplayURI }
                 .flatMap(this::getFileLocations)
                 .map { fileLocation ->
-                    val mobid = fileLocation.interplayURI.substring(fileLocation.interplayURI.indexOf("=") + 1)
+                    val mobid = fileLocation.interplayURI.mobid()
                     mapBuilder.put(mobid, fileLocation.filePath)
 
                     pamMetadataAccess.addMetadataValue(
                             mobid,
                             ImmutableMap.of(
-                                    "clipid", interplayURI.substring(interplayURI.indexOf("=") + 1),
+                                    "clipid", fileLocation.clipId,
                                     "filename", fileLocation.filePath,
                                     "filesize", fileLocation.size.toString(),
                                     "fileid", mobid,
@@ -426,7 +426,7 @@ constructor(username: String, password: String, endpoint: String,
                     } else {
                         res.results[0].fileLocations
                                 .map { fl ->
-                                    FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format)
+                                    FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format, interplayURI.mobid())
                                 }
                                 .forEach { emitter.onNext(it) }
                         emitter.onComplete()

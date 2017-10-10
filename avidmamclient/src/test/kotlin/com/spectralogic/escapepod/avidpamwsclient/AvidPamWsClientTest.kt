@@ -30,6 +30,8 @@ internal class AvidPamWsClientTest {
         private val SECRET_KEY = "qawsedrf"
 
         private lateinit var avidPamWsClient: AvidPamWsClient
+        private lateinit var bpClientFactory: BpClientFactory
+
 
         @BeforeClass
         @JvmStatic
@@ -38,11 +40,11 @@ internal class AvidPamWsClientTest {
                     .withHttps(false)
                     .build()
 
-            val bpClientFactory = mock(BpClientFactory::class.java)
-            Mockito.`when`(bpClientFactory.createBpClient("sm25-2"))
+            bpClientFactory = mock(BpClientFactory::class.java)
+            Mockito.`when`(bpClientFactory.createBpClient(BP_ENDPOINT))
                     .thenReturn(Single.just(ds3Client))
 
-            avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, bpClientFactory, "sm25-2", Executors.newSingleThreadExecutor())
+            avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, bpClientFactory, BP_ENDPOINT, Executors.newSingleThreadExecutor())
         }
 
         @AfterClass
@@ -183,10 +185,10 @@ internal class AvidPamWsClientTest {
         fileLocationObservable.subscribe(testObserver)
 
         val expected = setOf(
-                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_dd01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6238ef-060e2b347f7f-2a80", 965729, "Online", "Data"),
-                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_da01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6038ef-060e2b347f7f-2a80", 83886689, "Online", "PCM"),
-                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_dv01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d5f38ef-060e2b347f7f-2a80", 9858712161, "Online", "DNxHD 1080 115-120-145"),
-                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_da02.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6138ef-060e2b347f7f-2a80", 83886689, "Online", "PCM")
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_dd01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6238ef-060e2b347f7f-2a80", 965729, "Online", "Data", "060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"),
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_da01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6038ef-060e2b347f7f-2a80", 83886689, "Online", "PCM", "060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"),
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_dv01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d5f38ef-060e2b347f7f-2a80", 9858712161, "Online", "DNxHD 1080 115-120-145", "060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"),
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_da02.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6138ef-060e2b347f7f-2a80", 83886689, "Online", "PCM", "060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
         )
 
         testObserver.awaitTerminalEvent()
@@ -212,6 +214,8 @@ internal class AvidPamWsClientTest {
         testObserver
                 .assertNoErrors()
                 .assertComplete()
+
+        //TODO get bucket and test for the correctness of the assets
     }
 
     @Test
@@ -243,7 +247,16 @@ internal class AvidPamWsClientTest {
         val bucket = "escape_pod"
         val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
 
-        avidPamWsClient.archivePamSequenceToBlackPearl(bucket, interplayURL)
-                .blockingGet()
+        val observable = avidPamWsClient.archivePamSequenceToBlackPearl(bucket, interplayURL).toObservable<Unit>()
+        val testObserver = TestObserver<Unit>()
+
+        observable.subscribe(testObserver)
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+
+        //TODO get bucket and test for the correctness of the assets
     }
 }

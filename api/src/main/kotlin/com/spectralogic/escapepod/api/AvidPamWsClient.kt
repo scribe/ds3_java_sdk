@@ -68,7 +68,8 @@ data class FileLocation(
         val interplayURI: String,
         val size: Long,
         val status: String,
-        val format: String
+        val format: String,
+        val clipId: String
 )
 
 data class SequenceRelative(
