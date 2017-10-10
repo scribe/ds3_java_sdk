@@ -24,7 +24,7 @@ import java.util.concurrent.ForkJoinPool
 
 class AvidPamWsClient
 constructor(username: String, password: String, endpoint: String,
-            private val blackPearlpClientFactory: BpClientFactory, private val blackPearlEndpoint: String,
+            private val blackPearlClientFactory: BpClientFactory, private val blackPearlEndpoint: String,
             private val executor: Executor = ForkJoinPool.commonPool()) : AvidPamWsClient {
     private companion object {
         private val LOG = LoggerFactory.getLogger(AvidPamWsClient::class.java)
@@ -346,7 +346,7 @@ constructor(username: String, password: String, endpoint: String,
 
                     Ds3Object(mobid, fileLocation.size)
                 }.toList()
-                .zipWith(blackPearlpClientFactory.createBpClient(blackPearlEndpoint))
+                .zipWith(blackPearlClientFactory.createBpClient(blackPearlEndpoint))
                 .flatMapCompletable { (objectsToTransfer, ds3Client) ->
                     bpArchive(ds3Client, bucket, objectsToTransfer, mapBuilder.build(), pamMetadataAccess)
                 }
