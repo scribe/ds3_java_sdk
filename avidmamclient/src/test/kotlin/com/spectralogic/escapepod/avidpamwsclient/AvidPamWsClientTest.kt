@@ -3,12 +3,15 @@ package com.spectralogic.escapepod.avidpamwsclient
 import com.spectralogic.ds3client.Ds3ClientBuilder
 import com.spectralogic.ds3client.models.common.Credentials
 import com.spectralogic.escapepod.api.*
+import io.reactivex.Single
 import io.reactivex.observers.TestObserver
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.mock
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -34,7 +37,12 @@ internal class AvidPamWsClientTest {
             val ds3Client = Ds3ClientBuilder.create(BP_ENDPOINT, Credentials(ACCESS_ID, SECRET_KEY))
                     .withHttps(false)
                     .build()
-            avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, ds3Client, Executors.newSingleThreadExecutor())
+
+            val bpClientFactory = mock(BpClientFactory::class.java)
+            Mockito.`when`(bpClientFactory.createBpClient("sm25-2"))
+                    .thenReturn(Single.just(ds3Client))
+
+            avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, bpClientFactory, "sm25-2", Executors.newSingleThreadExecutor())
         }
 
         @AfterClass

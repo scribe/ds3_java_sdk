@@ -12,6 +12,7 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
+import io.reactivex.rxkotlin.zipWith
 import org.slf4j.LoggerFactory
 import java.nio.channels.FileChannel
 import java.nio.file.Files
@@ -23,7 +24,7 @@ import java.util.concurrent.ForkJoinPool
 
 class AvidPamWsClient
 constructor(username: String, password: String, endpoint: String,
-            blackPealClient: Ds3Client,
+            private val blackPearlpClientFactory: BpClientFactory, private val blackPearlEndpoint: String,
             private val executor: Executor = ForkJoinPool.commonPool()) : AvidPamWsClient {
     private companion object {
         private val LOG = LoggerFactory.getLogger(AvidPamWsClient::class.java)
@@ -46,7 +47,6 @@ constructor(username: String, password: String, endpoint: String,
 
     private var assetsSoapClient: AssetsPortType
     private var infrastructureSoapClient: InfrastructurePortType
-    private var blackPearlClientHelpers: Ds3ClientHelpers
 
     init {
         LOG.info("Init AvidPamWsClient")
@@ -65,8 +65,6 @@ constructor(username: String, password: String, endpoint: String,
         infrastructureEndpointUrl = "http://$endpoint/services/$INFRASTRUCTURE"
         infrastructureLocator.setEndpointAddress("InfrastructurePort", infrastructureEndpointUrl)
         infrastructureSoapClient = infrastructureLocator.infrastructurePort
-
-        blackPearlClientHelpers = Ds3ClientHelpers.wrap(blackPealClient)
     }
 
     override fun getPamAssets(interplayURI: String): Observable<PamAsset> {
@@ -348,16 +346,18 @@ constructor(username: String, password: String, endpoint: String,
 
                     Ds3Object(mobid, fileLocation.size)
                 }.toList()
-                .flatMapCompletable { objectsToTransfer ->
-                    bpArchive(bucket, objectsToTransfer, mapBuilder.build(), pamMetadataAccess)
+                .zipWith(blackPearlpClientFactory.createBpClient(blackPearlEndpoint))
+                .flatMapCompletable { (objectsToTransfer, ds3Client) ->
+                    bpArchive(ds3Client, bucket, objectsToTransfer, mapBuilder.build(), pamMetadataAccess)
                 }
     }
 
-    private fun bpArchive(bucket: String, objectsToTransfer: Iterable<Ds3Object>, fileMap: ImmutableMap<String, String>, pamMetadataAccess: PamMetadataAccess): Completable {
+    private fun bpArchive(ds3Client: Ds3Client, bucket: String, objectsToTransfer: Iterable<Ds3Object>, fileMap: ImmutableMap<String, String>, pamMetadataAccess: PamMetadataAccess): Completable {
         return Completable.create { emitter ->
             executor.execute {
                 try {
                     LOG.info("Ensure bucket '$bucket' exists")
+                    val blackPearlClientHelpers = Ds3ClientHelpers.wrap(ds3Client)
                     blackPearlClientHelpers.ensureBucketExists(bucket)
 
                     val job = blackPearlClientHelpers.startWriteJob(bucket, objectsToTransfer)
