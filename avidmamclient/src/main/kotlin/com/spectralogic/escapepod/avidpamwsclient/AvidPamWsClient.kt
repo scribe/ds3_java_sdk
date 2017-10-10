@@ -324,7 +324,6 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    //TODO test using masterclip (BP job per master clip), Sequence (1 BP job for all the sequence)
     override fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable {
         val mapBuilder = ImmutableMap.builder<String, String>()
         val pamMetadataAccess = PamMetadataAccess()
@@ -350,6 +349,37 @@ constructor(username: String, password: String, endpoint: String,
                 .flatMapCompletable { (objectsToTransfer, ds3Client) ->
                     bpArchive(ds3Client, bucket, objectsToTransfer, mapBuilder.build(), pamMetadataAccess)
                 }
+    }
+
+    fun archivePamSequenceToBlackPearl(bucket: String, interplayURI: String): Completable {
+        val mapBuilder = ImmutableMap.builder<String, String>()
+        val pamMetadataAccess = PamMetadataAccess()
+
+        return getSequenceRelatives(interplayURI)
+                .map { it -> it.interplayURI }
+                .flatMap(this::getFileLocations)
+                .map { fileLocation ->
+                    val mobid = fileLocation.interplayURI.substring(fileLocation.interplayURI.indexOf("=") + 1)
+                    mapBuilder.put(mobid, fileLocation.filePath)
+
+                    pamMetadataAccess.addMetadataValue(
+                            mobid,
+                            ImmutableMap.of(
+                                    "clipid", interplayURI.substring(interplayURI.indexOf("=") + 1),
+                                    "filename", fileLocation.filePath,
+                                    "filesize", fileLocation.size.toString(),
+                                    "fileid", mobid,
+                                    "fileresolution", fileLocation.format
+                            ))
+
+
+                    Ds3Object(mobid, fileLocation.size)
+                }.toList()
+                .zipWith(blackPearlClientFactory.createBpClient(blackPearlEndpoint))
+                .flatMapCompletable { (objectsToTransfer, ds3Client) ->
+                    bpArchive(ds3Client, bucket, objectsToTransfer, mapBuilder.build(), pamMetadataAccess)
+                }
+
     }
 
     private fun bpArchive(ds3Client: Ds3Client, bucket: String, objectsToTransfer: Iterable<Ds3Object>, fileMap: ImmutableMap<String, String>, pamMetadataAccess: PamMetadataAccess): Completable {

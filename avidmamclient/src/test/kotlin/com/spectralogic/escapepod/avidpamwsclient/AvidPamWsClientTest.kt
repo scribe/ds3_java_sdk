@@ -243,7 +243,7 @@ internal class AvidPamWsClientTest {
         val bucket = "escape_pod"
         val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
 
-        avidPamWsClient.archivePamAssetToBlackPearl(bucket, interplayURL)
+        avidPamWsClient.archivePamSequenceToBlackPearl(bucket, interplayURL)
                 .blockingGet()
     }
 }
