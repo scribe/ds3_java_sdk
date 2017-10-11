@@ -35,6 +35,8 @@ internal class AvidPamWsClientTest {
         private lateinit var avidPamWsClient: AvidPamWsClient
         private lateinit var bpClientFactory: BpClientFactory
 
+        val CLIENT = bpClientFactory.createBpClient(BP_ENDPOINT).blockingGet()
+        val HELPERS = Ds3ClientHelpers.wrap(CLIENT)
 
         @BeforeClass
         @JvmStatic
@@ -205,62 +207,65 @@ internal class AvidPamWsClientTest {
     @Test
     fun archiveMasterClipToBlackPearlTest() {
         val bucket = "escape_pod"
-        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
 
-        val observable = avidPamWsClient.archivePamAssetToBlackPearl(bucket, interplayURL)
-                .toObservable<Unit>()
-        val testObserver = TestObserver<Unit>()
+        try {
+            val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
 
-        observable.subscribe(testObserver)
+            val observable = avidPamWsClient.archivePamAssetToBlackPearl(bucket, interplayURL)
+                    .toObservable<Unit>()
+            val testObserver = TestObserver<Unit>()
 
-        testObserver.awaitTerminalEvent()
-        testObserver
-                .assertNoErrors()
-                .assertComplete()
+            observable.subscribe(testObserver)
 
-        val expected = ImmutableMap.of<String, Map<String, String>>(
-                "060a2b340101010101010f0013-000000-59de815c2624026a-060e2b347f7f-2a80",
-                ImmutableMap.of(
-                        "filesize", "9858712161",
-                        "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
-                        "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dv01.59de859de815c.mxf",
-                        "fileid", "060a2b340101010101010f0013-000000-59de815c2624026a-060e2b347f7f-2a80",
-                        "fileresolution", "DNxHD 1080 115-120-145"
-                        ),
-                "060a2b340101010101010f0013-000000-59de815c2632026a-060e2b347f7f-2a80",
-                ImmutableMap.of(
-                        "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
-                        "fileresolution", "PCM",
-                        "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da01.59de859de815c.mxf",
-                        "fileid", "060a2b340101010101010f0013-000000-59de815c2632026a-060e2b347f7f-2a80",
-                        "filesize", "83886689"
-                ),
-                "060a2b340101010101010f0013-000000-59de815c2633026a-060e2b347f7f-2a80",
-                ImmutableMap.of(
-                        "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
-                        "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da02.59de859de815c.mxf",
-                        "filesize", "83886689",
-                        "fileid", "060a2b340101010101010f0013-000000-59de815c2633026a-060e2b347f7f-2a80",
-                        "fileresolution", "PCM"
-                ),
-                "060a2b340101010101010f0013-000000-59de815c2634026a-060e2b347f7f-2a80",
-                ImmutableMap.of(
-                        "fileresolution", "Data",
-                        "filesize", "965729",
-                        "fileid", "060a2b340101010101010f0013-000000-59de815c2634026a-060e2b347f7f-2a80",
-                        "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
-                        "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dd01.59de859de815c.mxf"
-                )
-        )
+            testObserver.awaitTerminalEvent()
+            testObserver
+                    .assertNoErrors()
+                    .assertComplete()
 
-        val helpers = Ds3ClientHelpers.wrap(bpClientFactory.createBpClient(BP_ENDPOINT).blockingGet())
+            val expected = ImmutableMap.of<String, Map<String, String>>(
+                    "060a2b340101010101010f0013-000000-59de815c2624026a-060e2b347f7f-2a80",
+                    ImmutableMap.of(
+                            "filesize", "9858712161",
+                            "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
+                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dv01.59de859de815c.mxf",
+                            "fileid", "060a2b340101010101010f0013-000000-59de815c2624026a-060e2b347f7f-2a80",
+                            "fileresolution", "DNxHD 1080 115-120-145"
+                    ),
+                    "060a2b340101010101010f0013-000000-59de815c2632026a-060e2b347f7f-2a80",
+                    ImmutableMap.of(
+                            "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
+                            "fileresolution", "PCM",
+                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da01.59de859de815c.mxf",
+                            "fileid", "060a2b340101010101010f0013-000000-59de815c2632026a-060e2b347f7f-2a80",
+                            "filesize", "83886689"
+                    ),
+                    "060a2b340101010101010f0013-000000-59de815c2633026a-060e2b347f7f-2a80",
+                    ImmutableMap.of(
+                            "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
+                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da02.59de859de815c.mxf",
+                            "filesize", "83886689",
+                            "fileid", "060a2b340101010101010f0013-000000-59de815c2633026a-060e2b347f7f-2a80",
+                            "fileresolution", "PCM"
+                    ),
+                    "060a2b340101010101010f0013-000000-59de815c2634026a-060e2b347f7f-2a80",
+                    ImmutableMap.of(
+                            "fileresolution", "Data",
+                            "filesize", "965729",
+                            "fileid", "060a2b340101010101010f0013-000000-59de815c2634026a-060e2b347f7f-2a80",
+                            "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
+                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dd01.59de859de815c.mxf"
+                    )
+            )
 
-        helpers.listObjects(bucket).forEach { obj ->
-            val md = bpClientFactory.createBpClient(BP_ENDPOINT).blockingGet().headObject(HeadObjectRequest(bucket, obj.key)).metadata
-            assertThat(md).isEqualTo(expected[obj.key])
+            HELPERS.listObjects(bucket).forEach { obj ->
+                val md = CLIENT.headObject(HeadObjectRequest(bucket, obj.key)).metadata
+                md.keys().forEach { key ->
+                    assertThat(md.get(key)[0]).isEqualTo(expected[obj.key].orEmpty()[key] )
+                }
+            }
+        } finally {
+            HELPERS.deleteBucket(bucket)
         }
-
-        //TODO get bucket and test for the correctness of the assets
     }
 
     @Test
