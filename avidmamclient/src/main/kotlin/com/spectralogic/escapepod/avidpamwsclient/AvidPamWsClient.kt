@@ -326,56 +326,35 @@ constructor(username: String, password: String, endpoint: String,
     }
 
     override fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable {
-        val mapBuilder = ImmutableMap.builder<String, String>()
-        val pamMetadataAccess = PamMetadataAccess()
-        return getFileLocations(interplayURI)
-                .map { fileLocation ->
-                    val mobid = fileLocation.interplayURI.mobid()
-                    mapBuilder.put(mobid, fileLocation.filePath)
-
-                    pamMetadataAccess.addMetadataValue(
-                            mobid,
-                            ImmutableMap.of(
-                                    "clipid", fileLocation.clipId,
-                                    "filename", fileLocation.filePath,
-                                    "filesize", fileLocation.size.toString(),
-                                    "fileid", mobid,
-                                    "fileresolution", fileLocation.format
-                            ))
-
-
-                    Ds3Object(mobid, fileLocation.size)
-                }.toList()
-                .zipWith(blackPearlClientFactory.createBpClient(blackPearlEndpoint))
-                .flatMapCompletable { (objectsToTransfer, ds3Client) ->
-                    bpArchive(ds3Client, bucket, objectsToTransfer, mapBuilder.build(), pamMetadataAccess)
-                }
+        return blackPearlArchiveHelper(getFileLocations(interplayURI), bucket)
     }
 
     fun archivePamSequenceToBlackPearl(bucket: String, interplayURI: String): Completable {
+        return blackPearlArchiveHelper(getSequenceRelatives(interplayURI)
+                .map { it -> it.interplayURI }
+                .flatMap(this::getFileLocations), bucket)
+    }
+
+    private fun blackPearlArchiveHelper(fileLocationObservable: Observable<FileLocation>, bucket: String): Completable {
         val mapBuilder = ImmutableMap.builder<String, String>()
         val pamMetadataAccess = PamMetadataAccess()
+        return fileLocationObservable.map { fileLocation ->
+            val mobid = fileLocation.interplayURI.mobid()
+            mapBuilder.put(mobid, fileLocation.filePath)
 
-        return getSequenceRelatives(interplayURI)
-                .map { it -> it.interplayURI }
-                .flatMap(this::getFileLocations)
-                .map { fileLocation ->
-                    val mobid = fileLocation.interplayURI.mobid()
-                    mapBuilder.put(mobid, fileLocation.filePath)
-
-                    pamMetadataAccess.addMetadataValue(
-                            mobid,
-                            ImmutableMap.of(
-                                    "clipid", fileLocation.clipId,
-                                    "filename", fileLocation.filePath,
-                                    "filesize", fileLocation.size.toString(),
-                                    "fileid", mobid,
-                                    "fileresolution", fileLocation.format
-                            ))
+            pamMetadataAccess.addMetadataValue(
+                    mobid,
+                    ImmutableMap.of(
+                            "clipid", fileLocation.clipId,
+                            "filename", fileLocation.filePath,
+                            "filesize", fileLocation.size.toString(),
+                            "fileid", mobid,
+                            "fileresolution", fileLocation.format
+                    ))
 
 
-                    Ds3Object(mobid, fileLocation.size)
-                }.toList()
+            Ds3Object(mobid, fileLocation.size)
+        }.toList()
                 .zipWith(blackPearlClientFactory.createBpClient(blackPearlEndpoint))
                 .flatMapCompletable { (objectsToTransfer, ds3Client) ->
                     bpArchive(ds3Client, bucket, objectsToTransfer, mapBuilder.build(), pamMetadataAccess)
