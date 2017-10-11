@@ -1,6 +1,9 @@
 package com.spectralogic.escapepod.avidpamwsclient
 
+import com.google.common.collect.ImmutableMap
 import com.spectralogic.ds3client.Ds3ClientBuilder
+import com.spectralogic.ds3client.commands.HeadObjectRequest
+import com.spectralogic.ds3client.helpers.Ds3ClientHelpers
 import com.spectralogic.ds3client.models.common.Credentials
 import com.spectralogic.escapepod.api.*
 import io.reactivex.Single
@@ -215,6 +218,48 @@ internal class AvidPamWsClientTest {
                 .assertNoErrors()
                 .assertComplete()
 
+        val expected = ImmutableMap.of<String, Map<String, String>>(
+                "060a2b340101010101010f0013-000000-59de815c2624026a-060e2b347f7f-2a80",
+                ImmutableMap.of(
+                        "filesize", "9858712161",
+                        "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
+                        "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dv01.59de859de815c.mxf",
+                        "fileid", "060a2b340101010101010f0013-000000-59de815c2624026a-060e2b347f7f-2a80",
+                        "fileresolution", "DNxHD 1080 115-120-145"
+                        ),
+                "060a2b340101010101010f0013-000000-59de815c2632026a-060e2b347f7f-2a80",
+                ImmutableMap.of(
+                        "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
+                        "fileresolution", "PCM",
+                        "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da01.59de859de815c.mxf",
+                        "fileid", "060a2b340101010101010f0013-000000-59de815c2632026a-060e2b347f7f-2a80",
+                        "filesize", "83886689"
+                ),
+                "060a2b340101010101010f0013-000000-59de815c2633026a-060e2b347f7f-2a80",
+                ImmutableMap.of(
+                        "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
+                        "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da02.59de859de815c.mxf",
+                        "filesize", "83886689",
+                        "fileid", "060a2b340101010101010f0013-000000-59de815c2633026a-060e2b347f7f-2a80",
+                        "fileresolution", "PCM"
+                ),
+                "060a2b340101010101010f0013-000000-59de815c2634026a-060e2b347f7f-2a80",
+                ImmutableMap.of(
+                        "fileresolution", "Data",
+                        "filesize", "965729",
+                        "fileid", "060a2b340101010101010f0013-000000-59de815c2634026a-060e2b347f7f-2a80",
+                        "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
+                        "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dd01.59de859de815c.mxf"
+                )
+        )
+
+        val helpers = Ds3ClientHelpers.wrap(bpClientFactory.createBpClient(BP_ENDPOINT).blockingGet())
+
+        helpers.listObjects(bucket).forEach { obj ->
+            val md = bpClientFactory.createBpClient(BP_ENDPOINT).blockingGet().headObject(HeadObjectRequest(bucket, obj.key)).metadata
+            assertThat(md).isEqualTo(expected[obj.key])
+        }
+
         //TODO get bucket and test for the correctness of the assets
     }
 
@@ -258,5 +303,17 @@ internal class AvidPamWsClientTest {
                 .assertComplete()
 
         //TODO get bucket and test for the correctness of the assets
+    }
+
+    @Test
+    fun sharon() {
+        val bucket = "avid-bucket"
+        val helpers = Ds3ClientHelpers.wrap(bpClientFactory.createBpClient(BP_ENDPOINT).blockingGet())
+
+        helpers.listObjects(bucket).forEach { obj ->
+            val md = bpClientFactory.createBpClient(BP_ENDPOINT).blockingGet().headObject(HeadObjectRequest(bucket, obj.key)).metadata
+            println(obj.key)
+            md.keys().forEach { key -> md.get(key).forEach { value -> println("$key , $value") } }
+        }
     }
 }
