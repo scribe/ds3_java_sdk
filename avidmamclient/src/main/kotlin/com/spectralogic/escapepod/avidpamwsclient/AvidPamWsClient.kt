@@ -13,6 +13,7 @@ import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
 import io.reactivex.rxkotlin.zipWith
+import io.reactivex.schedulers.Schedulers
 import org.slf4j.LoggerFactory
 import java.nio.channels.FileChannel
 import java.nio.file.Files
@@ -379,7 +380,6 @@ constructor(username: String, password: String, endpoint: String,
                 .flatMapCompletable { (objectsToTransfer, ds3Client) ->
                     bpArchive(ds3Client, bucket, objectsToTransfer, mapBuilder.build(), pamMetadataAccess)
                 }
-
     }
 
     private fun bpArchive(ds3Client: Ds3Client, bucket: String, objectsToTransfer: Iterable<Ds3Object>, fileMap: ImmutableMap<String, String>, pamMetadataAccess: PamMetadataAccess): Completable {
@@ -413,53 +413,46 @@ constructor(username: String, password: String, endpoint: String,
     }
 
     override fun getFileLocations(interplayURI: String): Observable<FileLocation> {
-        return Observable.create { emitter ->
-            executor.execute {
-                try {
-                    val getFilesDetailsType = GetFileDetailsType()
-                    getFilesDetailsType.interplayURIs = arrayOf(interplayURI)
+        val getFilesDetailsType = GetFileDetailsType()
+        getFilesDetailsType.interplayURIs = arrayOf(interplayURI)
 
-                    val res = assetsSoapClient.getFileDetails(getFilesDetailsType, credentials)
-
-                    if (res.errors != null) {
-                        emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
-                    } else {
-                        res.results[0].fileLocations
-                                .map { fl ->
-                                    FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format, interplayURI.mobid())
-                                }
-                                .forEach { emitter.onNext(it) }
-                        emitter.onComplete()
-                    }
-                } catch (t: Throwable) {
-                    emitter.onError(t)
+        return Single.just(getFilesDetailsType)
+                .observeOn(Schedulers.from(executor))
+                .map {
+                    assetsSoapClient.getFileDetails(getFilesDetailsType, credentials)
                 }
-            }
-        }
+                .flatMapObservable { res ->
+                    if (res.errors != null) {
+                        throw Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" })
+                    }
+
+                    Observable.fromIterable(
+                            res.results[0].fileLocations
+                                    .map { fl ->
+                                        FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format, interplayURI.mobid())
+                                    })
+                }
     }
 
     override fun getSequenceRelatives(interplayURI: String): Observable<SequenceRelative> {
-        return Observable.create { emitter ->
-            executor.execute {
-                try {
-                    val findRelativeType = FindRelativesType()
-                    findRelativeType.interplayURI = interplayURI
+        val findRelativeType = FindRelativesType()
+        findRelativeType.interplayURI = interplayURI
 
-                    val res = assetsSoapClient.findRelatives(findRelativeType, credentials)
-
-                    if (res.errors != null) {
-                        emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
-                    } else {
-                        res.results
-                                .map { asset -> SequenceRelative(asset.interplayURI) }
-                                .forEach { emitter.onNext(it) }
-                        emitter.onComplete()
-                    }
-                } catch (t: Throwable) {
-                    emitter.onError(t)
+        return Single.just(findRelativeType)
+                .observeOn(Schedulers.from(executor))
+                .map {
+                    assetsSoapClient.findRelatives(findRelativeType, credentials)
                 }
-            }
-        }
+                .flatMapObservable { res ->
+                    if (res.errors != null) {
+                        throw Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" })
+                    }
+
+                    Observable.fromIterable(
+                            res.results
+                                    .map { asset -> SequenceRelative(asset.interplayURI) }
+                    )
+                }
     }
 }
 
