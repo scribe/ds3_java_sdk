@@ -264,7 +264,7 @@ internal class AvidPamWsClientTest {
             HELPERS.listObjects(bucket).forEach { obj ->
                 val md = CLIENT.headObject(HeadObjectRequest(bucket, obj.key)).metadata
                 md.keys().forEach { key ->
-                    assertThat(md.get(key)[0]).isEqualTo(expected[obj.key].orEmpty()[key] )
+                    assertThat(md.get(key)[0]).isEqualTo(expected[obj.key].orEmpty()[key])
                 }
             }
         } finally {
