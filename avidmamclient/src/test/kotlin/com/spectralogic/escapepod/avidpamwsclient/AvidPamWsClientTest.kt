@@ -177,7 +177,7 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun getFileLocationsTest() {
-        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
+        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
 
         val fileLocationObservable = avidPamWsClient.getFileLocations(interplayURL)
         val testObserver = TestObserver<FileLocation>()
@@ -185,10 +185,10 @@ internal class AvidPamWsClientTest {
         fileLocationObservable.subscribe(testObserver)
 
         val expected = setOf(
-                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_dd01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6238ef-060e2b347f7f-2a80", 965729, "Online", "Data", "060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"),
-                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_da01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6038ef-060e2b347f7f-2a80", 83886689, "Online", "PCM", "060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"),
-                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_dv01.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d5f38ef-060e2b347f7f-2a80", 9858712161, "Online", "DNxHD 1080 115-120-145", "060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"),
-                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_da02.59cea59cead49.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59cead496d6138ef-060e2b347f7f-2a80", 83886689, "Online", "PCM", "060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dd01.59de859de815c.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59de815c2634026a-060e2b347f7f-2a80", 965729, "Online", "Data", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"),
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da01.59de859de815c.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59de815c2632026a-060e2b347f7f-2a80", 83886689, "Online", "PCM", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"),
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dv01.59de859de815c.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59de815c2624026a-060e2b347f7f-2a80", 9858712161, "Online", "DNxHD 1080 115-120-145", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"),
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da02.59de859de815c.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59de815c2633026a-060e2b347f7f-2a80", 83886689, "Online", "PCM", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80")
         )
 
         testObserver.awaitTerminalEvent()
@@ -202,7 +202,7 @@ internal class AvidPamWsClientTest {
     @Test
     fun archiveMasterClipToBlackPearlTest() {
         val bucket = "escape_pod"
-        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
+        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
 
         val observable = avidPamWsClient.archivePamAssetToBlackPearl(bucket, interplayURL)
                 .toObservable<Unit>()
@@ -228,7 +228,7 @@ internal class AvidPamWsClientTest {
         sequenceRelativesObservable.subscribe(testObserver)
 
         val expected = setOf(
-                SequenceRelative("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"),
+                SequenceRelative("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"),
                 SequenceRelative("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80"),
                 SequenceRelative("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80")
 
