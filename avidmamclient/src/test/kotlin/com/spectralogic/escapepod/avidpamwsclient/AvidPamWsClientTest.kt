@@ -1,6 +1,7 @@
 package com.spectralogic.escapepod.avidpamwsclient
 
 import com.google.common.collect.ImmutableMap
+import com.spectralogic.ds3client.Ds3Client
 import com.spectralogic.ds3client.Ds3ClientBuilder
 import com.spectralogic.ds3client.commands.HeadObjectRequest
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers
@@ -35,8 +36,8 @@ internal class AvidPamWsClientTest {
         private lateinit var avidPamWsClient: AvidPamWsClient
         private lateinit var bpClientFactory: BpClientFactory
 
-        val CLIENT = bpClientFactory.createBpClient(BP_ENDPOINT).blockingGet()
-        val HELPERS = Ds3ClientHelpers.wrap(CLIENT)
+        private lateinit var CLIENT: Ds3Client
+        private lateinit var HELPERS: Ds3ClientHelpers
 
         @BeforeClass
         @JvmStatic
@@ -48,6 +49,9 @@ internal class AvidPamWsClientTest {
             bpClientFactory = mock(BpClientFactory::class.java)
             Mockito.`when`(bpClientFactory.createBpClient(BP_ENDPOINT))
                     .thenReturn(Single.just(ds3Client))
+
+            CLIENT = bpClientFactory.createBpClient(BP_ENDPOINT).blockingGet()
+            HELPERS = Ds3ClientHelpers.wrap(CLIENT)
 
             avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, bpClientFactory, BP_ENDPOINT, Executors.newSingleThreadExecutor())
         }
