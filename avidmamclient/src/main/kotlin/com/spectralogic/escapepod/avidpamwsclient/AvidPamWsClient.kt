@@ -1,9 +1,5 @@
 package com.spectralogic.escapepod.avidpamwsclient
 
-import com.google.common.collect.ImmutableMap
-import com.spectralogic.ds3client.Ds3Client
-import com.spectralogic.ds3client.helpers.Ds3ClientHelpers
-import com.spectralogic.ds3client.models.bulk.Ds3Object
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.api.AvidPamWsClient
 import com.spectralogic.escapepod.avidpamclient.soap.ws.*
@@ -12,42 +8,39 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
-import io.reactivex.rxkotlin.zipWith
 import io.reactivex.schedulers.Schedulers
 import org.slf4j.LoggerFactory
-import java.nio.channels.FileChannel
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.nio.file.StandardOpenOption
 import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.ForkJoinPool
 
 class AvidPamWsClient
 constructor(username: String, password: String, endpoint: String,
-            private val blackPearlClientFactory: BpClientFactory, private val blackPearlEndpoint: String,
+            blackPearlClientFactory: BpClientFactory, blackPearlEndpoint: String,
             private val executor: Executor = ForkJoinPool.commonPool()) : AvidPamWsClient {
+
     private companion object {
         private val LOG = LoggerFactory.getLogger(AvidPamWsClient::class.java)
         private val JOBS = "Jobs"
         private val ASSETS = "Assets"
         private val INFRASTRUCTURE = "Infrastructure"
+        private val credentials = UserCredentialsType()
+        private val jobsLocator = JobsLocator()
+        private val assetsLocator = AssetsLocator()
+        private val infrastructureLocator = InfrastructureLocator()
     }
 
-    private val credentials = UserCredentialsType()
-
-    private val jobsLocator = JobsLocator()
-
-    private val assetsLocator = AssetsLocator()
-    private val infrastructureLocator = InfrastructureLocator()
     private var jobsEndpointUrl: String
-
     private var assetsEndpointUrl: String
     private var infrastructureEndpointUrl: String
-    private var jobsSoapClient: JobsPortType
 
+    private var jobsSoapClient: JobsPortType
     private var assetsSoapClient: AssetsPortType
     private var infrastructureSoapClient: InfrastructurePortType
+
+    private val blackPearlPamArchive: BlackPearlPamArchive
 
     init {
         LOG.info("Init AvidPamWsClient")
@@ -66,6 +59,8 @@ constructor(username: String, password: String, endpoint: String,
         infrastructureEndpointUrl = "http://$endpoint/services/$INFRASTRUCTURE"
         infrastructureLocator.setEndpointAddress("InfrastructurePort", infrastructureEndpointUrl)
         infrastructureSoapClient = infrastructureLocator.infrastructurePort
+
+        blackPearlPamArchive = BlackPearlPamArchive(blackPearlClientFactory, blackPearlEndpoint)
     }
 
     override fun getPamAssets(interplayURI: String): Observable<PamAsset> {
@@ -326,69 +321,7 @@ constructor(username: String, password: String, endpoint: String,
     }
 
     override fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable {
-        return blackPearlArchiveHelper(getFileLocations(interplayURI), bucket)
-    }
-
-    fun archivePamSequenceToBlackPearl(bucket: String, interplayURI: String): Completable {
-        return blackPearlArchiveHelper(getSequenceRelatives(interplayURI)
-                .map { it -> it.interplayURI }
-                .flatMap(this::getFileLocations), bucket)
-    }
-
-    private fun blackPearlArchiveHelper(fileLocationObservable: Observable<FileLocation>, bucket: String): Completable {
-        val mapBuilder = ImmutableMap.builder<String, String>()
-        val pamMetadataAccess = PamMetadataAccess()
-        return fileLocationObservable.map { fileLocation ->
-            val mobid = fileLocation.interplayURI.mobid()
-            mapBuilder.put(mobid, fileLocation.filePath)
-
-            pamMetadataAccess.addMetadataValue(
-                    mobid,
-                    ImmutableMap.of(
-                            "clipid", fileLocation.clipId,
-                            "filename", fileLocation.filePath,
-                            "filesize", fileLocation.size.toString(),
-                            "fileid", mobid,
-                            "fileresolution", fileLocation.format
-                    ))
-
-
-            Ds3Object(mobid, fileLocation.size)
-        }.toList()
-                .zipWith(blackPearlClientFactory.createBpClient(blackPearlEndpoint))
-                .flatMapCompletable { (objectsToTransfer, ds3Client) ->
-                    bpArchive(ds3Client, bucket, objectsToTransfer, mapBuilder.build(), pamMetadataAccess)
-                }
-    }
-
-    private fun bpArchive(ds3Client: Ds3Client, bucket: String, objectsToTransfer: Iterable<Ds3Object>, fileMap: ImmutableMap<String, String>, pamMetadataAccess: PamMetadataAccess): Completable {
-        return Completable.create { emitter ->
-            executor.execute {
-                try {
-                    LOG.info("Ensure bucket '$bucket' exists")
-                    val blackPearlClientHelpers = Ds3ClientHelpers.wrap(ds3Client)
-                    blackPearlClientHelpers.ensureBucketExists(bucket)
-
-                    val job = blackPearlClientHelpers.startWriteJob(bucket, objectsToTransfer)
-                    LOG.info("Job ${job.jobId} was created")
-
-                    job.attachObjectCompletedListener { it ->
-                        LOG.info("Finished archiving $it")
-                    }
-
-                    job.withMetadata(pamMetadataAccess)
-
-                    job.transfer { key ->
-                        FileChannel.open(Paths.get(fileMap[key]), StandardOpenOption.READ)
-                    }
-
-                    emitter.onComplete()
-
-                } catch (t: Throwable) {
-                    emitter.onError(t)
-                }
-            }
-        }
+        return blackPearlPamArchive.archivePamToBlackPearl(this, bucket, interplayURI, executor)
     }
 
     override fun getFileLocations(interplayURI: String): Observable<FileLocation> {
@@ -432,6 +365,29 @@ constructor(username: String, password: String, endpoint: String,
                                     .map { asset -> SequenceRelative(asset.interplayURI) }
                     )
                 }
+    }
+
+    //TODO change String to AssetType enum?
+    override fun getAssetType(interplayURI: String): Single<String> {
+        return Single.create { emitter ->
+            executor.execute {
+                try {
+                    val getAttributeType = GetAttributesType()
+                    getAttributeType.interplayURIs = arrayOf(interplayURI)
+                    getAttributeType.attributes = arrayOf(AttributeType("Type"))
+
+                    val res = assetsSoapClient.getAttributes(getAttributeType, credentials)
+
+                    if (res.errors != null) {
+                        emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
+                    } else {
+                        emitter.onSuccess(res.results[0].attributes[0]._value)
+                    }
+                } catch (t: Throwable) {
+                    emitter.onError(t)
+                }
+            }
+        }
     }
 }
 

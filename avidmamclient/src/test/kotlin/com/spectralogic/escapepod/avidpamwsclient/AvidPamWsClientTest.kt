@@ -302,7 +302,7 @@ internal class AvidPamWsClientTest {
         try {
             val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
 
-            val observable = avidPamWsClient.archivePamSequenceToBlackPearl(bucket, interplayURL).toObservable<Unit>()
+            val observable = avidPamWsClient.archivePamAssetToBlackPearl(bucket, interplayURL).toObservable<Unit>()
             val testObserver = TestObserver<Unit>()
 
             observable.subscribe(testObserver)
@@ -403,18 +403,6 @@ internal class AvidPamWsClientTest {
             }
         } finally {
             HELPERS.deleteBucket(bucket)
-        }
-    }
-
-    @Test
-    fun sharon() {
-        val bucket = "avid-bucket"
-        val helpers = Ds3ClientHelpers.wrap(bpClientFactory.createBpClient(BP_ENDPOINT).blockingGet())
-
-        helpers.listObjects(bucket).forEach { obj ->
-            val md = bpClientFactory.createBpClient(BP_ENDPOINT).blockingGet().headObject(HeadObjectRequest(bucket, obj.key)).metadata
-            println(obj.key)
-            md.keys().forEach { key -> md.get(key).forEach { value -> println("$key , $value") } }
         }
     }
 }
