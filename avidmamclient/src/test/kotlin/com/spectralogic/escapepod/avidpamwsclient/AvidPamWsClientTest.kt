@@ -343,7 +343,6 @@ internal class AvidPamWsClientTest {
                             "fileresolution", "PCM"
                     )
             )
-
             expectedBuilder.put(
                     "060a2b340101010101010f0013-000000-59dbb5af30b86bd7-060e2b347f7f-2a80",
                     ImmutableMap.of(
