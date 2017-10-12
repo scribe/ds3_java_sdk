@@ -226,7 +226,7 @@ internal class AvidPamWsClientTest {
                     .assertNoErrors()
                     .assertComplete()
 
-            val expected = ImmutableMap.of<String, Map<String, String>>(
+            val expected = ImmutableMap.of<String, ImmutableMap<String, String>>(
                     "060a2b340101010101010f0013-000000-59de815c2624026a-060e2b347f7f-2a80",
                     ImmutableMap.of(
                             "filesize", "9858712161",
@@ -237,27 +237,27 @@ internal class AvidPamWsClientTest {
                     ),
                     "060a2b340101010101010f0013-000000-59de815c2632026a-060e2b347f7f-2a80",
                     ImmutableMap.of(
+                            "filesize", "83886689",
                             "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
-                            "fileresolution", "PCM",
                             "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da01.59de859de815c.mxf",
                             "fileid", "060a2b340101010101010f0013-000000-59de815c2632026a-060e2b347f7f-2a80",
-                            "filesize", "83886689"
+                            "fileresolution", "PCM"
                     ),
                     "060a2b340101010101010f0013-000000-59de815c2633026a-060e2b347f7f-2a80",
                     ImmutableMap.of(
+                            "filesize", "83886689",
                             "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
                             "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da02.59de859de815c.mxf",
-                            "filesize", "83886689",
                             "fileid", "060a2b340101010101010f0013-000000-59de815c2633026a-060e2b347f7f-2a80",
                             "fileresolution", "PCM"
                     ),
                     "060a2b340101010101010f0013-000000-59de815c2634026a-060e2b347f7f-2a80",
                     ImmutableMap.of(
-                            "fileresolution", "Data",
                             "filesize", "965729",
-                            "fileid", "060a2b340101010101010f0013-000000-59de815c2634026a-060e2b347f7f-2a80",
                             "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
-                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dd01.59de859de815c.mxf"
+                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dd01.59de859de815c.mxf",
+                            "fileid", "060a2b340101010101010f0013-000000-59de815c2634026a-060e2b347f7f-2a80",
+                            "fileresolution", "Data"
                     )
             )
 
@@ -299,19 +299,122 @@ internal class AvidPamWsClientTest {
     @Test
     fun archiveSequenceToBlackPearlTest() {
         val bucket = "escape_pod"
-        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
+        try {
+            val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
 
-        val observable = avidPamWsClient.archivePamSequenceToBlackPearl(bucket, interplayURL).toObservable<Unit>()
-        val testObserver = TestObserver<Unit>()
+            val observable = avidPamWsClient.archivePamSequenceToBlackPearl(bucket, interplayURL).toObservable<Unit>()
+            val testObserver = TestObserver<Unit>()
 
-        observable.subscribe(testObserver)
+            observable.subscribe(testObserver)
 
-        testObserver.awaitTerminalEvent()
-        testObserver
-                .assertNoErrors()
-                .assertComplete()
+            testObserver.awaitTerminalEvent()
+            testObserver
+                    .assertNoErrors()
+                    .assertComplete()
 
-        //TODO get bucket and test for the correctness of the assets
+            val expectedBuilder = ImmutableMap.builder<String, ImmutableMap<String, String>>()
+            expectedBuilder.put(
+                    "",
+                    ImmutableMap.of(
+                            "filesize", "",
+                            "clipid", "",
+                            "filename", "",
+                            "fileid", "",
+                            "fileresolution", ""
+                    )
+            )
+            expectedBuilder.put(
+                    "060a2b340101010101010f0013-000000-59dbb5ab20646bd7-060e2b347f7f-2a80",
+                    ImmutableMap.of(
+                            "filesize", "92275297",
+                            "clipid", "060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80",
+                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_da01.59dbb59dbb5ab.mxf",
+                            "fileid", "060a2b340101010101010f0013-000000-59dbb5ab20646bd7-060e2b347f7f-2a80",
+                            "fileresolution", "PCM"
+                    )
+            )
+            expectedBuilder.put(
+                    "060a2b340101010101010f0013-000000-59dbb5af30996bd7-060e2b347f7f-2a80",
+                    ImmutableMap.of(
+                            "filesize", "10905191009",
+                            "clipid", "060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80",
+                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_dv01.59dbb59dbb5af.mxf",
+                            "fileid", "060a2b340101010101010f0013-000000-59dbb5af30996bd7-060e2b347f7f-2a80",
+                            "fileresolution", "DNxHD 1080 115-120-145"
+                    )
+            )
+            expectedBuilder.put(
+                    "060a2b340101010101010f0013-000000-59dbb5af30b76bd7-060e2b347f7f-2a80",
+                    ImmutableMap.of(
+                            "filesize", "92275297",
+                            "clipid", "060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80",
+                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_da02.59dbb59dbb5af.mxf",
+                            "fileid", "060a2b340101010101010f0013-000000-59dbb5af30b76bd7-060e2b347f7f-2a80",
+                            "fileresolution", "PCM"
+                    )
+            )
+
+            expectedBuilder.put(
+                    "060a2b340101010101010f0013-000000-59dbb5af30b86bd7-060e2b347f7f-2a80",
+                    ImmutableMap.of(
+                            "filesize", "1116001",
+                            "clipid", "060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80",
+                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-35.1\\wg2_ams3_dd01.59dbb59dbb5af.mxf",
+                            "fileid", "060a2b340101010101010f0013-000000-59dbb5af30b86bd7-060e2b347f7f-2a80",
+                            "fileresolution", "Data"
+                    )
+            )
+            expectedBuilder.put(
+                    "060a2b340101010101010f0013-000000-59de815c2624026a-060e2b347f7f-2a80",
+                    ImmutableMap.of(
+                            "filesize", "9858712161",
+                            "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
+                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dv01.59de859de815c.mxf",
+                            "fileid", "060a2b340101010101010f0013-000000-59de815c2624026a-060e2b347f7f-2a80",
+                            "fileresolution", "DNxHD 1080 115-120-145"
+                    )
+            )
+            expectedBuilder.put(
+                    "060a2b340101010101010f0013-000000-59de815c2632026a-060e2b347f7f-2a80",
+                    ImmutableMap.of(
+                            "filesize", "83886689",
+                            "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
+                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da01.59de859de815c.mxf",
+                            "fileid", "060a2b340101010101010f0013-000000-59de815c2632026a-060e2b347f7f-2a80",
+                            "fileresolution", "PCM"
+                    )
+            )
+            expectedBuilder.put(
+                    "060a2b340101010101010f0013-000000-59de815c2633026a-060e2b347f7f-2a80",
+                    ImmutableMap.of(
+                            "filesize", "83886689",
+                            "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
+                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da02.59de859de815c.mxf",
+                            "fileid", "060a2b340101010101010f0013-000000-59de815c2633026a-060e2b347f7f-2a80",
+                            "fileresolution", "PCM"
+                    )
+            )
+            expectedBuilder.put(
+                    "060a2b340101010101010f0013-000000-59de815c2634026a-060e2b347f7f-2a80",
+                    ImmutableMap.of(
+                            "filesize", "965729",
+                            "clipid", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80",
+                            "filename", "\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dd01.59de859de815c.mxf",
+                            "fileid", "060a2b340101010101010f0013-000000-59de815c2634026a-060e2b347f7f-2a80",
+                            "fileresolution", "Data"
+                    )
+            )
+            val expected = expectedBuilder.build()
+
+            HELPERS.listObjects(bucket).forEach { obj ->
+                val md = CLIENT.headObject(HeadObjectRequest(bucket, obj.key)).metadata
+                md.keys().forEach { key ->
+                    assertThat(md.get(key)[0]).isEqualTo(expected[obj.key].orEmpty()[key])
+                }
+            }
+        } finally {
+            HELPERS.deleteBucket(bucket)
+        }
     }
 
     @Test
