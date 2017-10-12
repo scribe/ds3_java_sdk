@@ -314,16 +314,6 @@ internal class AvidPamWsClientTest {
 
             val expectedBuilder = ImmutableMap.builder<String, ImmutableMap<String, String>>()
             expectedBuilder.put(
-                    "",
-                    ImmutableMap.of(
-                            "filesize", "",
-                            "clipid", "",
-                            "filename", "",
-                            "fileid", "",
-                            "fileresolution", ""
-                    )
-            )
-            expectedBuilder.put(
                     "060a2b340101010101010f0013-000000-59dbb5ab20646bd7-060e2b347f7f-2a80",
                     ImmutableMap.of(
                             "filesize", "92275297",
