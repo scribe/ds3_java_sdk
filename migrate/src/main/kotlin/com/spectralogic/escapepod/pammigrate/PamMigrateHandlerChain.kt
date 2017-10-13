@@ -300,8 +300,8 @@ internal class PamMigrateHandlerChain
                         LOG.error(message, t)
                         ctx.handleError(t)
                     }
-                    .then { res ->
-                        ctx.render(json(res))
+                    .then { _ ->
+                        ctx.render(json("Archive finished successfully."))
                     }
         }
     }
