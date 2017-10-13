@@ -189,6 +189,26 @@ internal class PamMigrateHandlerChain
         }
     }
 
+    private fun getSequenceRelatives(ctx: Context) {
+        val workGroup = ctx.request.queryParams["workgroup"]
+        val mobid = ctx.request.queryParams["mobid"]
+
+        if (workGroup.isNullOrEmpty() || mobid.isNullOrEmpty()) {
+            ctx.response.status(400).send("'workgroup' and 'mobid' must be set")
+        } else {
+            pamMigrateProvider.getSequenceRelatives(workGroup!!, mobid!!).observeOn(scheduler)
+                    .toPromise()
+                    .onError { t ->
+                        val message = "Encountered an error when getting sequence relatives: "
+                        LOG.error(message, t)
+                        ctx.handleError(t)
+                    }
+                    .then { res ->
+                        ctx.render(json(res))
+                    }
+        }
+    }
+
     private fun restoreFile(ctx: Context) {
         val workGroup = ctx.request.queryParams["workgroup"]
         val profile = ctx.request.queryParams["profile"]
