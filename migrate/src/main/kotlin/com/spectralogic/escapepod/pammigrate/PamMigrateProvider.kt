@@ -86,7 +86,7 @@ class PamMigrateProvider {
         return avidPamWsClient.getPamMaxArchiveAssetSize(workGroupUri)
     }
 
-    fun getWorkGroups(): Single<PamWorkGroups> {
+    fun getWorkGroups(): Observable<PamWorkGroup> {
         LOG.info("Getting all the work groups in the system")
 
         return avidPamWsClient.getPamWorkGroups()
