@@ -50,6 +50,10 @@ internal class PamMigrateHandlerChain
             getFileLocations(ctx)
         }
 
+        chain.get("sequencerelatives") {ctx ->
+            getSequenceRelatives(ctx)
+        }
+
         chain.post("archive") { ctx ->
             archiveFile(ctx)
         }
