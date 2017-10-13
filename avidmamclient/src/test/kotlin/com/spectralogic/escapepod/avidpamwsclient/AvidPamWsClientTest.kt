@@ -73,10 +73,10 @@ internal class AvidPamWsClientTest {
         observable.subscribe(testObserver)
 
         val expected = setOf(
-                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80", "WG2_AMS3_DNx145_Vadym.16.new.02", "9792432", "online", "masterclip"),
                 PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80", "escape_pod_sequence", "N/A", "online", "sequence"),
-                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80", "WG2_AMS3_DNx145_Vadym.15.new.02", "10823314", "online", "masterclip"),
-                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80", "WG2_AMS3_DNx145_Vadym.14.new.02", "12575270", "online", "masterclip")
+                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80", "WG2_AMS3_DNx145_Vadym.15.new.02", "10740803", "online", "masterclip"),
+                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80", "WG2_AMS3_DNx145_Vadym.14.new.02", "90112", "online", "masterclip"),
+                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80", "WG2_AMS3_DNx145_Vadym.16.new.03", "9792432", "online", "masterclip")
         )
 
         testObserver.awaitTerminalEvent()
@@ -154,7 +154,7 @@ internal class AvidPamWsClientTest {
     fun jobStatusTest() {
         val profile = "BlackPearl"
         val interplayURI =
-                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
+                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
 
         val observable = avidPamWsClient.archivePamAsset(profile, interplayURI).toObservable()
         val testObserver = TestObserver<PamJob>()
@@ -168,7 +168,7 @@ internal class AvidPamWsClientTest {
                 .assertValueCount(1)
                 .values().forEach { pamJob ->
             assertThat(pamJob).isNotNull()
-            assertThat(pamJob.interplayURI).isEqualTo("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
+            assertThat(pamJob.interplayURI).isEqualTo(interplayURI)
             assertThat(pamJob.jobURI).isNotEmpty()
 
             val jobURI = pamJob.jobURI
@@ -210,7 +210,7 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun archiveMasterClipToBlackPearlTest() {
-        val bucket = "escape_pod"
+        val bucket = "archiveMasterClipToBlackPearlTest"
 
         try {
             val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
@@ -268,7 +268,7 @@ internal class AvidPamWsClientTest {
                 }
             }
         } finally {
-            HELPERS.deleteBucket(bucket)
+            //HELPERS.deleteBucket(bucket)
         }
     }
 
@@ -298,7 +298,7 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun archiveSequenceToBlackPearlTest() {
-        val bucket = "escape_pod"
+        val bucket = "archiveSequenceToBlackPearlTest"
         try {
             val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
 
