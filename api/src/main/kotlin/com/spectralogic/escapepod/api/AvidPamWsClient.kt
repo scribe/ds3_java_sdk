@@ -13,7 +13,7 @@ interface AvidPamWsClient {
     fun getPamWorkGroups(): Single<PamWorkGroups>
     fun getFileLocations(interplayURI: String): Observable<FileLocation>
     fun getSequenceRelatives(interplayURI: String): Observable<SequenceRelative>
-    fun getAssetType(interplayURI: String): Single<String>
+    fun getAssetType(interplayURI: String): Single<AssetType>
 
     fun restorePamAsset(profile: String, interplayURI: String): Single<PamJob>
     fun archivePamAsset(profile: String, interplayURI: String): Single<PamJob>
@@ -64,6 +64,7 @@ data class PamWorkGroup(
         val archiveEngineHost: String,
         val mediaServicesEngineHost: String
 )
+
 data class FileLocation(
         val filePath: String,
         val interplayURI: String,
@@ -72,7 +73,10 @@ data class FileLocation(
         val format: String,
         val clipId: String
 )
-
 data class SequenceRelative(
         val interplayURI: String
 )
+
+enum class AssetType {
+    MASTERCLIP, SEQUENCE, UNKNOWN
+}

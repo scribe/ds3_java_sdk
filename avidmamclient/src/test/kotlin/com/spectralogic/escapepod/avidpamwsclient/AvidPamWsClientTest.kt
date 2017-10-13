@@ -412,11 +412,11 @@ internal class AvidPamWsClientTest {
 
         val observable = avidPamWsClient.getAssetType(interplayURL)
                 .toObservable()
-        val testObserver = TestObserver<String>()
+        val testObserver = TestObserver<AssetType>()
 
         observable.subscribe(testObserver)
 
-        val expected = setOf("masterclip")
+        val expected = setOf(AssetType.MASTERCLIP)
 
         testObserver.awaitTerminalEvent()
         testObserver
@@ -432,11 +432,11 @@ internal class AvidPamWsClientTest {
 
         val observable = avidPamWsClient.getAssetType(interplayURL)
                 .toObservable()
-        val testObserver = TestObserver<String>()
+        val testObserver = TestObserver<AssetType>()
 
         observable.subscribe(testObserver)
 
-        val expected = setOf("sequence")
+        val expected = setOf(AssetType.SEQUENCE)
 
         testObserver.awaitTerminalEvent()
         testObserver

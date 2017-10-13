@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap
 import com.spectralogic.ds3client.Ds3Client
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers
 import com.spectralogic.ds3client.models.bulk.Ds3Object
+import com.spectralogic.escapepod.api.AssetType
 import com.spectralogic.escapepod.api.BpClientFactory
 import com.spectralogic.escapepod.api.FileLocation
 import io.reactivex.Completable
@@ -32,7 +33,7 @@ class BlackPearlPamArchive(private val blackPearlClientFactory: BpClientFactory,
 
     private fun isMasterClip(avidPamWsClient: AvidPamWsClient, interplayURI: String): Single<Boolean> {
         return avidPamWsClient.getAssetType(interplayURI).flatMap { type ->
-            if (type == "masterclip") Single.just(true)
+            if (type == AssetType.MASTERCLIP) Single.just(true)
             else Single.just(false)
         }
     }

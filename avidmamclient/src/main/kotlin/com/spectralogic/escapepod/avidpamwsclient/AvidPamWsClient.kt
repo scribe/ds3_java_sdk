@@ -367,8 +367,7 @@ constructor(username: String, password: String, endpoint: String,
                 }
     }
 
-    //TODO change String to AssetType enum?
-    override fun getAssetType(interplayURI: String): Single<String> {
+    override fun getAssetType(interplayURI: String): Single<AssetType> {
         return Single.create { emitter ->
             executor.execute {
                 try {
@@ -382,7 +381,12 @@ constructor(username: String, password: String, endpoint: String,
                         emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
                     } else {
                         val attributeMap = TransformUtils.attributeTypeToAttributeMap(res.results[0].attributes)
-                        emitter.onSuccess(attributeMap.getOrDefault("Type", "N/A"))
+                        val type = attributeMap.getOrDefault("Type", "N/A")
+                        when (type){
+                            "masterclip" -> emitter.onSuccess(AssetType.MASTERCLIP)
+                            "sequence" -> emitter.onSuccess(AssetType.SEQUENCE)
+                            else -> emitter.onError(Throwable("Could not get asset type"))
+                        }
                     }
                 } catch (t: Throwable) {
                     emitter.onError(t)
