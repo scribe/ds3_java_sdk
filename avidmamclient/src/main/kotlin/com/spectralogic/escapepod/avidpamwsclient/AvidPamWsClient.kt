@@ -372,16 +372,17 @@ constructor(username: String, password: String, endpoint: String,
         return Single.create { emitter ->
             executor.execute {
                 try {
+
                     val getAttributeType = GetAttributesType()
                     getAttributeType.interplayURIs = arrayOf(interplayURI)
-                    getAttributeType.attributes = arrayOf(AttributeType("Type"))
 
                     val res = assetsSoapClient.getAttributes(getAttributeType, credentials)
 
                     if (res.errors != null) {
                         emitter.onError(Throwable(res.errors.joinToString("\n") { it -> "${it.message}, ${it.details}" }))
                     } else {
-                        emitter.onSuccess(res.results[0].attributes[0]._value)
+                        val attributeMap = TransformUtils.attributeTypeToAttributeMap(res.results[0].attributes)
+                        emitter.onSuccess(attributeMap.getOrDefault("Type", "N/A"))
                     }
                 } catch (t: Throwable) {
                     emitter.onError(t)

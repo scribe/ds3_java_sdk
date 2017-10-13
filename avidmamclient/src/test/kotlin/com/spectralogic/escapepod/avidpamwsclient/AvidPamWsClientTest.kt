@@ -405,4 +405,44 @@ internal class AvidPamWsClientTest {
             HELPERS.deleteBucket(bucket)
         }
     }
+
+    @Test
+    fun getMasterClipTypeTest() {
+        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
+
+        val observable = avidPamWsClient.getAssetType(interplayURL)
+                .toObservable()
+        val testObserver = TestObserver<String>()
+
+        observable.subscribe(testObserver)
+
+        val expected = setOf("masterclip")
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(1)
+                .assertValueSet(expected)
+    }
+
+    @Test
+    fun getSequenceTypeTest() {
+        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
+
+        val observable = avidPamWsClient.getAssetType(interplayURL)
+                .toObservable()
+        val testObserver = TestObserver<String>()
+
+        observable.subscribe(testObserver)
+
+        val expected = setOf("sequence")
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(1)
+                .assertValueSet(expected)
+    }
 }
