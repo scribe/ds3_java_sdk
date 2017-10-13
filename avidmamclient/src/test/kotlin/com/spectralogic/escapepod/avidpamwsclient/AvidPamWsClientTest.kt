@@ -268,7 +268,7 @@ internal class AvidPamWsClientTest {
                 }
             }
         } finally {
-            //HELPERS.deleteBucket(bucket)
+            HELPERS.deleteBucket(bucket)
         }
     }
 

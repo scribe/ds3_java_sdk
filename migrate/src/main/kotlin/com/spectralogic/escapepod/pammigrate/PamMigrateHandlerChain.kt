@@ -46,6 +46,9 @@ internal class PamMigrateHandlerChain
             getWorkGroups(ctx)
         }
 
+        chain.get("filelocations") {ctx ->
+            getFileLocations(ctx)
+        }
 
         chain.post("archive") { ctx ->
             archiveFile(ctx)
@@ -157,6 +160,26 @@ internal class PamMigrateHandlerChain
                     .toPromise()
                     .onError { t ->
                         val message = "Encountered an error when getting job status: "
+                        LOG.error(message, t)
+                        ctx.handleError(t)
+                    }
+                    .then { res ->
+                        ctx.render(json(res))
+                    }
+        }
+    }
+
+    private fun getFileLocations(ctx: Context) {
+        val workGroup = ctx.request.queryParams["workgroup"]
+        val mobid = ctx.request.queryParams["mobid"]
+
+        if (workGroup.isNullOrEmpty() || mobid.isNullOrEmpty()) {
+            ctx.response.status(400).send("'workgroup' and 'mobid' must be set")
+        } else {
+            pamMigrateProvider.getFileLocations(workGroup!!, mobid!!).observeOn(scheduler)
+                    .toPromise()
+                    .onError { t ->
+                        val message = "Encountered an error when getting file locations: "
                         LOG.error(message, t)
                         ctx.handleError(t)
                     }

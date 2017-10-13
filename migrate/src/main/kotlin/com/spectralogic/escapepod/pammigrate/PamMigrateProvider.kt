@@ -101,4 +101,19 @@ class PamMigrateProvider {
 
         return avidPamWsClient.archivePamAsset(profile, fileUri)
     }
+
+    //TODO
+    /**
+    fun getFileLocations(interplayURI: String): Observable<FileLocation>
+    fun getSequenceRelatives(interplayURI: String): Observable<SequenceRelative>
+    fun getAssetType(interplayURI: String): Single<AssetType>
+    fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable
+     */
+
+    fun getFileLocations(workGroup: String, mobid: String): Observable<FileLocation> {
+        val fileUri = "interplay://$workGroup?mobid=$mobid"
+        LOG.info("Getting file locations for: '$fileUri'")
+
+        return avidPamWsClient.getFileLocations(fileUri)
+    }
 }
