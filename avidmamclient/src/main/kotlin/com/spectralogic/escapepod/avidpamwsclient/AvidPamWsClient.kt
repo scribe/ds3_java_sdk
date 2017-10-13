@@ -18,7 +18,7 @@ import java.util.concurrent.ForkJoinPool
 
 class AvidPamWsClient
 constructor(username: String, password: String, endpoint: String,
-            blackPearlClientFactory: BpClientFactory, blackPearlEndpoint: String,
+            blackPearlClientFactory: BpClientFactory,
             private val executor: Executor = ForkJoinPool.commonPool()) : AvidPamWsClient {
 
     private companion object {
@@ -60,7 +60,7 @@ constructor(username: String, password: String, endpoint: String,
         infrastructureLocator.setEndpointAddress("InfrastructurePort", infrastructureEndpointUrl)
         infrastructureSoapClient = infrastructureLocator.infrastructurePort
 
-        blackPearlPamArchive = BlackPearlPamArchive(blackPearlClientFactory, blackPearlEndpoint)
+        blackPearlPamArchive = BlackPearlPamArchive(blackPearlClientFactory)
     }
 
     override fun getPamAssets(interplayURI: String): Observable<PamAsset> {
@@ -320,8 +320,8 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable {
-        return blackPearlPamArchive.archivePamToBlackPearl(this, bucket, interplayURI, executor)
+    override fun archivePamAssetToBlackPearl(blackPearl: String, bucket: String, interplayURI: String): Completable {
+        return blackPearlPamArchive.archivePamToBlackPearl(this, blackPearl, bucket, interplayURI, executor)
     }
 
     override fun getFileLocations(interplayURI: String): Observable<FileLocation> {
@@ -382,7 +382,7 @@ constructor(username: String, password: String, endpoint: String,
                     } else {
                         val attributeMap = TransformUtils.attributeTypeToAttributeMap(res.results[0].attributes)
                         val type = attributeMap.getOrDefault("Type", "N/A")
-                        when (type){
+                        when (type) {
                             "masterclip" -> emitter.onSuccess(AssetType.MASTERCLIP)
                             "sequence" -> emitter.onSuccess(AssetType.SEQUENCE)
                             else -> emitter.onError(Throwable("Could not get asset type"))

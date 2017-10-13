@@ -18,16 +18,16 @@ import java.nio.file.StandardOpenOption
 import java.util.concurrent.Executor
 
 //TODO blackPearlFactory should be injected once ready
-class BlackPearlPamArchive(private val blackPearlClientFactory: BpClientFactory, private val blackPearlEndpoint: String) {
+class BlackPearlPamArchive(private val blackPearlClientFactory: BpClientFactory) {
 
     companion object {
         private val LOG = LoggerFactory.getLogger(BlackPearlPamArchive::class.java)
     }
 
-    fun archivePamToBlackPearl(avidPamWsClient: AvidPamWsClient, bucket: String, interplayURI: String, executor: Executor): Completable {
+    fun archivePamToBlackPearl(avidPamWsClient: AvidPamWsClient, blackPearl: String, bucket: String, interplayURI: String, executor: Executor): Completable {
         return isMasterClip(avidPamWsClient, interplayURI).flatMapCompletable { isMasterClip ->
-            if (isMasterClip) archivePamAssetToBlackPearl(avidPamWsClient, interplayURI, bucket, executor)
-            else archivePamSequenceToBlackPearl(avidPamWsClient, interplayURI, bucket, executor)
+            if (isMasterClip) archivePamAssetToBlackPearl(avidPamWsClient, interplayURI, blackPearl, bucket, executor)
+            else archivePamSequenceToBlackPearl(avidPamWsClient, interplayURI, blackPearl, bucket, executor)
         }
     }
 
@@ -38,18 +38,18 @@ class BlackPearlPamArchive(private val blackPearlClientFactory: BpClientFactory,
         }
     }
 
-    private fun archivePamAssetToBlackPearl(avidPamWsClient: AvidPamWsClient, interplayURI: String, bucket: String, executor: Executor): Completable {
-        return archive(bucket, avidPamWsClient.getFileLocations(interplayURI), executor)
+    private fun archivePamAssetToBlackPearl(avidPamWsClient: AvidPamWsClient, interplayURI: String, blackPearl: String, bucket: String, executor: Executor): Completable {
+        return archive(blackPearl, bucket, avidPamWsClient.getFileLocations(interplayURI), executor)
     }
 
-    private fun archivePamSequenceToBlackPearl(avidPamWsClient: AvidPamWsClient, interplayURI: String, bucket: String, executor: Executor): Completable {
-        return archive(bucket,
+    private fun archivePamSequenceToBlackPearl(avidPamWsClient: AvidPamWsClient, interplayURI: String, blackPearl: String, bucket: String, executor: Executor): Completable {
+        return archive(blackPearl, bucket,
                 avidPamWsClient.getSequenceRelatives(interplayURI)
                         .map { sequenceRelative -> sequenceRelative.interplayURI }
                         .flatMap(avidPamWsClient::getFileLocations), executor)
     }
 
-    private fun archive(bucket: String, fileLocationObservable: Observable<FileLocation>, executor: Executor): Completable {
+    private fun archive(blackPearl: String, bucket: String, fileLocationObservable: Observable<FileLocation>, executor: Executor): Completable {
         val mapBuilder = ImmutableMap.builder<String, String>()
         val pamMetadataAccess = PamMetadataAccess()
         return fileLocationObservable.map { fileLocation ->
@@ -69,7 +69,7 @@ class BlackPearlPamArchive(private val blackPearlClientFactory: BpClientFactory,
 
             Ds3Object(mobid, fileLocation.size)
         }.toList()
-                .zipWith(blackPearlClientFactory.createBpClient(blackPearlEndpoint))
+                .zipWith(blackPearlClientFactory.createBpClient(blackPearl))
                 .flatMapCompletable { (objectsToTransfer, ds3Client) ->
                     transfer(ds3Client, bucket, objectsToTransfer, mapBuilder.build(), pamMetadataAccess, executor)
                 }

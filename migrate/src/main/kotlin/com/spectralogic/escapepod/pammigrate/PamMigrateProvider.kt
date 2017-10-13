@@ -5,6 +5,7 @@ import com.spectralogic.ds3client.Ds3ClientBuilder
 import com.spectralogic.ds3client.models.common.Credentials
 import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.avidpamwsclient.AvidPamWsClient
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
@@ -37,13 +38,16 @@ class PamMigrateProvider {
         //TODO needs to be injected
         class BpClientFactoryImpl : BpClientFactory {
             override fun createBpClient(endpoint: String): Single<Ds3Client> {
-                return Single.just(ds3Client)
+                return when (endpoint) {
+                    "sm25-2" -> Single.just(ds3Client)
+                    else -> Single.error(Throwable("Black Peal '$endpoint' is not configured in the database."))
+                }
             }
         }
 
         val bpClientFactoryImpl = BpClientFactoryImpl()
 
-        avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, bpClientFactoryImpl, "")
+        avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, bpClientFactoryImpl)
     }
 
     fun getProfiles(workGroup: String): Observable<PamProfile> {
@@ -88,11 +92,6 @@ class PamMigrateProvider {
         return avidPamWsClient.getPamWorkGroups()
     }
 
-    /**
-    fun getAssetType(interplayURI: String): Single<AssetType>
-    fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable
-     */
-
     fun getFileLocations(workGroup: String, mobid: String): Observable<FileLocation> {
         val fileUri = "interplay://$workGroup?mobid=$mobid"
         LOG.info("Getting file locations for: '$fileUri'")
@@ -126,5 +125,12 @@ class PamMigrateProvider {
         LOG.info("Archiving '$fileUri' using '$profile' profile")
 
         return avidPamWsClient.archivePamAsset(profile, fileUri)
+    }
+
+    fun archivePamAssetToBlackPearl(workGroup: String, mobid: String, blackPearl: String, bucket: String): Completable {
+        val fileUri = "interplay://$workGroup?mobid=$mobid"
+        LOG.info("Archiving '$fileUri' to Black Pearl '$blackPearl' using bucket '$bucket'")
+
+        return avidPamWsClient.archivePamAssetToBlackPearl(blackPearl, bucket, fileUri)
     }
 }

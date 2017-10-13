@@ -17,7 +17,7 @@ interface AvidPamWsClient {
 
     fun restorePamAsset(profile: String, interplayURI: String): Single<PamJob>
     fun archivePamAsset(profile: String, interplayURI: String): Single<PamJob>
-    fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable
+    fun archivePamAssetToBlackPearl(blackPearl: String, bucket: String, interplayURI: String): Completable
 }
 
 data class PamAsset(
@@ -73,6 +73,7 @@ data class FileLocation(
         val format: String,
         val clipId: String
 )
+
 data class SequenceRelative(
         val interplayURI: String
 )

@@ -46,15 +46,15 @@ internal class PamMigrateHandlerChain
             getWorkGroups(ctx)
         }
 
-        chain.get("filelocations") {ctx ->
+        chain.get("filelocations") { ctx ->
             getFileLocations(ctx)
         }
 
-        chain.get("sequencerelatives") {ctx ->
+        chain.get("sequencerelatives") { ctx ->
             getSequenceRelatives(ctx)
         }
 
-        chain.get("assettype") {ctx ->
+        chain.get("assettype") { ctx ->
             getAssetType(ctx)
         }
 
@@ -64,6 +64,10 @@ internal class PamMigrateHandlerChain
 
         chain.post("restore") { ctx ->
             restoreFile(ctx)
+        }
+
+        chain.post("archivetoblackpearl") { ctx ->
+            archiveFileToBlackPearl(ctx)
         }
     }
 
@@ -270,6 +274,29 @@ internal class PamMigrateHandlerChain
                     .toPromise()
                     .onError { t ->
                         val message = "Encountered an error when archiving an asset: "
+                        LOG.error(message, t)
+                        ctx.handleError(t)
+                    }
+                    .then { res ->
+                        ctx.render(json(res))
+                    }
+        }
+    }
+
+    private fun archiveFileToBlackPearl(ctx: Context) {
+        val workGroup = ctx.request.queryParams["workgroup"]
+        val mobid = ctx.request.queryParams["mobid"]
+        val blackPearl = ctx.request.queryParams["blackpearl"]
+        val bucket = ctx.request.queryParams["bucket"]
+
+
+        if (workGroup.isNullOrEmpty() || blackPearl.isNullOrEmpty() || mobid.isNullOrEmpty()) {
+            ctx.response.status(400).send("'workgroup', 'mobid', 'blackpearl' and 'bucket must be set")
+        } else {
+            pamMigrateProvider.archivePamAssetToBlackPearl(workGroup!!, mobid!!, blackPearl!!, bucket!!).observeOn(scheduler)
+                    .toPromise()
+                    .onError { t ->
+                        val message = "Encountered an error when archiving an asset to Black Pearl: "
                         LOG.error(message, t)
                         ctx.handleError(t)
                     }
