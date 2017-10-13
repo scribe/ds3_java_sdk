@@ -53,7 +53,7 @@ internal class AvidPamWsClientTest {
             CLIENT = bpClientFactory.createBpClient(BP_ENDPOINT).blockingGet()
             HELPERS = Ds3ClientHelpers.wrap(CLIENT)
 
-            avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, bpClientFactory, BP_ENDPOINT, Executors.newSingleThreadExecutor())
+            avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, bpClientFactory, Executors.newSingleThreadExecutor())
         }
 
         @AfterClass
@@ -122,7 +122,7 @@ internal class AvidPamWsClientTest {
                 .assertValueCount(1)
                 .values().forEach {
             assertThat(it).isNotNull()
-            assertThat(it.interplayURI).isEqualTo("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
+            assertThat(it.interplayURI).isEqualTo(interplayURI)
             assertThat(it.jobURI).isNotEmpty()
         }
     }
@@ -145,7 +145,7 @@ internal class AvidPamWsClientTest {
                 .assertValueCount(1)
                 .values().forEach {
             assertThat(it).isNotNull()
-            assertThat(it.interplayURI).isEqualTo("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80")
+            assertThat(it.interplayURI).isEqualTo(interplayURI)
             assertThat(it.jobURI).isNotEmpty()
         }
     }
@@ -215,7 +215,7 @@ internal class AvidPamWsClientTest {
         try {
             val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
 
-            val observable = avidPamWsClient.archivePamAssetToBlackPearl(bucket, interplayURL)
+            val observable = avidPamWsClient.archivePamAssetToBlackPearl(BP_ENDPOINT, bucket, interplayURL)
                     .toObservable<Unit>()
             val testObserver = TestObserver<Unit>()
 
@@ -302,7 +302,7 @@ internal class AvidPamWsClientTest {
         try {
             val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
 
-            val observable = avidPamWsClient.archivePamAssetToBlackPearl(bucket, interplayURL).toObservable<Unit>()
+            val observable = avidPamWsClient.archivePamAssetToBlackPearl(BP_ENDPOINT, bucket, interplayURL).toObservable<Unit>()
             val testObserver = TestObserver<Unit>()
 
             observable.subscribe(testObserver)
@@ -437,6 +437,23 @@ internal class AvidPamWsClientTest {
         observable.subscribe(testObserver)
 
         val expected = setOf(AssetType.SEQUENCE)
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(1)
+                .assertValueSet(expected)
+    }
+
+    @Test
+    fun getPamWorkGroupsTest() {
+        val observable = avidPamWsClient.getPamWorkGroups()
+        val testObserver = TestObserver<PamWorkGroup>()
+
+        observable.subscribe(testObserver)
+
+        val expected = setOf(PamWorkGroup("AvidWorkgroup", "eng-dell-28", "eng-dell-32", "eng-dell-35"))
 
         testObserver.awaitTerminalEvent()
         testObserver

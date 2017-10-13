@@ -10,7 +10,7 @@ interface AvidPamWsClient {
     fun getPamProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean): Observable<PamProfile>
     fun getPamJobStatus(jobURI: String): Single<PamJobStatus>
     fun getPamMaxArchiveAssetSize(interplayURI: String): Single<PamMaxArchiveAssetSize>
-    fun getPamWorkGroups(): Single<PamWorkGroups>
+    fun getPamWorkGroups(): Observable<PamWorkGroup>
     fun getFileLocations(interplayURI: String): Observable<FileLocation>
     fun getSequenceRelatives(interplayURI: String): Observable<SequenceRelative>
     fun getAssetType(interplayURI: String): Single<AssetType>
@@ -52,10 +52,6 @@ data class PamMaxArchiveAssetSize(
 
 data class PamFolder(
         val name: String
-)
-
-data class PamWorkGroups(
-        val results: List<PamWorkGroup>
 )
 
 data class PamWorkGroup(
