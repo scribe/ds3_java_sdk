@@ -54,6 +54,10 @@ internal class PamMigrateHandlerChain
             getSequenceRelatives(ctx)
         }
 
+        chain.get("assettype") {ctx ->
+            getAssetType(ctx)
+        }
+
         chain.post("archive") { ctx ->
             archiveFile(ctx)
         }
@@ -204,6 +208,26 @@ internal class PamMigrateHandlerChain
                     .toPromise()
                     .onError { t ->
                         val message = "Encountered an error when getting sequence relatives: "
+                        LOG.error(message, t)
+                        ctx.handleError(t)
+                    }
+                    .then { res ->
+                        ctx.render(json(res))
+                    }
+        }
+    }
+
+    private fun getAssetType(ctx: Context) {
+        val workGroup = ctx.request.queryParams["workgroup"]
+        val mobid = ctx.request.queryParams["mobid"]
+
+        if (workGroup.isNullOrEmpty() || mobid.isNullOrEmpty()) {
+            ctx.response.status(400).send("'workgroup' and 'mobid' must be set")
+        } else {
+            pamMigrateProvider.getAssetType(workGroup!!, mobid!!).observeOn(scheduler)
+                    .toPromise()
+                    .onError { t ->
+                        val message = "Encountered an error when getting asset type: "
                         LOG.error(message, t)
                         ctx.handleError(t)
                     }

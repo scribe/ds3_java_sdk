@@ -89,7 +89,6 @@ class PamMigrateProvider {
     }
 
     /**
-    fun getSequenceRelatives(interplayURI: String): Observable<SequenceRelative>
     fun getAssetType(interplayURI: String): Single<AssetType>
     fun archivePamAssetToBlackPearl(bucket: String, interplayURI: String): Completable
      */
@@ -108,6 +107,12 @@ class PamMigrateProvider {
         return avidPamWsClient.getSequenceRelatives(fileUri)
     }
 
+    fun getAssetType(workGroup: String, mobid: String): Single<AssetType> {
+        val fileUri = "interplay://$workGroup?mobid=$mobid"
+        LOG.info("Getting asset type for: '$fileUri'")
+
+        return avidPamWsClient.getAssetType(fileUri)
+    }
 
     fun restoreFile(workGroup: String, profile: String, mobid: String): Single<PamJob> {
         val fileUri = "interplay://$workGroup?mobid=$mobid"
