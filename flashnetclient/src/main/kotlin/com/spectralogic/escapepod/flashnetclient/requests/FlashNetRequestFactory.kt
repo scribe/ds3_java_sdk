@@ -1,5 +1,5 @@
 /*
- *  ****************************************************************************
+ * ****************************************************************************
  *    Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *    Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *    this file except in compliance with the License. A copy of the License is located at
@@ -13,8 +13,9 @@
  *  ****************************************************************************
  */
 
-dependencies {
-    compile group: 'org.simpleframework', name: 'simple-xml', version: '2.7.1'
-    compile "com.squareup.retrofit2:retrofit:$retrofitVersion"
-    compile group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: "$retrofitVersion"
+package com.spectralogic.escapepod.flashnetclient.requests
+
+interface FlashNetRequestFactory {
+    fun toMigrateAssetsRequest(migrate: Migrate) : String
+    fun toStatusRequest(status: Status) : String
 }
