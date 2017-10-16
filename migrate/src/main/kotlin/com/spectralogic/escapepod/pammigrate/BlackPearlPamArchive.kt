@@ -63,6 +63,7 @@ class BlackPearlPamArchive(private val blackPearlClientFactory: BpClientFactory,
     private fun archive(blackPearl: String, bucket: String, fileLocationObservable: Observable<FileLocation>): Completable {
         val mapBuilder = ImmutableMap.builder<String, String>()
         val pamMetadataAccess = PamMetadataAccess()
+
         return fileLocationObservable.map { fileLocation ->
             val mobid = fileLocation.interplayURI.mobid()
             mapBuilder.put(mobid, fileLocation.filePath)
