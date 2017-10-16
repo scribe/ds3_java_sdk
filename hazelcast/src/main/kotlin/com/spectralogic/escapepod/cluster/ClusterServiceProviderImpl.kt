@@ -1,3 +1,18 @@
+/*
+ * *****************************************************************************
+ *    Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
+ *    Licensed under the Apache License, Version 2.0 (the "License"). You may not use
+ *    this file except in compliance with the License. A copy of the License is located at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    or in the "license" file accompanying this file.
+ *    This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ *    CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ *    specific language governing permissions and limitations under the License.
+ *  ****************************************************************************
+ */
+
 package com.spectralogic.escapepod.cluster
 
 import com.spectralogic.escapepod.util.ifNotNull
@@ -43,56 +58,69 @@ internal class ClusterServiceProviderImpl
 
     override fun startService(): Completable {
 
-        val resource = clusterConfigService.getConfig()
-        if (resource != null) {
+        return clusterConfigService.getConfig().doOnError { e ->
+            LOG.error("This node is not a member of a cluster.  Starting up as un-configured", e)
+        }.doOnSuccess {
             LOG.info("attempting to re-join cluster after restart")
-            val firstNode = resource.nodesList.stream().findFirst()
+        }.flatMapCompletable { (name, _, nodeList) ->
 
-            if (firstNode.isPresent) {
-                val node = firstNode.get()
-                return innerJoinCluster(node.host.endpoint + node.host.port)
+            try {
+                val node = nodeList.first()
+                innerJoinCluster(node.endpoint +":"+ node.port)
                         .doOnSuccess {
                             clusterLifecycleEvents.onNext(ClusterStartupEvent())
-                        }
-                        .toCompletable()
-            } else {
+                        }.doOnError {
+                            LOG.error("Failed to join cluster on startup", it)
+                        }.toCompletable()
+            } catch (e: NoSuchElementException) {
                 LOG.info("There are no other nodes in the cluster, starting up as a single node cluster")
-                return innerCreateCluster(resource.name).doOnComplete {
+                innerCreateCluster(name).doOnComplete {
                     clusterLifecycleEvents.onNext(ClusterStartupEvent())
                 }
             }
+        }.onErrorComplete()
+    }
+
+    override fun getService(requestContext: RequestContext): Single<ClusterService> {
+        val clusterService = clusterService
+
+        return if (clusterService == null) {
+            Single.error(ClusterException(NOT_IN_CLUSTER))
+        } else {
+            Single.just(InstrumentedClusterService(clusterService, requestContext))
         }
-
-        LOG.info("This node is not a member of a cluster.  Starting up as un-configured")
-        return Completable.complete()
     }
 
-    override fun getService(): ClusterService {
-        throwIfNotInCluster(NOT_IN_CLUSTER)
-        return clusterService!!
-    }
+    override fun leaveCluster(): Completable {
 
-    override fun leaveCluster() : Completable {
-        throwIfNotInCluster(NOT_IN_CLUSTER)
-        return Completable.create { emitter ->
+        val clusterServiceCopy = clusterService
+
+        return if (clusterServiceCopy == null) {
+            Completable.error(ClusterException(NOT_IN_CLUSTER))
+        } else {
             LOG.info("Attempting leaving cluster")
-
-            clusterService.ifNotNull {
-                val distributedMap = it.getDistributedMap<ClusterNode, ClusterNode>(CLUSTER_MAP)
-                distributedMap.remove(it.getClusterNode())
-
-                it.shutdown()
+            cleanupService(clusterServiceCopy).andThen {
+                LOG.info("Left Cluster")
+                clusterService = null
+                internalLifecycleEvents.onNext(ConfigDeletedChangeEvent())
+                clusterLifecycleEvents.onNext(ClusterLeftEvent())
+                it.onComplete()
             }
+        }
+    }
 
-            clusterService = null
-            internalLifecycleEvents.onNext(ConfigDeletedChangeEvent())
-            clusterLifecycleEvents.onNext(ClusterLeftEvent())
-            emitter.onComplete()
+    private fun cleanupService(cluster: HazelcastClusterService): Completable {
+        return cluster.getDistributedMap<ClusterNode, ClusterNode>(CLUSTER_MAP).flatMapCompletable {
+            it.remove(cluster.getClusterNode())
+            cluster.shutdown()
         }
     }
 
     override fun createCluster(name: String) : Completable {
-        throwIfInCluster(CANNOT_JOIN_NEW_CLUSTER)
+
+        if (clusterService != null) {
+            return Completable.error(ClusterException(CANNOT_JOIN_NEW_CLUSTER))
+        }
 
         return innerCreateCluster(name).doOnComplete {
             clusterLifecycleEvents.onNext(ClusterCreatedEvent(name))
@@ -100,21 +128,21 @@ internal class ClusterServiceProviderImpl
         }
     }
 
-    fun innerCreateCluster(name : String) : Completable {
+    private fun innerCreateCluster(name : String) : Completable {
+        val config = createCommonClusterConfiguration(name)
 
-        return Completable.create { emitter ->
-            val config = createCommonClusterConfiguration(name)
+        val hazelcastInstance = Hazelcast.newHazelcastInstance(config)
 
-            val hazelcastInstance = Hazelcast.newHazelcastInstance(config)
+        return createAndConfigureCluster(hazelcastInstance).doOnSuccess {
+            clusterService = it
+        }.toCompletable()
 
-            clusterService = createAndConfigureCluster(hazelcastInstance)
-
-            emitter.onComplete()
-        }
     }
 
     override fun joinCluster(endpoint: String) : Single<String> {
-        throwIfInCluster(CANNOT_JOIN_NEW_CLUSTER)
+        if (clusterService != null) {
+            return Single.error(ClusterException(CANNOT_JOIN_NEW_CLUSTER))
+        }
 
        return innerJoinCluster(endpoint).doOnSuccess { name ->
            clusterLifecycleEvents.onNext(ClusterJoinedEvent(name))
@@ -122,20 +150,22 @@ internal class ClusterServiceProviderImpl
     }
 
     private fun innerJoinCluster(endpoint : String) : Single<String> {
-        return clusterClientFactory.createClusterClient(endpoint).clusterName()
-               .doOnSuccess { name ->
-                   val config = createCommonClusterConfiguration(name)
+        return clusterClientFactory.createClusterClient(endpoint).clusterName().flatMap { name ->
+            val config = createCommonClusterConfiguration(name)
 
-                   LOG.info("Attempting join to endpoint: {}", endpoint)
+            LOG.info("Attempting join to endpoint: {}", endpoint)
 
-                   config.networkConfig.join.tcpIpConfig.members.add(hazelcastEndpoint(endpoint))
+            config.networkConfig.join.tcpIpConfig.members.add(hazelcastEndpoint(endpoint))
 
-                   val newHazelcastInstance = Hazelcast.newHazelcastInstance(config)
+            val newHazelcastInstance = Hazelcast.newHazelcastInstance(config)
 
-                   clusterService = createAndConfigureCluster(newHazelcastInstance)
-
-                   internalLifecycleEvents.onNext(ConfigCreatedChangeEvent(name, UUID.randomUUID()))
-       }
+            createAndConfigureCluster(newHazelcastInstance).doOnSuccess {
+                clusterService = it
+                internalLifecycleEvents.onNext(ConfigCreatedChangeEvent(name, UUID.randomUUID()))
+            }.map {
+                name
+            }
+        }
     }
 
     private fun hazelcastEndpoint(endpoint: String): String {
@@ -185,13 +215,19 @@ internal class ClusterServiceProviderImpl
     private fun clusterEventsHandler(event : ConfigChangeEvent) {
         when (event) {
             is ConfigCreatedChangeEvent -> clusterConfigService.createConfig(event.clusterName, event.clusterId)
-            is ConfigNodeAddedChangeEvent -> clusterConfigService.addNode(event.clusterNode)
-            is ConfigNodeRemovedChangeEvent -> clusterConfigService.removeNode(event.clusterNode)
+            is ConfigNodeAddedChangeEvent -> {
+                clusterConfigService.addNode(event.clusterNode)
+                clusterLifecycleEvents.onNext(ClusterNodeJoinedEvent(event.clusterNode))
+            }
+            is ConfigNodeRemovedChangeEvent -> {
+                clusterConfigService.removeNode(event.clusterNode)
+                clusterLifecycleEvents.onNext(ClusterNodeLeftEvent(event.clusterNode))
+            }
             is ConfigDeletedChangeEvent -> clusterConfigService.deleteConfig()
         }
     }
 
-    private fun createAndConfigureCluster(hazelcastInstance: HazelcastInstance) : HazelcastClusterService {
+    private fun createAndConfigureCluster(hazelcastInstance: HazelcastInstance) : Single<HazelcastClusterService> {
         hazelcastInstance.cluster.addMembershipListener(HazelcastMembershipListener(internalLifecycleEvents))
 
         val idGenerator = hazelcastInstance.getIdGenerator("clusterNodeId")
@@ -199,30 +235,22 @@ internal class ClusterServiceProviderImpl
 
         val clusterMap = hazelcastClusterService.getDistributedMap<ClusterNode, ClusterNode>(CLUSTER_MAP)
 
-        clusterMap.put(ClusterNode(hazelcastInterface, hazelcastInstance.config.networkConfig.port), ClusterNode(hazelcastInterface, managementPort))
+        return clusterMap.map {
+            it.put(ClusterNode(hazelcastInterface, hazelcastInstance.config.networkConfig.port), ClusterNode(hazelcastInterface, managementPort))
 
-        clusterMap.entryAdded { (clusterNode, publicNode) ->
-            if (hazelcastClusterService.getClusterNode() != clusterNode) {
-                clusterLifecycleEvents.onNext(ClusterNodeJoinedEvent(publicNode))
+            it.entryAdded { (clusterNode, publicNode) ->
+                if (hazelcastClusterService.getClusterNode() != clusterNode) {
+                    clusterLifecycleEvents.onNext(ClusterNodeJoinedEvent(publicNode))
+                }
             }
-        }
 
-        clusterMap.entryRemoved { (clusterNode, publicNode) ->
-            if (hazelcastClusterService.getClusterNode() != clusterNode) {
-                clusterLifecycleEvents.onNext(ClusterNodeLeftEvent(publicNode))
+            it.entryRemoved { (clusterNode, publicNode) ->
+                if (hazelcastClusterService.getClusterNode() != clusterNode) {
+                    clusterLifecycleEvents.onNext(ClusterNodeLeftEvent(publicNode))
+                }
             }
-        }
 
-        return hazelcastClusterService
-    }
-
-    private fun throwIfNotInCluster(message: String) = throwClusterExceptionIf(message) { clusterService == null }
-
-    private fun throwIfInCluster(message: String) = throwClusterExceptionIf(message) { clusterService != null }
-
-    private fun throwClusterExceptionIf(message: String, condition : () -> Boolean) {
-        if (condition.invoke()) {
-            throw ClusterException(message)
+            hazelcastClusterService
         }
     }
 }

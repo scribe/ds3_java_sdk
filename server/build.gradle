@@ -1,4 +1,0 @@
-dependencies {
-    runtime group: 'ch.qos.logback', name: 'logback-core', version: "$logbackVersion"
-    runtime group: 'ch.qos.logback', name: 'logback-classic', version: "$logbackVersion"
-}

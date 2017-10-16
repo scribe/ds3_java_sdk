@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-
-package com.spectralogic.escapepod.util.test.models;
-option java_package = "com.spectralogic.escapepod.util.test.models";
-
-message TestMessage {
-    string message = 1;
-}

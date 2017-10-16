@@ -1,9 +1,26 @@
+/*
+ * *****************************************************************************
+ *    Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
+ *    Licensed under the Apache License, Version 2.0 (the "License"). You may not use
+ *    this file except in compliance with the License. A copy of the License is located at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    or in the "license" file accompanying this file.
+ *    This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ *    CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ *    specific language governing permissions and limitations under the License.
+ *  ****************************************************************************
+ */
+
 package com.spectralogic.escapepod.metadatasearch
 
 import com.google.common.collect.ImmutableMap
 import com.spectralogic.escapepod.api.MetadataIndex
 import com.spectralogic.escapepod.api.MetadataSearchHitsNode
-import com.spectralogic.escapepod.metadatasearch.api.ElasticSearchMetadataService
+import com.spectralogic.escapepod.api.MetadataSearchService
+import com.spectralogic.escapepod.api.RequestContext
+import com.spectralogic.escapepod.util.json.Mapper
 import org.apache.http.HttpHost
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -13,37 +30,39 @@ import org.junit.BeforeClass
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
+/**
+ * In order for the tests to pass, elastic search process needs to be running
+ */
 class TestElasticSearchService {
 
     companion object {
-        //        private val LOG = LoggerFactory.getLogger(TestElasticSearchService::class.java)
-        lateinit internal var metadataSearchService: ElasticSearchMetadataService
+        lateinit internal var metadataSearchService: MetadataSearchService
+        lateinit private var restClient: RestClient
 
-        @BeforeClass @JvmStatic
+        @BeforeClass
+        @JvmStatic
         fun beforeClass() {
-            val restClient = RestClient.builder(*arrayOf(
-                    HttpHost("localhost", 9200),
-                    HttpHost("localhost", 9201))).build()
-            metadataSearchService = ElasticSearchService(restClient)
+            restClient = RestClient.builder(HttpHost("localhost", 9200), HttpHost("localhost", 9201)).build()
+            metadataSearchService = ElasticSearchService(restClient, createTestRequestContext(), Mapper.mapper)
         }
 
-        @AfterClass @JvmStatic
+        @AfterClass
+        @JvmStatic
         fun afterClass() {
-            metadataSearchService.closeConnection()
+            restClient.close()
         }
     }
 
     @Test
     fun testHealth() {
         val single = metadataSearchService.health()
-        val expected: String = "green"
+        val expected = "green"
 
-        val MetadataSearchHealthResponse = single.filter {
-            health ->
+        val metadataSearchHealthResponse = single.filter { health ->
             health.status == expected
         }.blockingGet()
 
-        if (MetadataSearchHealthResponse == null) {
+        if (metadataSearchHealthResponse == null) {
             fail("Expected cluster status to be $expected")
         }
     }
@@ -103,7 +122,7 @@ class TestElasticSearchService {
         val index = "test_index"
         val bucket = "test_bucket"
         val fileName = "test_file"
-        val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
+        val metadata = ImmutableMap.of("m1", "v1", "m2", "v2")
         try {
             metadataSearchService.indexDocument(index, bucket, fileName, metadata).subscribe()
 
@@ -112,6 +131,7 @@ class TestElasticSearchService {
 
             val observable = metadataSearchService.getAllIndices()
             val expected = MetadataIndex(index, 5, 1, 1)
+
             assertThat(observable.contains(expected).blockingGet()).isTrue()
         } finally {
             metadataSearchService.deleteIndex(index).subscribe()
@@ -137,7 +157,7 @@ class TestElasticSearchService {
         val index = "test_delete_file"
         val bucket = "test_bucket"
         val fileName = "test_file"
-        val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
+        val metadata = ImmutableMap.of("m1", "v1", "m2", "v2")
 
         try {
             metadataSearchService.indexDocument(index, bucket, fileName, metadata).subscribe()
@@ -165,7 +185,7 @@ class TestElasticSearchService {
         val bucket1 = "test_bucket_1"
         val bucket2 = "test_bucket_2"
         val fileName = "test_file"
-        val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
+        val metadata = ImmutableMap.of("m1", "v1", "m2", "v2")
 
         try {
             metadataSearchService.indexDocument(index1, bucket1, fileName, metadata).subscribe()
@@ -198,7 +218,7 @@ class TestElasticSearchService {
         val bucket1 = "test_bucket_1"
         val bucket2 = "test_bucket_2"
         val fileName = "test_file"
-        val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
+        val metadata = ImmutableMap.of("m1", "v1", "m2", "v2")
 
         try {
             metadataSearchService.indexDocument(index1, bucket1, fileName, metadata).subscribe()
@@ -231,7 +251,7 @@ class TestElasticSearchService {
         val bucket1 = "test_bucket_1"
         val bucket2 = "test_bucket_2"
         val fileName = "test_file"
-        val metadata = ImmutableMap.of<String, String>("m1", "v1", "m2", "v2")
+        val metadata = ImmutableMap.of("m1", "v1", "m2", "v2")
 
         try {
             metadataSearchService.indexDocument(index1, bucket1, fileName, metadata).subscribe()
@@ -273,4 +293,8 @@ class TestElasticSearchService {
             metadataSearchService.deleteIndex(index2).subscribe()
         }
     }
+}
+
+private fun createTestRequestContext(): RequestContext {
+    return RequestContext()
 }

@@ -1,3 +1,18 @@
+/*
+ * *****************************************************************************
+ *    Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
+ *    Licensed under the Apache License, Version 2.0 (the "License"). You may not use
+ *    this file except in compliance with the License. A copy of the License is located at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    or in the "license" file accompanying this file.
+ *    This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ *    CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ *    specific language governing permissions and limitations under the License.
+ *  ****************************************************************************
+ */
+
 package com.spectralogic.escapepod.cluster
 
 import com.hazelcast.core.*
@@ -5,16 +20,16 @@ import com.hazelcast.map.listener.EntryAddedListener
 import com.hazelcast.map.listener.EntryEvictedListener
 import com.hazelcast.map.listener.EntryRemovedListener
 import com.hazelcast.map.listener.EntryUpdatedListener
-import com.spectralogic.escapepod.api.ClusterNode
-import com.spectralogic.escapepod.api.ClusterService
-import com.spectralogic.escapepod.api.DistributedMap
-import com.spectralogic.escapepod.api.DistributedSet
+import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.util.ifNotNull
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import org.slf4j.LoggerFactory
+
+internal class InstrumentedClusterService(private val clusterService: ClusterService, private val requestContext: RequestContext): ClusterService by clusterService
 
 internal class HazelcastClusterService(private val hazelcastInstance: HazelcastInstance, private val instanceName : String) : ClusterService {
 
@@ -22,8 +37,8 @@ internal class HazelcastClusterService(private val hazelcastInstance: HazelcastI
         private val LOG = LoggerFactory.getLogger(HazelcastClusterService::class.java)
     }
 
-    private val maps = HashMap<String, HazelcastDistributedMap<*, *>>()
-    private val sets = HashMap<String, HazelcastDistributedSet<*>>()
+    private val mapStore = MapStore(hazelcastInstance)
+    private val setStore = SetStore(hazelcastInstance)
 
     override fun instanceName(): Single<String> {
         return Single.just(instanceName)
@@ -33,39 +48,16 @@ internal class HazelcastClusterService(private val hazelcastInstance: HazelcastI
         return Single.just(hazelcastInstance.config.groupConfig.name)
     }
 
-    override fun <K, V> getDistributedMap(name: String): DistributedMap<K, V> {
-        if (maps.containsKey(name)) {
-            return maps[name] as DistributedMap<K, V>
-        }
-
-        val newMap = HazelcastDistributedMap<K, V>(hazelcastInstance.getMap(name))
-        maps[name] = newMap
-
-        return newMap
+    override fun <K, V> getDistributedMap(name: String): Single<DistributedMap<K, V>> {
+        return mapStore.store(name) as Single<DistributedMap<K, V>>
     }
 
-    override fun <V> getDistributedSet(name: String): DistributedSet<V> {
-
-        if (sets.containsKey(name)) {
-            return sets[name] as DistributedSet<V>
-        }
-        val newSet = HazelcastDistributedSet<V>(hazelcastInstance.getSet(name))
-        sets[name] = newSet
-        return newSet
+    override fun <V> getDistributedSet(name: String): Single<DistributedSet<V>> {
+        return setStore.store(name) as Single<DistributedSet<V>>
     }
 
     override fun clusterNodes(): Observable<ClusterNode> {
-
-        return Observable.create { emitter ->
-            hazelcastInstance
-                .cluster
-                .members
-                .asSequence()
-                .map { ClusterNode(it.address.host, it.address.port) }
-                .forEach(emitter::onNext)
-
-            emitter.onComplete()
-        }
+        return Observable.fromIterable(hazelcastInstance.cluster.members.map { ClusterNode(it.address.host, it.address.port) })
     }
 
     internal fun getClusterNode(): ClusterNode {
@@ -73,21 +65,13 @@ internal class HazelcastClusterService(private val hazelcastInstance: HazelcastI
         return ClusterNode(address.host, address.port)
     }
 
-    internal fun shutdown() {
-        sets.forEach { collectionName, set ->
-            LOG.info("cleaning up distributed set {}", collectionName)
-            set.cleanup()
+    internal fun shutdown(): Completable {
+        return mapStore.shutdown().andThen(setStore.shutdown()).andThen {
+            LOG.info("Shutting down hazelcast")
+            hazelcastInstance.shutdown()
+            it.onComplete()
         }
-
-        maps.forEach { collectionName, map ->
-            LOG.info("cleaning up distributed map {}", collectionName)
-            map.cleanup()
-        }
-
-        LOG.info("Shutting down hazelcast")
-        hazelcastInstance.shutdown()
     }
-
 }
 
 /**

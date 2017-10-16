@@ -1,11 +1,26 @@
+/*
+ * *****************************************************************************
+ *    Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
+ *    Licensed under the Apache License, Version 2.0 (the "License"). You may not use
+ *    this file except in compliance with the License. A copy of the License is located at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    or in the "license" file accompanying this file.
+ *    This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ *    CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ *    specific language governing permissions and limitations under the License.
+ *  ****************************************************************************
+ */
+
 package com.spectralogic.escapepod.persistence
 
 import com.spectralogic.escapepod.api.*
 import io.reactivex.Completable
+import io.reactivex.Single
 import jetbrains.exodus.entitystore.PersistentEntityStore
 import jetbrains.exodus.entitystore.PersistentEntityStores
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -25,7 +40,6 @@ internal class XodusPersistenceProvider
     }
 
     private var entityStore : PersistentEntityStore? = null
-    private var xodusService : PersistenceService? = null
 
 
     override fun shutdown(): Completable {
@@ -42,7 +56,6 @@ internal class XodusPersistenceProvider
             try {
                 Files.createDirectories(dataDir)
                 entityStore = PersistentEntityStores.newInstance(dataDir.toFile())
-                xodusService = XodusPersistenceService(entityStore!!)
                 emitter.onComplete()
             } catch (e : IOException) {
                 LOG.error("Failed to access data directory for Xodus", e)
@@ -52,17 +65,29 @@ internal class XodusPersistenceProvider
     }
 
     override fun joinPersistenceCluster(name: String, port: Int): Completable {
-        TODO("not implemented")
+        LOG.warn("joining existing persistence cluster not implemented")
+        return Completable.complete()
     }
 
-    override fun getService(): PersistenceService = xodusService as PersistenceService
+    override fun getService(requestContext: RequestContext): Single<PersistenceService> {
+        return Single.create { emitter ->
+            val eStore = entityStore
+            if (eStore == null) {
+                emitter.onError(Exception("The persistence layer has not been configured"))
+            } else {
+                emitter.onSuccess(XodusPersistenceService(eStore, requestContext))
+            }
+        }
+    }
 
     override fun createNewPersistenceCluster(name: String, port: Int): Completable {
-        TODO("not implemented")
+        LOG.warn("create new persistence cluster not implemented")
+        return Completable.complete()
     }
 
     override fun leavePersistenceCluster(): Completable {
-        TODO("not implemented")
+        LOG.warn("leave persistence cluster not implemented")
+        return Completable.complete()
     }
 
     fun clusterHandler(event: ClusterEvent) {
@@ -82,6 +107,7 @@ internal class XodusPersistenceProvider
                         }.subscribe()
             }
             is ClusterLeftEvent -> {
+                // TODO add cleanup code to remove the existing persistence database
                 shutdown().subscribe()
             }
         }
