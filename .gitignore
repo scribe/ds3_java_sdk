@@ -21,3 +21,6 @@ build/
 .gradletasknamecache
 
 out/
+
+.DS_Store
+
