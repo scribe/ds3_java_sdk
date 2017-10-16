@@ -26,15 +26,21 @@ class BlackPearlPamArchive(private val blackPearlClientFactory: BpClientFactory)
 
     fun archivePamToBlackPearl(avidPamWsClient: AvidPamWsClient, blackPearl: String, bucket: String, interplayURI: String, executor: Executor): Completable {
         return isMasterClip(avidPamWsClient, interplayURI).flatMapCompletable { isMasterClip ->
-            if (isMasterClip) archivePamAssetToBlackPearl(avidPamWsClient, interplayURI, blackPearl, bucket, executor)
-            else archivePamSequenceToBlackPearl(avidPamWsClient, interplayURI, blackPearl, bucket, executor)
+            if (isMasterClip) {
+                archivePamAssetToBlackPearl(avidPamWsClient, interplayURI, blackPearl, bucket, executor)
+            } else {
+                archivePamSequenceToBlackPearl(avidPamWsClient, interplayURI, blackPearl, bucket, executor)
+            }
         }
     }
 
     private fun isMasterClip(avidPamWsClient: AvidPamWsClient, interplayURI: String): Single<Boolean> {
         return avidPamWsClient.getAssetType(interplayURI).flatMap { type ->
-            if (type == AssetType.MASTERCLIP) Single.just(true)
-            else Single.just(false)
+            if (type == AssetType.MASTERCLIP) {
+                Single.just(true)
+            } else {
+                Single.just(false)
+            }
         }
     }
 
