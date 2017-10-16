@@ -17,7 +17,6 @@ interface AvidPamWsClient {
 
     fun restorePamAsset(profile: String, interplayURI: String): Single<PamJob>
     fun archivePamAsset(profile: String, interplayURI: String): Single<PamJob>
-    fun archivePamAssetToBlackPearl(blackPearl: String, bucket: String, interplayURI: String): Completable
 }
 
 data class PamAsset(

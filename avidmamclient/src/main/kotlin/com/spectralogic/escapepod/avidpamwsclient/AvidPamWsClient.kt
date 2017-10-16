@@ -4,7 +4,6 @@ import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.api.AvidPamWsClient
 import com.spectralogic.escapepod.avidpamclient.soap.ws.*
 import com.spectralogic.escapepod.util.maxLong
-import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.Single
@@ -18,7 +17,6 @@ import java.util.concurrent.ForkJoinPool
 
 class AvidPamWsClient
 constructor(username: String, password: String, endpoint: String,
-            blackPearlClientFactory: BpClientFactory,
             private val executor: Executor = ForkJoinPool.commonPool()) : AvidPamWsClient {
 
     private companion object {
@@ -40,8 +38,6 @@ constructor(username: String, password: String, endpoint: String,
     private var assetsSoapClient: AssetsPortType
     private var infrastructureSoapClient: InfrastructurePortType
 
-    private val blackPearlPamArchive: BlackPearlPamArchive
-
     init {
         LOG.info("Init AvidPamWsClient")
 
@@ -60,7 +56,6 @@ constructor(username: String, password: String, endpoint: String,
         infrastructureLocator.setEndpointAddress("InfrastructurePort", infrastructureEndpointUrl)
         infrastructureSoapClient = infrastructureLocator.infrastructurePort
 
-        blackPearlPamArchive = BlackPearlPamArchive(blackPearlClientFactory)
     }
 
     override fun getPamAssets(interplayURI: String): Observable<PamAsset> {
@@ -293,10 +288,6 @@ constructor(username: String, password: String, endpoint: String,
                 emitter.onNext(PamFolder(uri))
             }
         }
-    }
-
-    override fun archivePamAssetToBlackPearl(blackPearl: String, bucket: String, interplayURI: String): Completable {
-        return blackPearlPamArchive.archivePamToBlackPearl(this, blackPearl, bucket, interplayURI, executor)
     }
 
     override fun getFileLocations(interplayURI: String): Observable<FileLocation> {

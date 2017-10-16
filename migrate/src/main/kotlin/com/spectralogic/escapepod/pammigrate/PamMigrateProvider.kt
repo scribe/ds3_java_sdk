@@ -29,6 +29,7 @@ class PamMigrateProvider {
     }
 
     private var avidPamWsClient: AvidPamWsClient
+    private var blackPearlPamArchive: BlackPearlPamArchive
 
     init {
         val ds3Client = Ds3ClientBuilder.create(BP_ENDPOINT, Credentials(ACCESS_ID, SECRET_KEY))
@@ -36,18 +37,19 @@ class PamMigrateProvider {
                 .build()
 
         //TODO needs to be injected
-        class BpClientFactoryImpl : BpClientFactory {
+        class BlackPearlClientFactoryImpl : BpClientFactory {
             override fun createBpClient(endpoint: String): Single<Ds3Client> {
                 return when (endpoint) {
                     "sm25-2" -> Single.just(ds3Client)
-                    else -> Single.error(Throwable("Black Peal '$endpoint' is not configured in the database."))
+                    else -> Single.error(Throwable("BlackPeal '$endpoint' is not configured in the database."))
                 }
             }
         }
 
-        val bpClientFactoryImpl = BpClientFactoryImpl()
+        val blackPearlClientFactoryImpl = BlackPearlClientFactoryImpl()
+        blackPearlPamArchive = BlackPearlPamArchive(blackPearlClientFactoryImpl)
 
-        avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT, bpClientFactoryImpl)
+        avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT)
     }
 
     fun getProfiles(workGroup: String): Observable<PamProfile> {
@@ -131,6 +133,6 @@ class PamMigrateProvider {
         val fileUri = "interplay://$workGroup?mobid=$mobid"
         LOG.info("Archiving '$fileUri' to Black Pearl '$blackPearl' using bucket '$bucket'")
 
-        return avidPamWsClient.archivePamAssetToBlackPearl(blackPearl, bucket, fileUri)
+        return blackPearlPamArchive.archivePamToBlackPearl(avidPamWsClient, blackPearl, bucket, fileUri)
     }
 }
