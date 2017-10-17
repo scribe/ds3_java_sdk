@@ -1,5 +1,5 @@
 /*
- * *****************************************************************************
+ * ****************************************************************************
  *    Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *    Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *    this file except in compliance with the License. A copy of the License is located at
@@ -13,6 +13,16 @@
  *  ****************************************************************************
  */
 
-dependencies {
-    compile "com.spectralogic.ds3:bp-mgmt-client:$bpmgmtVersion"
+package com.spectralogic.escapepod.flashnetclient.responses
+
+import org.simpleframework.xml.core.Persister
+
+class FlashNetReplyFactory {
+    companion object {
+        fun fromResponsePayload(responsePayload: String): FlashNetReply {
+            val serializer = Persister()
+            val reply = serializer.read(Reply::class.java, responsePayload)
+            return FlashNetReplyImpl(reply)
+        }
+    }
 }

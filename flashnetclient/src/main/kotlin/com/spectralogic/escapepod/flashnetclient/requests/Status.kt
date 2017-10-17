@@ -1,5 +1,5 @@
 /*
- * *****************************************************************************
+ * ****************************************************************************
  *    Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *    Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *    this file except in compliance with the License. A copy of the License is located at
@@ -13,6 +13,18 @@
  *  ****************************************************************************
  */
 
-dependencies {
-    compile "com.spectralogic.ds3:bp-mgmt-client:$bpmgmtVersion"
-}
+package com.spectralogic.escapepod.flashnetclient.requests
+
+import org.simpleframework.xml.Attribute
+import org.simpleframework.xml.Root
+
+@Root(name = "Status")
+data class Status(
+        @field:Attribute(name = "RequestId.DWD")
+        @param:Attribute(name = "RequestId.DWD")
+        val RequestId : Int,
+
+        @field:Attribute(name = "Guid", required = false)
+        @param:Attribute(name = "Guid", required = false)
+        val Guid : String?
+)

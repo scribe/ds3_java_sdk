@@ -1,13 +1,19 @@
 package com.spectralogic.escapepod.avidpamwsclient
 
+import com.spectralogic.escapepod.api.*
+import io.reactivex.observers.TestObserver
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 internal class AvidPamWsClientTest {
 
-    companion object {
+    private companion object {
 
+        //Avid WS info
         private val USERNAME = "spectra"
         private val PASSWORD = ""
         private val ENDPOINT = "10.1.2.164:80"
@@ -29,119 +35,26 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun getChildrenTest() {
-        val interplayURI = "interplay://AvidWorkgroup/"
-        avidPamWsClient.getPamAssets(interplayURI)
-                .doOnError { t ->
-                    println(t)
-                }
-                .doOnNext { it ->
-                    println("${it.interplayURI}, ${it.displayName}, ${it.mobid}, ${it.path}, ${it.mediaSize}, ${it.mediaStatus}, ${it.type}")
-                }
-                .blockingSubscribe()
+        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1/escape_pod_test"
 
+        val observable = avidPamWsClient.getPamAssets(interplayURI)
+        val testObserver = TestObserver<PamAsset>()
 
-        /**
-         * Output:
-        interplayURI = interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49a01f9915f86-060e2b347f7f-2a80
-        Attribute = (MOB ID, 060a2b340101010101010f0013-000000-59a49a01f9915f86-060e2b347f7f-2a80)
-        Attribute = (Moniker, 1|2EC83CF0-41D5-409D-BF60-B6FB997FA8AF|*|15317|*)
-        Attribute = (_WG_TRANSFER_TYPE, 0)
-        Attribute = (CFPS, 29.97)
-        Attribute = (Created By, spectra)
-        Attribute = (Creation Date, 2017-08-28T16:32:33.000-0600)
-        Attribute = (Display Name, WG2_AMS3_DNx145_Vadym.06.new.02)
-        Attribute = (Duration, 00;10;00;00)
-        Attribute = (End, 13;01;21;00)
-        Attribute = (Media File Format, MXF)
-        Attribute = (Media Size, 10827150)
-        Attribute = (Media Status, online)
-        Attribute = (Modified By, spectra)
-        Attribute = (Modified Date, 2017-08-28T16:35:51.000-0600)
-        Attribute = (NxNServer_WG_AMAStatus, 0)
-        Attribute = (Path, /Incoming Media/SpectraLogic1/sharon/060a2b340101010101010f0013-000000-59a49a01f9915f86-060e2b347f7f-2a80)
-        Attribute = (Source ID, 060a2b340101010101010f0013-000000-001d3110a29ae469-060e2b347f7f-2a80)
-        Attribute = (Start, 12;51;21;00)
-        Attribute = (Tape, WG2_AMS3_DNx145_Vadym.06)
-        Attribute = (Tape, WG2_AMS3_DNx145_Vadym.06)
-        Attribute = (Tracks, V1 A1-2 D1)
-        Attribute = (Type, masterclip)
-        Attribute = (Video ID, 0_237)
+        observable.subscribe(testObserver)
 
-        interplayURI = interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49873e5275f80-060e2b347f7f-2a80
-        Attribute = (MOB ID, 060a2b340101010101010f0013-000000-59a49873e5275f80-060e2b347f7f-2a80)
-        Attribute = (Moniker, 1|2EC83CF0-41D5-409D-BF60-B6FB997FA8AF|*|15318|*)
-        Attribute = (_WG_TRANSFER_TYPE, 0)
-        Attribute = (CFPS, 29.97)
-        Attribute = (Created By, spectra)
-        Attribute = (Creation Date, 2017-08-28T16:25:55.000-0600)
-        Attribute = (Display Name, WG2_AMS3_DNx145_Vadym.04.new.02)
-        Attribute = (Duration, 00;10;00;00)
-        Attribute = (End, 12;40;21;00)
-        Attribute = (Media File Format, MXF)
-        Attribute = (Media Size, 10827150)
-        Attribute = (Media Status, online)
-        Attribute = (Modified By, spectra)
-        Attribute = (Modified Date, 2017-08-28T16:29:11.000-0600)
-        Attribute = (NxNServer_WG_AMAStatus, 0)
-        Attribute = (Path, /Incoming Media/SpectraLogic1/sharon/060a2b340101010101010f0013-000000-59a49873e5275f80-060e2b347f7f-2a80)
-        Attribute = (Source ID, 060a2b340101010101010f0013-000000-001d1c10a296e469-060e2b347f7f-2a80)
-        Attribute = (Start, 12;30;21;00)
-        Attribute = (Tape, WG2_AMS3_DNx145_Vadym.04)
-        Attribute = (Tape, WG2_AMS3_DNx145_Vadym.04)
-        Attribute = (Tracks, V1 A1-2 D1)
-        Attribute = (Type, masterclip)
-        Attribute = (Video ID, 0_235)
+        val expected = setOf(
+                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80", "escape_pod_sequence", "N/A", "online", "sequence"),
+                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80", "WG2_AMS3_DNx145_Vadym.15.new.02", "10740803", "online", "masterclip"),
+                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80", "WG2_AMS3_DNx145_Vadym.14.new.02", "90112", "online", "masterclip"),
+                PamAsset("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80", "/Incoming Media/SpectraLogic1/escape_pod_test/060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80", "WG2_AMS3_DNx145_Vadym.16.new.03", "9792432", "online", "masterclip")
+        )
 
-        interplayURI = interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49938e8335f83-060e2b347f7f-2a80
-        Attribute = (MOB ID, 060a2b340101010101010f0013-000000-59a49938e8335f83-060e2b347f7f-2a80)
-        Attribute = (Moniker, 1|2EC83CF0-41D5-409D-BF60-B6FB997FA8AF|*|15319|*)
-        Attribute = (_WG_TRANSFER_TYPE, 0)
-        Attribute = (CFPS, 29.97)
-        Attribute = (Created By, spectra)
-        Attribute = (Creation Date, 2017-08-28T16:29:12.000-0600)
-        Attribute = (Display Name, WG2_AMS3_DNx145_Vadym.05.new.02)
-        Attribute = (Duration, 00;10;00;00)
-        Attribute = (End, 12;50;51;00)
-        Attribute = (Media File Format, MXF)
-        Attribute = (Media Size, 10827150)
-        Attribute = (Media Status, online)
-        Attribute = (Modified By, spectra)
-        Attribute = (Modified Date, 2017-08-28T16:32:33.000-0600)
-        Attribute = (NxNServer_WG_AMAStatus, 0)
-        Attribute = (Path, /Incoming Media/SpectraLogic1/sharon/060a2b340101010101010f0013-000000-59a49938e8335f83-060e2b347f7f-2a80)
-        Attribute = (Source ID, 060a2b340101010101010f0013-000000-003b2610a298e469-060e2b347f7f-2a80)
-        Attribute = (Start, 12;40;51;00)
-        Attribute = (Tape, WG2_AMS3_DNx145_Vadym.05)
-        Attribute = (Tape, WG2_AMS3_DNx145_Vadym.05)
-        Attribute = (Tracks, V1 A1-2 D1)
-        Attribute = (Type, masterclip)
-        Attribute = (Video ID, 0_236)
-
-        interplayURI = interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49ac802575f8a-060e2b347f7f-2a80
-        Attribute = (MOB ID, 060a2b340101010101010f0013-000000-59a49ac802575f8a-060e2b347f7f-2a80)
-        Attribute = (Moniker, 1|2EC83CF0-41D5-409D-BF60-B6FB997FA8AF|*|15320|*)
-        Attribute = (_WG_TRANSFER_TYPE, 0)
-        Attribute = (CFPS, 29.97)
-        Attribute = (Created By, spectra)
-        Attribute = (Creation Date, 2017-08-28T16:35:52.000-0600)
-        Attribute = (Display Name, WG2_AMS3_DNx145_Vadym.07.new.02)
-        Attribute = (Duration, 00;10;00;00)
-        Attribute = (End, 13;11;51;00)
-        Attribute = (Media File Format, MXF)
-        Attribute = (Media Size, 10827150)
-        Attribute = (Media Status, online)
-        Attribute = (Modified By, spectra)
-        Attribute = (Modified Date, 2017-08-28T16:39:14.000-0600)
-        Attribute = (NxNServer_WG_AMAStatus, 0)
-        Attribute = (Path, /Incoming Media/SpectraLogic1/sharon/060a2b340101010101010f0013-000000-59a49ac802575f8a-060e2b347f7f-2a80)
-        Attribute = (Source ID, 060a2b340101010101010f0013-000000-003b3b10a29ce469-060e2b347f7f-2a80)
-        Attribute = (Start, 13;01;51;00)
-        Attribute = (Tape, WG2_AMS3_DNx145_Vadym.07)
-        Attribute = (Tape, WG2_AMS3_DNx145_Vadym.07)
-        Attribute = (Tracks, V1 A1-2 D1)
-        Attribute = (Type, masterclip)
-        Attribute = (Video ID, 0_238)
-         */
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(4)
+                .assertValueSet(expected)
     }
 
     @Test
@@ -150,148 +63,199 @@ internal class AvidPamWsClientTest {
         val services = arrayOf("com.avid.dms.restore", "com.avid.dms.archive")
         val showParameters = true
 
-        avidPamWsClient.getPamProfiles(workgroupURI, services, showParameters)
-                .doOnError { t ->
-                    println(t)
-                }
-                .doOnSuccess { (results) ->
-                    for ((name, service) in results) {
-                        println("Name = $name ; Service = $service")
-                    }
-                }
-                .blockingGet()
+        val observable = avidPamWsClient.getPamProfiles(workgroupURI, services, showParameters)
+        val testObserver = TestObserver<PamProfile>()
 
+        observable.subscribe(testObserver)
 
-        /**
-         * Output:
-
-        Name = BlackPearl ; Service = com.avid.dms.restore
-        Param = (Destination_Server, eng-dell-28)
-        Param = (Partial, )
-        Param = (TargetVideoQuality, All)
-        Param = (Destination_Workspace, \\SL-ISIS-55\media)
-        Param = (Destination_Path, AvidWG/Projects/Spectra/BlackPearl_Restore)
-        Param = (Requested Provider, eng-dell-35_Restore_3337)
-        Param = (Archive Engine-Tertiary, )
-        Param = (Archive Engine-Primary, eng-dell-32)
-        Param = (Priority, 50)
-        Param = (Archive Engine-Secondary, )
-
-        Name = BlackPearl Partial ; Service = com.avid.dms.restore
-        Param = (Destination_Server, eng-dell-28)
-        Param = (Partial, true)
-        Param = (TargetVideoQuality, All)
-        Param = (Destination_Workspace, \\SL-ISIS-55\media)
-        Param = (Destination_Path, AvidWG/Projects/Spectra/BlackPearl_Restore_Partial)
-        Param = (Requested Provider, eng-dell-35_Restore_3337)
-        Param = (Archive Engine-Tertiary, )
-        Param = (Archive Engine-Primary, eng-dell-32)
-        Param = (Priority, 50)
-        Param = (Archive Engine-Secondary, )
-
-        Name = BlackPearl ; Service = com.avid.dms.archive
-        Param = (Partition, )
-        Param = (TargetVideoQuality, All)
-        Param = (Destination_Path, AvidAM/Projects/Spectra/BlackPearl_Archive)
-        Param = (Requested Provider, eng-dell-35_Archive_3415)
-        Param = (Skip Motion Effect, )
-        Param = (Archive Engine Name, eng-dell-32.eng.sldomain.com)
-        Param = (Priority, 50)
-
-        Name = BlackPearl_with_partition ; Service = com.avid.dms.archive
-        Param = (Partition, avid-partition-bucket)
-        Param = (TargetVideoQuality, All)
-        Param = (Destination_Path, AvidAM/Projects/Spectra/BlackPearl_Archive/avid-partition-bucket)
-        Param = (Requested Provider, eng-dell-35_Archive_3415)
-        Param = (Skip Motion Effect, )
-        Param = (Archive Engine Name, eng-dell-32)
-        Param = (Priority, 50)
-
-        Name = BlackPearl_wrong_partition ; Service = com.avid.dms.archive
-        Param = (Partition, avid-wrong-bucket-@)
-        Param = (TargetVideoQuality, All)
-        Param = (Destination_Path, AvidAM/Projects/Spectra/BlackPearl_Archive)
-        Param = (Requested Provider, eng-dell-35_Archive_3415)
-        Param = (Skip Motion Effect, )
-        Param = (Archive Engine Name, eng-dell-32)
-        Param = (Priority, 50)
-
-        Name = BlackPearl-Cliff ; Service = com.avid.dms.archive
-        Param = (Partition, )
-        Param = (TargetVideoQuality, All)
-        Param = (Destination_Path, AvidAM/Projects/Spectra/BlackPearl_Archive)
-        Param = (Requested Provider, eng-dell-35_Archive_3415)
-        Param = (Skip Motion Effect, )
-        Param = (Archive Engine Name, eng-dell-32)
-        Param = (Priority, 50)
-
-         */
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(8)
     }
 
     @Test
     fun restoreTest() {
         val profile = "BlackPearl"
-        val interplayURI =
-                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49938e8335f83-060e2b347f7f-2a80"
+        val interplayURI = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
 
-        avidPamWsClient.restorePamAsset(profile, interplayURI)
-                .doOnError { t ->
-                    println(t)
-                }
-                .doOnSuccess { res ->
-                    println("${res.interplayURI}, ${res.jobURI}")
-                }
-                .blockingGet()
+        val observable = avidPamWsClient.restorePamAsset(profile, interplayURI).toObservable()
+        val testObserver = TestObserver<PamJob>()
 
+        observable.subscribe(testObserver)
 
-        /**
-         * Output example:
-         * jobURI = interplay://AvidWorkgroup/DMS?jobid=1504207567867.1
-         */
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(1)
+                .values().forEach {
+            assertThat(it).isNotNull()
+            assertThat(it.interplayURI).isEqualTo(interplayURI)
+            assertThat(it.jobURI).isNotEmpty()
+        }
     }
 
     @Test
     fun archiveTest() {
         val profile = "BlackPearl"
         val interplayURI =
-                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59a49938e8335f83-060e2b347f7f-2a80"
+                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
 
-        avidPamWsClient.archivePamAsset(profile, interplayURI)
-                .doOnError { t ->
-                    println(t)
-                }
-                .doOnSuccess { res ->
-                    println("${res.interplayURI}, ${res.jobURI}")
-                }
-                .blockingGet()
+        val observable = avidPamWsClient.archivePamAsset(profile, interplayURI).toObservable()
+        val testObserver = TestObserver<PamJob>()
 
+        observable.subscribe(testObserver)
 
-        /**
-         * Output example:
-         * jobURI = interplay://AvidWorkgroup/DMS?jobid=1504207567867.1
-         */
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(1)
+                .values().forEach {
+            assertThat(it).isNotNull()
+            assertThat(it.interplayURI).isEqualTo(interplayURI)
+            assertThat(it.jobURI).isNotEmpty()
+        }
     }
 
     @Test
     fun jobStatusTest() {
-        val jobURIs = arrayOf(
-                "interplay://AvidWorkgroup/DMS?jobid=1505159604061.1")
+        val profile = "BlackPearl"
+        val interplayURI =
+                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
 
-        avidPamWsClient.getPamJobsStatus(jobURIs)
-                .doOnError { t ->
-                    println(t)
-                }
-                .doOnSuccess { (results) ->
-                    for ((jobURI, jobStatus, percentComplete) in results) {
-                        println("jobURI = $jobURI ; ($jobStatus , $percentComplete%)")
-                    }
-                }
-                .blockingGet()
+        val observable = avidPamWsClient.archivePamAsset(profile, interplayURI).toObservable()
+        val testObserver = TestObserver<PamJob>()
 
-        /**
-         * Output example:
-         * jobURI = interplay://AvidWorkgroup/DMS?jobid=1504207567867.1 ; (Completed , null)
-         * jobURI = interplay://AvidWorkgroup/DMS?jobid=1505159604061.1 ; (Processing , 52%)
-         */
+        observable.subscribe(testObserver)
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(1)
+                .values().forEach { pamJob ->
+            assertThat(pamJob).isNotNull()
+            assertThat(pamJob.interplayURI).isEqualTo(interplayURI)
+            assertThat(pamJob.jobURI).isNotEmpty()
+
+            val jobURI = pamJob.jobURI
+
+            do {
+                TimeUnit.SECONDS.sleep(5)
+                val pamJobStatus = avidPamWsClient.getPamJobStatus(jobURI)
+                        .doOnSuccess { it ->
+                            if (it.jobStatus == "Error") fail("job ${it.jobURI} failed")
+                        }
+                        .blockingGet()
+            } while (pamJobStatus.jobStatus != "Completed")
+        }
+    }
+
+    @Test
+    fun getFileLocationsTest() {
+        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
+
+        val fileLocationObservable = avidPamWsClient.getFileLocations(interplayURL)
+        val testObserver = TestObserver<FileLocation>()
+
+        fileLocationObservable.subscribe(testObserver)
+
+        val expected = setOf(
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dd01.59de859de815c.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59de815c2634026a-060e2b347f7f-2a80", 965729, "Online", "Data", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"),
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da01.59de859de815c.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59de815c2632026a-060e2b347f7f-2a80", 83886689, "Online", "PCM", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"),
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_dv01.59de859de815c.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59de815c2624026a-060e2b347f7f-2a80", 9858712161, "Online", "DNxHD 1080 115-120-145", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"),
+                FileLocation("\\\\sl-isis-55\\media\\avid mediafiles\\mxf\\eng-dell-38.1\\wg2_ams3_da02.59de859de815c.mxf", "interplay://AvidWorkgroup?filemobid=060a2b340101010101010f0013-000000-59de815c2633026a-060e2b347f7f-2a80", 83886689, "Online", "PCM", "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80")
+        )
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(4)
+                .assertValueSet(expected)
+    }
+
+    @Test
+    fun getSequenceRelativesTest() {
+        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
+
+        val sequenceRelativesObservable = avidPamWsClient.getSequenceRelatives(interplayURL)
+        val testObserver = TestObserver<SequenceRelative>()
+
+        sequenceRelativesObservable.subscribe(testObserver)
+
+        val expected = setOf(
+                SequenceRelative("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"),
+                SequenceRelative("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5ab20636bd7-060e2b347f7f-2a80"),
+                SequenceRelative("interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59dbb5af30986bd7-060e2b347f7f-2a80")
+
+        )
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(3)
+                .assertValueSet(expected)
+    }
+
+    @Test
+    fun getMasterClipTypeTest() {
+        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
+
+        val observable = avidPamWsClient.getAssetType(interplayURL)
+                .toObservable()
+        val testObserver = TestObserver<AssetType>()
+
+        observable.subscribe(testObserver)
+
+        val expected = setOf(AssetType.MASTERCLIP)
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(1)
+                .assertValueSet(expected)
+    }
+
+    @Test
+    fun getSequenceTypeTest() {
+        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
+
+        val observable = avidPamWsClient.getAssetType(interplayURL)
+                .toObservable()
+        val testObserver = TestObserver<AssetType>()
+
+        observable.subscribe(testObserver)
+
+        val expected = setOf(AssetType.SEQUENCE)
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(1)
+                .assertValueSet(expected)
+    }
+
+    @Test
+    fun getPamWorkGroupsTest() {
+        val observable = avidPamWsClient.getPamWorkGroups()
+        val testObserver = TestObserver<PamWorkGroup>()
+
+        observable.subscribe(testObserver)
+
+        val expected = setOf(PamWorkGroup("AvidWorkgroup", "eng-dell-28", "eng-dell-32", "eng-dell-35"))
+
+        testObserver.awaitTerminalEvent()
+        testObserver
+                .assertNoErrors()
+                .assertComplete()
+                .assertValueCount(1)
+                .assertValueSet(expected)
     }
 }
