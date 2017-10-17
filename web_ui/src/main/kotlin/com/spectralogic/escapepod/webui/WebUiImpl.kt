@@ -40,6 +40,7 @@ internal class StaticFilesHandler: Handler {
         private const val ERROR_PAGE_BACKGROUND_COLOR = "cadetBlue"
         private const val ERROR_PAGE_TEXT_COLOR = "white"
         private const val ERROR_PAGE_TITLE = "Error page"
+        private const val ERROR_PAGE_TEMPLATE = "errorPage.ftl"
         private const val LANDING_PAGE_NOT_FOUND_ERROR_TEXT = "We cannot locate our application page.  Please accept our apologies."
         private var freeMarkerConfiguration: Configuration? = null
     }
@@ -76,12 +77,12 @@ internal class StaticFilesHandler: Handler {
 
     private fun sendErrorPage(ctx: Context, httpStatus: Int, backgroundColor: String, textColor: String, pageTitle: String, errorText: String) {
         val errorPageConfigurableValues = ErrorPageConfigurableValues(LANDING_PAGE_NOT_FOUND_STATUS,
-                ERROR_PAGE_BACKGROUND_COLOR,
-                ERROR_PAGE_TEXT_COLOR,
-                ERROR_PAGE_TITLE,
-                LANDING_PAGE_NOT_FOUND_ERROR_TEXT)
+                backgroundColor,
+                textColor,
+                pageTitle,
+                errorText)
 
-        val errorPageTemplate = freeMarkerConfiguration().getTemplate("errorPage.ftl")
+        val errorPageTemplate = freeMarkerConfiguration().getTemplate(ERROR_PAGE_TEMPLATE)
 
         val stringWriter = StringWriter()
 
@@ -104,6 +105,6 @@ internal class StaticFilesHandler: Handler {
     }
 
     private fun resourceBundleLocation() : File {
-        return File(javaClass.classLoader.getResource("errorPage.ftl").path).parentFile
+        return File(javaClass.classLoader.getResource(ERROR_PAGE_TEMPLATE).path).parentFile
     }
 }

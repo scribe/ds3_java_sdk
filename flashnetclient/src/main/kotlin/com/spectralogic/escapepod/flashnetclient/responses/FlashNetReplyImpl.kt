@@ -59,10 +59,10 @@ class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
     }
 
     private fun <T : Any> replyForType(replyType : KClass<T>) : T? {
-        when (replyType) {
-            StatusInfo::class -> return reply.StatusInfo as T
-            GroupDetails::class -> return reply.GroupDetails as T
-            else -> return null
+        return when (replyType) {
+            StatusInfo::class -> reply.StatusInfo as T
+            GroupDetails::class -> reply.GroupDetails as T
+            else -> null
         }
     }
 
