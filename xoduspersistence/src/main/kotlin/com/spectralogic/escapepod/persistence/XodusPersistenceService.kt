@@ -17,15 +17,14 @@ package com.spectralogic.escapepod.persistence
 
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableMultimap
-import com.spectralogic.escapepod.api.PersistenceEntity
-import com.spectralogic.escapepod.api.PersistenceID
-import com.spectralogic.escapepod.api.PersistenceService
-import com.spectralogic.escapepod.api.RequestContext
+import com.spectralogic.escapepod.api.*
 import com.spectralogic.escapepod.util.collections.immutableListCollector
-import jetbrains.exodus.entitystore.Entity
-import jetbrains.exodus.entitystore.EntityId
-import jetbrains.exodus.entitystore.PersistentEntityId
 import jetbrains.exodus.entitystore.PersistentEntityStore
+import jetbrains.exodus.entitystore.PersistentEntityId
+import jetbrains.exodus.entitystore.Entity
+import jetbrains.exodus.entitystore.StoreTransaction
+import jetbrains.exodus.entitystore.EntityId
+
 
 internal class XodusPersistenceService(private val entityStore: PersistentEntityStore, private val requestContext: RequestContext) : PersistenceService {
 
@@ -61,11 +60,7 @@ internal class XodusPersistenceService(private val entityStore: PersistentEntity
         return entityStore.computeInTransaction {
             val e: Entity = it.newEntity(nodeType)
 
-            for((k,v) in properties) {
-                e.setProperty(k, v)
-            }
-
-            e.toPersistenceEntity()
+            persistEntity(it, e, properties)
         }
     }
 
@@ -75,6 +70,33 @@ internal class XodusPersistenceService(private val entityStore: PersistentEntity
 
             entity.addLink(link, it.getEntity(destination.toEntityId()))
         }
+    }
+
+    override fun updateNode(id: PersistenceID, properties: Map<String, Comparable<Any?>>): PersistenceEntity {
+        return entityStore.computeInTransaction {
+
+            val entity = it.getEntity(id.toEntityId())
+
+            persistEntity(it, entity, properties)
+        }
+    }
+
+    override fun deleteNode(id: PersistenceID) {
+        entityStore.executeInTransaction {
+            val entity = it.getEntity(id.toEntityId())
+            val delete = entity.delete()
+            if (!delete) throw PersistenceException("Failed to delete entity")
+        }
+    }
+
+    private fun persistEntity(transaction: StoreTransaction, entity: Entity, properties: Map<String, Comparable<Any?>>): PersistenceEntity {
+        for((k,v) in properties) {
+            entity.setProperty(k, v)
+        }
+
+        transaction.saveEntity(entity)
+
+        return entity.toPersistenceEntity()
     }
 }
 

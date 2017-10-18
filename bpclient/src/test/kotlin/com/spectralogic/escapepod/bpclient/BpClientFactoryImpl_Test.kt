@@ -13,11 +13,21 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.api
+package com.spectralogic.escapepod.bpclient
 
-import com.spectralogic.ds3client.Ds3Client
-import io.reactivex.Single
+import com.spectralogic.ds3client.commands.GetServiceRequest
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.Test
 
-interface BpClientFactory {
-    fun createBpClient(clientName: String): Single<Ds3Client>
+class BpClientFactoryImpl_Test {
+    @Test
+    fun getClient() {
+        val bpClientFactory = BpClientFactoryImpl()
+
+        val client = bpClientFactory.createBpClient("test").blockingGet()
+
+        assertThat(client).isNotNull()
+        val serviceResponse = client.getService(GetServiceRequest())
+        assertThat(serviceResponse).isNotNull()
+    }
 }

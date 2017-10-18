@@ -81,6 +81,13 @@ class XodusPersistenceService_Test {
         }
     }
 
+    @Test
+    fun deleteNode() {
+        withPersistenceService {
+
+        }
+    }
+
     private fun withPersistenceService(test: (persistenceService: XodusPersistenceService)->Unit) {
         val xodusPersistentStore = PersistentEntityStores.newInstance(tempDir.newFolder())
 
