@@ -1,6 +1,5 @@
 package com.spectralogic.escapepod.api
 
-import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 
@@ -76,3 +75,9 @@ data class SequenceRelative(
 enum class AssetType {
     MASTERCLIP, SEQUENCE, UNKNOWN
 }
+
+
+open class PamNotFoundException(override val message: String) : RuntimeException(message)
+
+open class PamExistsException(override val message: String) : RuntimeException(message)
+

@@ -34,6 +34,6 @@ internal class BpClientFactoryImpl: BpClientFactory {
     }
 
     private fun cacheLoader(key: String): Ds3Client {
-
+        throw NotImplementedError()
     }
 }

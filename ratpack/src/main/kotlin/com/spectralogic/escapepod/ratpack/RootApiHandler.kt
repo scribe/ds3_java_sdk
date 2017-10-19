@@ -15,18 +15,17 @@
 
 package com.spectralogic.escapepod.ratpack
 
-import ratpack.func.Action
-import ratpack.handling.Chain
+import ratpack.handling.Context
+import ratpack.handling.Handler
+import ratpack.handling.Handlers
 import javax.inject.Inject
 
-internal class RootApiChain
+internal class RootApiHandler
 @Inject constructor(
         private val ratpackHttpRouter: RatpackHttpRouter
-) : Action<Chain> {
-
-    override fun execute(chain: Chain) {
-        chain.all(TracerHandler())
-
-        ratpackHttpRouter.execute(chain)
+) : Handler {
+    override fun handle(ctx: Context) {
+        Handlers.chain(TracerHandler(),
+        Handlers.chain(ctx.serverConfig, ratpackHttpRouter)).handle(ctx)
     }
 }

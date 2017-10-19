@@ -17,37 +17,49 @@ package com.spectralogic.escapepod.ratpack
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import com.spectralogic.escapepod.httpservice.DefaultException
 import com.spectralogic.escapepod.httpservice.ExceptionHandlerMapper
 import com.spectralogic.escapepod.httpservice.HttpHandlerDeregistration
 import com.spectralogic.escapepod.httpservice.HttpRouter
+import com.spectralogic.escapepod.util.collections.getOrElse
 import com.spectralogic.escapepod.util.collections.toImmutableList
-import io.vavr.collection.HashMap
 import org.slf4j.LoggerFactory
 import ratpack.func.Action
 import ratpack.handling.Chain
 import ratpack.handling.Context
+import javax.inject.Singleton
 
 const private val DEFAULT_ERROR_STATUS_CODE = 400
 
+@Singleton
 internal class RatpackHttpRouter : HttpRouter, Action<Chain>{
     private companion object {
         private val LOG = LoggerFactory.getLogger(RatpackHttpRouter::class.java)
     }
 
     @Volatile
-    private var exceptionMap: HashMap<Class<out Throwable>, (Context, Throwable) -> Unit> = HashMap.empty()
+    private var exceptionMap: ImmutableMap<Class<out Throwable>, (Context, Throwable) -> Unit> = ImmutableMap.of()
 
     @Volatile
     private var actionChains: ImmutableList<ActionChainRegistration> = ImmutableList.of()
 
     override fun <T: Throwable> registerExceptionHandler(exceptionClass: Class<out T>, handler: (Context, T) -> Unit) {
-        if (exceptionMap.containsKey(exceptionClass)) {
-            throw Exception("Handler for exception $exceptionClass already exists")
-        }
+        synchronized(this) {
+            LOG.info("Registering exception handler for ${exceptionClass::class.java}")
+            if (exceptionMap.containsKey(exceptionClass)) {
+                throw Exception("Handler for exception $exceptionClass already exists")
+            }
 
-        exceptionMap = exceptionMap.put(exceptionClass) { ctx, t ->
-            handler.invoke(ctx, t as T)
+            val builder = ImmutableMap.builder<Class<out Throwable>, (Context, Throwable) -> Unit>()
+
+            builder.putAll(exceptionMap)
+
+            builder.put(exceptionClass) { ctx, t ->
+                handler.invoke(ctx, t as T)
+            }
+
+            exceptionMap = builder.build()
         }
     }
 
@@ -77,7 +89,7 @@ internal class RatpackHttpRouter : HttpRouter, Action<Chain>{
     }
 }
 
-internal class ExceptionHandlerMapperImpl constructor(private val exceptionMap: HashMap<Class<out Throwable>, (Context, Throwable) -> Unit>): ExceptionHandlerMapper {
+internal class ExceptionHandlerMapperImpl constructor(private val exceptionMap: ImmutableMap<Class<out Throwable>, (Context, Throwable) -> Unit>): ExceptionHandlerMapper {
     override fun handle(context: Context, throwable: Throwable) {
         val handler = exceptionMap.getOrElse(throwable::class.java) { ctx, t ->
             val objectMapper = ctx.get(ObjectMapper::class.java)

@@ -17,6 +17,7 @@ package com.spectralogic.escapepod.util.collections
 
 import com.google.common.base.Supplier
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import java.util.function.BiConsumer
 import java.util.function.BinaryOperator
 import java.util.stream.Collector
@@ -38,3 +39,5 @@ fun <T> immutableListCollector(): Collector<T, ImmutableList.Builder<T>, Immutab
             }
     )
 }
+
+fun <K, V> ImmutableMap<K, V>.getOrElse(key: K, elseValue: V) = this[key] ?: elseValue
