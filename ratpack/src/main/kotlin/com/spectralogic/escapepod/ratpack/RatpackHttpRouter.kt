@@ -15,8 +15,6 @@
 
 package com.spectralogic.escapepod.ratpack
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableList
 import com.spectralogic.escapepod.httpservice.DefaultException

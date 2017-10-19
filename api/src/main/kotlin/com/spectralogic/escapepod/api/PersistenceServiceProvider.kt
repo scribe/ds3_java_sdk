@@ -31,6 +31,8 @@ interface PersistenceService {
     fun find(nodeType: String, property: String, value: Comparable<Any?>): Sequence<PersistenceEntity>
     fun get(nodeType: String): Sequence<PersistenceEntity>
     fun get(id: PersistenceID): PersistenceEntity
+    fun updateNode(id: PersistenceID, properties: Map<String, Comparable<Any?>> = emptyMap()): PersistenceEntity
+    fun deleteNode(id: PersistenceID)
 }
 
 data class PersistenceID(val typeId: Int, val localId: Long)

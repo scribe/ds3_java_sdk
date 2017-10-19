@@ -13,11 +13,14 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.api
+package com.spectralogic.escapepod.bpclient
 
-import com.spectralogic.ds3client.Ds3Client
-import io.reactivex.Single
+import com.google.inject.AbstractModule
+import com.spectralogic.escapepod.api.BpClientFactory
+import javax.inject.Singleton
 
-interface BpClientFactory {
-    fun createBpClient(clientName: String): Single<Ds3Client>
+class BpCientGuiceModule: AbstractModule() {
+    override fun configure() {
+        bind(BpClientFactory::class.java).to(BpClientFactoryImpl::class.java).`in`(Singleton::class.java)
+    }
 }
