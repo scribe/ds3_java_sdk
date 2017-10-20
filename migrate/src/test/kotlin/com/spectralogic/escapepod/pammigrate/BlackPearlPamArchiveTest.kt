@@ -70,9 +70,9 @@ internal class BlackPearlPamArchiveTest {
         val bucket = "archiveMasterClipToBlackPearlTest"
 
         try {
-            val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
+            val mobid = "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
 
-            val observable = blackPearlPamArchive.archivePamToBlackPearl(avidPamWsClientImpl, BP_ENDPOINT, bucket, interplayURL)
+            val observable = blackPearlPamArchive.archivePamToBlackPearl(avidPamWsClientImpl, BP_ENDPOINT, bucket, mobid)
                     .toObservable<Unit>()
             val testObserver = TestObserver<Unit>()
 
@@ -133,9 +133,9 @@ internal class BlackPearlPamArchiveTest {
     fun archiveSequenceToBlackPearlTest() {
         val bucket = "archiveSequenceToBlackPearlTest"
         try {
-            val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
+            val mobid = "060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
 
-            val observable = blackPearlPamArchive.archivePamToBlackPearl(avidPamWsClientImpl, BP_ENDPOINT, bucket, interplayURL).toObservable<Unit>()
+            val observable = blackPearlPamArchive.archivePamToBlackPearl(avidPamWsClientImpl, BP_ENDPOINT, bucket, mobid).toObservable<Unit>()
             val testObserver = TestObserver<Unit>()
 
             observable.subscribe(testObserver)

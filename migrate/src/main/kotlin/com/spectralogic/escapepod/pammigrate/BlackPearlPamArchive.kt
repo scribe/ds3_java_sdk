@@ -56,7 +56,7 @@ class BlackPearlPamArchive(private val blackPearlClientFactory: BpClientFactory,
     private fun archivePamSequenceToBlackPearl(avidPamWsClient: AvidPamWsClient, mobid: String, blackPearl: String, bucket: String): Completable {
         return archive(blackPearl, bucket,
                 avidPamWsClient.getSequenceRelatives(mobid)
-                        .map { sequenceRelative -> sequenceRelative.interplayURI }
+                        .map { sequenceRelative -> sequenceRelative.interplayURI.mobid() }
                         .flatMap(avidPamWsClient::getFileLocations))
     }
 

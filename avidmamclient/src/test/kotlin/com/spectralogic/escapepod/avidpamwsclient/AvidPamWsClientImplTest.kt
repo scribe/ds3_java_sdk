@@ -145,11 +145,11 @@ internal class AvidPamWsClientImplTest {
             assertThat(pamJob.interplayURI).isEqualTo(expected)
             assertThat(pamJob.jobURI).isNotEmpty()
 
-            val jobURI = pamJob.jobURI
+            val jobId = pamJob.jobURI.jobId()
 
             do {
                 TimeUnit.SECONDS.sleep(5)
-                val pamJobStatus = avidPamWsClientImpl.getPamJobStatus(jobURI)
+                val pamJobStatus = avidPamWsClientImpl.getPamJobStatus(jobId)
                         .doOnSuccess { it ->
                             if (it.jobStatus == "Error") fail("job ${it.jobURI} failed")
                         }
