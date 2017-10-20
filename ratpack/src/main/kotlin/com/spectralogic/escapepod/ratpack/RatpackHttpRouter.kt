@@ -46,7 +46,6 @@ internal class RatpackHttpRouter : HttpRouter, Action<Chain>{
 
     override fun <T: Throwable> registerExceptionHandler(exceptionClass: Class<out T>, handler: (Context, T) -> Unit) {
         synchronized(this) {
-            LOG.info("Registering exception handler for ${exceptionClass::class.java}")
             if (exceptionMap.containsKey(exceptionClass)) {
                 throw Exception("Handler for exception $exceptionClass already exists")
             }
