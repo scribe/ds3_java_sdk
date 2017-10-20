@@ -1,7 +1,6 @@
 package com.spectralogic.escapepod.avidpamwsclient
 
 import com.spectralogic.escapepod.api.*
-import com.spectralogic.escapepod.api.AvidPamWsClient
 import com.spectralogic.escapepod.avidpamclient.soap.ws.*
 import com.spectralogic.escapepod.util.maxLong
 import io.reactivex.Observable
@@ -15,12 +14,14 @@ import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.ForkJoinPool
 
-class AvidPamWsClient
-constructor(username: String, password: String, endpoint: String,
+class AvidPamWsClientImpl
+constructor(val name: String, username: String, password: String, endpoint: String, private val workGroup: String,
             private val executor: Executor = ForkJoinPool.commonPool()) : AvidPamWsClient {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(AvidPamWsClient::class.java)
+        private val RESTORE_SERVICE = "com.avid.dms.restore"
+        private val ARCHIVE_SERVICE = "com.avid.dms.archive"
         private val JOBS = "Jobs"
         private val ASSETS = "Assets"
         private val INFRASTRUCTURE = "Infrastructure"
@@ -39,7 +40,7 @@ constructor(username: String, password: String, endpoint: String,
     private var infrastructureSoapClient: InfrastructurePortType
 
     init {
-        LOG.info("Init AvidPamWsClient")
+        LOG.info("Init AvidPamWsClientImpl")
 
         credentials.username = username
         credentials.password = password
@@ -58,11 +59,13 @@ constructor(username: String, password: String, endpoint: String,
 
     }
 
-    override fun getPamAssets(interplayURI: String): Observable<PamAsset> {
+    override fun getPamAssets(folder: String): Observable<PamAsset> {
         return Observable.create { emitter ->
             executor.execute {
                 try {
-                    getChildrenHelper(interplayURI, emitter)
+                    val folderUri = "interplay://$workGroup/$folder"
+                    LOG.info("Getting all the assets in folder '$folderUri'")
+                    getChildrenHelper(folderUri, emitter)
                     emitter.onComplete()
                 } catch (t: Throwable) {
                     emitter.onError(t)
@@ -71,10 +74,12 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun getPamFolders(interplayURI: String): Observable<PamFolder> {
+    override fun getPamFolders(): Observable<PamFolder> {
         return Observable.create { emitter ->
             executor.execute {
                 try {
+                    val interplayURI = "interplay://$workGroup/"
+                    LOG.info("Getting AVID Pam '$name' folders for: $interplayURI")
                     getFoldersHelper(interplayURI, emitter)
                     emitter.onComplete()
                 } catch (t: Throwable) {
@@ -84,16 +89,18 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun getPamProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean): Observable<PamProfile> {
+    override fun getPamProfiles(): Observable<PamProfile> {
 
         val profiles = GetProfilesType()
-        profiles.workgroupURI = workgroupURI
-        profiles.services = services
-        profiles.showParameters = showParameters
+        profiles.workgroupURI = "interplay://$workGroup"
+        profiles.services = arrayOf(ARCHIVE_SERVICE, RESTORE_SERVICE)
+        profiles.showParameters = false
 
         return Single.just(jobsSoapClient.getProfiles(profiles, credentials))
                 .observeOn(Schedulers.from(executor))
                 .flatMapObservable { res ->
+                    LOG.info("Getting pam system '$name' profiles for: ${profiles.workgroupURI}")
+
                     if (res.errors != null) {
                         throw Throwable(TransformUtils.errorTypeToThrowable(res.errors))
                     }
@@ -106,50 +113,55 @@ constructor(username: String, password: String, endpoint: String,
                 }
     }
 
-    override fun restorePamAsset(profile: String, interplayURI: String): Single<PamJob> {
-
+    override fun restorePamAsset(profile: String, mobid: String): Single<PamJob> {
+        val fileUri = "interplay://$workGroup?mobid=$mobid"
         val submitJobUsingProfileType = SubmitJobUsingProfileType()
         submitJobUsingProfileType.service = "com.avid.dms.restore"
         submitJobUsingProfileType.profile = profile
-        submitJobUsingProfileType.interplayURI = interplayURI
+        submitJobUsingProfileType.interplayURI = fileUri
 
         return Single.just(jobsSoapClient.submitJobUsingProfile(submitJobUsingProfileType, credentials))
                 .observeOn(Schedulers.from(executor))
                 .map { res ->
+                    LOG.info("Restoring '$fileUri' using '$profile' profile on pam system '$name'")
                     if (res.errors != null) {
                         throw Throwable(TransformUtils.errorTypeToThrowable(res.errors))
                     }
 
-                    PamJob(interplayURI, res.jobURI)
+                    PamJob(fileUri, res.jobURI)
                 }
     }
 
-    override fun archivePamAsset(profile: String, interplayURI: String): Single<PamJob> {
-
+    override fun archivePamAsset(profile: String, mobid: String): Single<PamJob> {
+        val fileUri = "interplay://$workGroup?mobid=$mobid"
         val submitJobUsingProfileType = SubmitJobUsingProfileType()
-        submitJobUsingProfileType.service = "com.avid.dms.archive"
+        submitJobUsingProfileType.service = ARCHIVE_SERVICE
         submitJobUsingProfileType.profile = profile
-        submitJobUsingProfileType.interplayURI = interplayURI
+        submitJobUsingProfileType.interplayURI = fileUri
 
         return Single.just(jobsSoapClient.submitJobUsingProfile(submitJobUsingProfileType, credentials))
                 .observeOn(Schedulers.from(executor))
                 .map { res ->
+                    LOG.info("Archiving '$fileUri' using '$profile' profile on pam system '$name'")
                     if (res.errors != null) {
                         throw Throwable(TransformUtils.errorTypeToThrowable(res.errors))
                     }
 
-                    PamJob(interplayURI, res.jobURI)
+                    PamJob(fileUri, res.jobURI)
                 }
     }
 
-    override fun getPamJobStatus(jobURI: String): Single<PamJobStatus> {
+    override fun getPamJobStatus(jobId: String): Single<PamJobStatus> {
 
+        val jobUri = "interplay://$workGroup/DMS?jobid=$jobId"
         val getJobStatusType = GetJobStatusType()
-        getJobStatusType.jobURIs = arrayOf(jobURI)
+        getJobStatusType.jobURIs = arrayOf(jobUri)
 
         return Single.just(jobsSoapClient.getJobStatus(getJobStatusType, credentials))
                 .observeOn(Schedulers.from(executor))
                 .map { res ->
+                    LOG.info("Getting pam system '$name' job status for: $jobUri")
+
                     if (res.errors != null) {
                         throw Throwable(TransformUtils.errorTypeToThrowable(res.errors))
                     }
@@ -158,8 +170,12 @@ constructor(username: String, password: String, endpoint: String,
                 }
     }
 
-    override fun getPamMaxArchiveAssetSize(interplayURI: String): Single<PamMaxArchiveAssetSize> {
-        return getPamAssets(interplayURI).map { it ->
+    override fun getPamMaxArchiveAssetSize(): Single<PamMaxArchiveAssetSize> {
+        val workGroupUri = "interplay://$workGroup/"
+
+        return getPamAssets(workGroupUri).map { it ->
+            LOG.info("Finding pam system '$name' max archived asset size in workgoup '$workGroupUri'")
+
             if (it.mediaSize != "N/A") {
                 it.mediaSize.toLong()
             } else {
@@ -174,6 +190,8 @@ constructor(username: String, password: String, endpoint: String,
         return Single.just(infrastructureSoapClient.getConfigurationInformation(getConfigurationInformationType))
                 .observeOn(Schedulers.from(executor))
                 .flatMapObservable { res ->
+                    LOG.info("Getting all the work groups in the pam system '$name'")
+
                     if (res.errors != null) {
                         throw Throwable(TransformUtils.errorTypeToThrowable(res.errors))
                     }
@@ -290,9 +308,10 @@ constructor(username: String, password: String, endpoint: String,
         }
     }
 
-    override fun getFileLocations(interplayURI: String): Observable<FileLocation> {
+    override fun getFileLocations(mobid: String): Observable<FileLocation> {
+        val fileUri = "interplay://$workGroup?mobid=$mobid"
         val getFilesDetailsType = GetFileDetailsType()
-        getFilesDetailsType.interplayURIs = arrayOf(interplayURI)
+        getFilesDetailsType.interplayURIs = arrayOf(fileUri)
 
         return Single.just(getFilesDetailsType)
                 .observeOn(Schedulers.from(executor))
@@ -300,6 +319,8 @@ constructor(username: String, password: String, endpoint: String,
                     assetsSoapClient.getFileDetails(getFilesDetailsType, credentials)
                 }
                 .flatMapObservable { res ->
+                    LOG.info("Getting pam system '$name' file locations for: '$fileUri'")
+
                     if (res.errors != null) {
                         throw Throwable(TransformUtils.errorTypeToThrowable(res.errors))
                     }
@@ -307,14 +328,15 @@ constructor(username: String, password: String, endpoint: String,
                     Observable.fromIterable(
                             res.results[0].fileLocations
                                     .map { fl ->
-                                        FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format, interplayURI.mobid())
+                                        FileLocation(fl.filePath, fl.interplayURI, Files.size(Paths.get(fl.filePath)), fl.status, fl.format, mobid)
                                     })
                 }
     }
 
-    override fun getSequenceRelatives(interplayURI: String): Observable<SequenceRelative> {
+    override fun getSequenceRelatives(mobid: String): Observable<SequenceRelative> {
+        val fileUri = "interplay://$workGroup?mobid=$mobid"
         val findRelativeType = FindRelativesType()
-        findRelativeType.interplayURI = interplayURI
+        findRelativeType.interplayURI = fileUri
 
         return Single.just(findRelativeType)
                 .observeOn(Schedulers.from(executor))
@@ -322,6 +344,8 @@ constructor(username: String, password: String, endpoint: String,
                     assetsSoapClient.findRelatives(findRelativeType, credentials)
                 }
                 .flatMapObservable { res ->
+                    LOG.info("Getting pam system '$name' sequence relatives for: '$fileUri'")
+
                     if (res.errors != null) {
                         throw Throwable(TransformUtils.errorTypeToThrowable(res.errors))
                     }
@@ -333,14 +357,16 @@ constructor(username: String, password: String, endpoint: String,
                 }
     }
 
-    override fun getAssetType(interplayURI: String): Single<AssetType> {
-
+    override fun getAssetType(mobid: String): Single<AssetType> {
+        val fileUri = "interplay://$workGroup?mobid=$mobid"
         val getAttributeType = GetAttributesType()
-        getAttributeType.interplayURIs = arrayOf(interplayURI)
+        getAttributeType.interplayURIs = arrayOf(fileUri)
 
         return Single.just(assetsSoapClient.getAttributes(getAttributeType, credentials))
                 .observeOn(Schedulers.from(executor))
                 .map { res ->
+                    LOG.info("Getting pam system '$name' asset type for: '$fileUri'")
+
                     if (res.errors != null) {
                         throw Throwable(TransformUtils.errorTypeToThrowable(res.errors))
                     }

@@ -9,21 +9,23 @@ import org.junit.BeforeClass
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
-internal class AvidPamWsClientTest {
+internal class AvidPamWsClientImplTest {
 
     private companion object {
 
         //Avid WS info
+        private val NAME = "test"
         private val USERNAME = "spectra"
         private val PASSWORD = ""
         private val ENDPOINT = "10.1.2.164:80"
+        private val WORKGROUP = "AvidWorkgroup"
 
-        private lateinit var avidPamWsClient: AvidPamWsClient
+        private lateinit var avidPamWsClientImpl: AvidPamWsClient
 
         @BeforeClass
         @JvmStatic
         fun beforeClass() {
-            avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT)
+            avidPamWsClientImpl = AvidPamWsClientImpl(NAME, USERNAME, PASSWORD, ENDPOINT, WORKGROUP)
         }
 
         @AfterClass
@@ -35,9 +37,9 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun getChildrenTest() {
-        val interplayURI = "interplay://AvidWorkgroup/Incoming Media/SpectraLogic1/escape_pod_test"
+        val folder = "Incoming Media/SpectraLogic1/escape_pod_test"
 
-        val observable = avidPamWsClient.getPamAssets(interplayURI)
+        val observable = avidPamWsClientImpl.getPamAssets(folder)
         val testObserver = TestObserver<PamAsset>()
 
         observable.subscribe(testObserver)
@@ -59,11 +61,7 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun getProfilesTest() {
-        val workgroupURI = "interplay://AvidWorkgroup"
-        val services = arrayOf("com.avid.dms.restore", "com.avid.dms.archive")
-        val showParameters = true
-
-        val observable = avidPamWsClient.getPamProfiles(workgroupURI, services, showParameters)
+        val observable = avidPamWsClientImpl.getPamProfiles()
         val testObserver = TestObserver<PamProfile>()
 
         observable.subscribe(testObserver)
@@ -78,12 +76,14 @@ internal class AvidPamWsClientTest {
     @Test
     fun restoreTest() {
         val profile = "BlackPearl"
-        val interplayURI = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
+        val mobid = "060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
 
-        val observable = avidPamWsClient.restorePamAsset(profile, interplayURI).toObservable()
+        val observable = avidPamWsClientImpl.restorePamAsset(profile, mobid).toObservable()
         val testObserver = TestObserver<PamJob>()
 
         observable.subscribe(testObserver)
+
+        val expected = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
 
         testObserver.awaitTerminalEvent()
         testObserver
@@ -92,7 +92,7 @@ internal class AvidPamWsClientTest {
                 .assertValueCount(1)
                 .values().forEach {
             assertThat(it).isNotNull()
-            assertThat(it.interplayURI).isEqualTo(interplayURI)
+            assertThat(it.interplayURI).isEqualTo(expected)
             assertThat(it.jobURI).isNotEmpty()
         }
     }
@@ -100,13 +100,15 @@ internal class AvidPamWsClientTest {
     @Test
     fun archiveTest() {
         val profile = "BlackPearl"
-        val interplayURI =
-                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
+        val mobid = "060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
 
-        val observable = avidPamWsClient.archivePamAsset(profile, interplayURI).toObservable()
+        val observable = avidPamWsClientImpl.archivePamAsset(profile, mobid).toObservable()
         val testObserver = TestObserver<PamJob>()
 
         observable.subscribe(testObserver)
+
+        val expected =
+                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59cead496d5e38ef-060e2b347f7f-2a80"
 
         testObserver.awaitTerminalEvent()
         testObserver
@@ -115,7 +117,7 @@ internal class AvidPamWsClientTest {
                 .assertValueCount(1)
                 .values().forEach {
             assertThat(it).isNotNull()
-            assertThat(it.interplayURI).isEqualTo(interplayURI)
+            assertThat(it.interplayURI).isEqualTo(expected)
             assertThat(it.jobURI).isNotEmpty()
         }
     }
@@ -123,13 +125,15 @@ internal class AvidPamWsClientTest {
     @Test
     fun jobStatusTest() {
         val profile = "BlackPearl"
-        val interplayURI =
-                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
+        val mobid = "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
 
-        val observable = avidPamWsClient.archivePamAsset(profile, interplayURI).toObservable()
+        val observable = avidPamWsClientImpl.archivePamAsset(profile, mobid).toObservable()
         val testObserver = TestObserver<PamJob>()
 
         observable.subscribe(testObserver)
+
+        val expected =
+                "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
 
         testObserver.awaitTerminalEvent()
         testObserver
@@ -138,14 +142,14 @@ internal class AvidPamWsClientTest {
                 .assertValueCount(1)
                 .values().forEach { pamJob ->
             assertThat(pamJob).isNotNull()
-            assertThat(pamJob.interplayURI).isEqualTo(interplayURI)
+            assertThat(pamJob.interplayURI).isEqualTo(expected)
             assertThat(pamJob.jobURI).isNotEmpty()
 
             val jobURI = pamJob.jobURI
 
             do {
                 TimeUnit.SECONDS.sleep(5)
-                val pamJobStatus = avidPamWsClient.getPamJobStatus(jobURI)
+                val pamJobStatus = avidPamWsClientImpl.getPamJobStatus(jobURI)
                         .doOnSuccess { it ->
                             if (it.jobStatus == "Error") fail("job ${it.jobURI} failed")
                         }
@@ -156,9 +160,9 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun getFileLocationsTest() {
-        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
+        val mobid = "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
 
-        val fileLocationObservable = avidPamWsClient.getFileLocations(interplayURL)
+        val fileLocationObservable = avidPamWsClientImpl.getFileLocations(mobid)
         val testObserver = TestObserver<FileLocation>()
 
         fileLocationObservable.subscribe(testObserver)
@@ -180,9 +184,9 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun getSequenceRelativesTest() {
-        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
+        val mobid = "060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
 
-        val sequenceRelativesObservable = avidPamWsClient.getSequenceRelatives(interplayURL)
+        val sequenceRelativesObservable = avidPamWsClientImpl.getSequenceRelatives(mobid)
         val testObserver = TestObserver<SequenceRelative>()
 
         sequenceRelativesObservable.subscribe(testObserver)
@@ -204,9 +208,9 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun getMasterClipTypeTest() {
-        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
+        val mobid = "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
 
-        val observable = avidPamWsClient.getAssetType(interplayURL)
+        val observable = avidPamWsClientImpl.getAssetType(mobid)
                 .toObservable()
         val testObserver = TestObserver<AssetType>()
 
@@ -224,9 +228,9 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun getSequenceTypeTest() {
-        val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
+        val mobid = "060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
 
-        val observable = avidPamWsClient.getAssetType(interplayURL)
+        val observable = avidPamWsClientImpl.getAssetType(mobid)
                 .toObservable()
         val testObserver = TestObserver<AssetType>()
 
@@ -244,7 +248,7 @@ internal class AvidPamWsClientTest {
 
     @Test
     fun getPamWorkGroupsTest() {
-        val observable = avidPamWsClient.getPamWorkGroups()
+        val observable = avidPamWsClientImpl.getPamWorkGroups()
         val testObserver = TestObserver<PamWorkGroup>()
 
         observable.subscribe(testObserver)

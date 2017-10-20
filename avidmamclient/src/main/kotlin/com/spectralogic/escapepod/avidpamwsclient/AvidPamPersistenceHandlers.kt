@@ -12,9 +12,9 @@ import javax.inject.Inject
 internal class AvidPamPersistenceHandlers
 @Inject constructor(private val persistenceServiceProvider: PersistenceServiceProvider) {
 
-    private companion object {
+    companion object {
         private val LOG = LoggerFactory.getLogger(AvidPamPersistenceHandlers::class.java)
-        private val PAM_NODE_TYPE = "pam"
+        internal val PAM_NODE_TYPE = "pam"
     }
 
     fun getAllPamSystems(): Observable<PersistenceEntity> {
@@ -49,7 +49,7 @@ internal class AvidPamPersistenceHandlers
                                 "username", username,
                                 "password", password,
                                 "endpoint", endpoint,
-                                "workGroup", workGroup
+                                "workgroup", workGroup
                         )
 
                         //TODO map result to different type (ex not including password)
@@ -66,7 +66,7 @@ internal class AvidPamPersistenceHandlers
                             "username", username,
                             "password", password,
                             "endpoint", endpoint,
-                            "workGroup", workGroup
+                            "workgroup", workGroup
                     ) as Map<String, Comparable<Any?>>
 
                     val persistenceEntity = persistenceService.find(PAM_NODE_TYPE, "name", name as Comparable<Any?>).firstOrNull()

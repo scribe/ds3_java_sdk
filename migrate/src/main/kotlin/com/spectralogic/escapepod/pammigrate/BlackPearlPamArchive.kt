@@ -5,9 +5,9 @@ import com.spectralogic.ds3client.Ds3Client
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers
 import com.spectralogic.ds3client.models.bulk.Ds3Object
 import com.spectralogic.escapepod.api.AssetType
+import com.spectralogic.escapepod.api.AvidPamWsClient
 import com.spectralogic.escapepod.api.BpClientFactory
 import com.spectralogic.escapepod.api.FileLocation
-import com.spectralogic.escapepod.avidpamwsclient.AvidPamWsClient
 import com.spectralogic.escapepod.avidpamwsclient.PamMetadataAccess
 import com.spectralogic.escapepod.avidpamwsclient.mobid
 import io.reactivex.Completable
@@ -29,18 +29,18 @@ class BlackPearlPamArchive(private val blackPearlClientFactory: BpClientFactory,
         private val LOG = LoggerFactory.getLogger(BlackPearlPamArchive::class.java)
     }
 
-    fun archivePamToBlackPearl(avidPamWsClient: AvidPamWsClient, blackPearl: String, bucket: String, interplayURI: String): Completable {
-        return isMasterClip(avidPamWsClient, interplayURI).flatMapCompletable { isMasterClip ->
+    fun archivePamToBlackPearl(avidPamWsClient: AvidPamWsClient, blackPearl: String, bucket: String, mobid: String): Completable {
+        return isMasterClip(avidPamWsClient, mobid).flatMapCompletable { isMasterClip ->
             if (isMasterClip) {
-                archivePamAssetToBlackPearl(avidPamWsClient, interplayURI, blackPearl, bucket)
+                archivePamAssetToBlackPearl(avidPamWsClient, mobid, blackPearl, bucket)
             } else {
-                archivePamSequenceToBlackPearl(avidPamWsClient, interplayURI, blackPearl, bucket)
+                archivePamSequenceToBlackPearl(avidPamWsClient, mobid, blackPearl, bucket)
             }
         }
     }
 
-    private fun isMasterClip(avidPamWsClient: AvidPamWsClient, interplayURI: String): Single<Boolean> {
-        return avidPamWsClient.getAssetType(interplayURI).flatMap { type ->
+    private fun isMasterClip(avidPamWsClient: AvidPamWsClient, mobid: String): Single<Boolean> {
+        return avidPamWsClient.getAssetType(mobid).flatMap { type ->
             if (type == AssetType.MASTERCLIP) {
                 Single.just(true)
             } else {
@@ -49,13 +49,13 @@ class BlackPearlPamArchive(private val blackPearlClientFactory: BpClientFactory,
         }
     }
 
-    private fun archivePamAssetToBlackPearl(avidPamWsClient: AvidPamWsClient, interplayURI: String, blackPearl: String, bucket: String): Completable {
-        return archive(blackPearl, bucket, avidPamWsClient.getFileLocations(interplayURI))
+    private fun archivePamAssetToBlackPearl(avidPamWsClient: AvidPamWsClient, mobid: String, blackPearl: String, bucket: String): Completable {
+        return archive(blackPearl, bucket, avidPamWsClient.getFileLocations(mobid))
     }
 
-    private fun archivePamSequenceToBlackPearl(avidPamWsClient: AvidPamWsClient, interplayURI: String, blackPearl: String, bucket: String): Completable {
+    private fun archivePamSequenceToBlackPearl(avidPamWsClient: AvidPamWsClient, mobid: String, blackPearl: String, bucket: String): Completable {
         return archive(blackPearl, bucket,
-                avidPamWsClient.getSequenceRelatives(interplayURI)
+                avidPamWsClient.getSequenceRelatives(mobid)
                         .map { sequenceRelative -> sequenceRelative.interplayURI }
                         .flatMap(avidPamWsClient::getFileLocations))
     }
