@@ -26,5 +26,6 @@ class WebUiGuiceModule: AbstractModule() {
         bind(WebUi::class.java).to(WebUiImpl::class.java).`in`(Singleton::class.java)
         bind(UiModuleRegistry::class.java).to(UiModuleRegistryImpl::class.java).`in`(Singleton::class.java)
         bind(UIRouteGenerator::class.java).to(UIRouteGeneratorImpl::class.java).`in`(Singleton::class.java)
+        bind(DynamicContentGenerator::class.java).to(DynamicContentGeneratorImpl::class.java).`in`(Singleton::class.java)
     }
 }

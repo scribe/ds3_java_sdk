@@ -15,17 +15,22 @@
 
 package com.spectralogic.escapepod.webui
 
-internal class AppRoutingConfigurableValues(routeNames: Sequence<String>) {
-    val root = HashMap<String, Any>()
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 
-    val pathInfoList = ArrayList<PathInfo>()
+internal class AppRoutingConfigurableValues(routeNames: Sequence<String>) {
+    // These two properties need to be public so that the Freemarker template can use them.
+    val root: ImmutableMap<String, Any>
+    val pathInfoList: ImmutableList<PathInfo>
 
     init {
+        val pathInfoListBuilder = ImmutableList.Builder<PathInfo>()
         routeNames.forEach { routeName ->
-            pathInfoList.add(PathInfo(routeName, appendModuleNameForRouteName(routeName)))
+            pathInfoListBuilder.add(PathInfo(routeName, appendModuleNameForRouteName(routeName)))
         }
+        pathInfoList = pathInfoListBuilder.build()
 
-        root.put("pathInfoList", pathInfoList)
+        root = ImmutableMap.of("pathInfoList", pathInfoList)
     }
 
     private fun appendModuleNameForRouteName(routeName: String) : String {

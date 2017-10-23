@@ -15,7 +15,7 @@
 
 package com.spectralogic.escapepod.webui
 
-internal data class ErrorPageConfigurableValues(val backgroundColor: String,
-                                                val textColor: String,
-                                                val pageTitle: String,
-                                                val pageText: String)
+interface DynamicContentGenerator {
+    fun moduleNotFoundContent(backgroundColor: String, textColor: String, pageTitle: String, errorText: String) : String
+    fun webClientRoutingFileContent(routeNames: Sequence<String>) : String
+}

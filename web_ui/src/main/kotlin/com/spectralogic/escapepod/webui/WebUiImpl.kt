@@ -27,14 +27,13 @@ import org.slf4j.LoggerFactory
 import ratpack.func.Action
 import ratpack.handling.Chain
 import javax.inject.Inject
-import freemarker.template.Configuration
-import freemarker.template.TemplateExceptionHandler
-import java.io.File
-import java.io.StringWriter
 
-internal class WebUiImpl @Inject constructor(private val uiModuleRegistry: UiModuleRegistry, private val uiRouteGenerator: UIRouteGenerator): WebUi {
+internal class WebUiImpl @Inject constructor(private val uiModuleRegistry: UiModuleRegistry,
+                                             private val uiRouteGenerator: UIRouteGenerator,
+                                             private val dynamicContentGenerator: DynamicContentGenerator) : WebUi
+{
     override fun slashHandler(): Handler {
-        return StaticFilesHandler(uiModuleRegistry, uiRouteGenerator)
+        return StaticFilesHandler(uiModuleRegistry, uiRouteGenerator, dynamicContentGenerator)
     }
 }
 
@@ -45,7 +44,10 @@ internal class StubActionChain : Action<Chain> {
     }
 }
 
-internal class StaticFilesHandler(private val uiModuleRegistry: UiModuleRegistry, private val uiRouteGenerator: UIRouteGenerator): Handler {
+internal class StaticFilesHandler(private val uiModuleRegistry: UiModuleRegistry,
+                                  private val uiRouteGenerator: UIRouteGenerator,
+                                  private val dynamicContentGenerator: DynamicContentGenerator): Handler
+{
     private companion object {
         private  val LOG = LoggerFactory.getLogger(StaticFilesHandler::class.java)
         private const val STATIC_FILES_LANDING_PAGE = "index.html"
@@ -53,10 +55,8 @@ internal class StaticFilesHandler(private val uiModuleRegistry: UiModuleRegistry
         private const val ERROR_PAGE_BACKGROUND_COLOR = "cadetBlue"
         private const val ERROR_PAGE_TEXT_COLOR = "white"
         private const val ERROR_PAGE_TITLE = "Error page"
-        private const val ERROR_PAGE_TEMPLATE = "errorPage.ftl"
         private const val LANDING_PAGE_NOT_FOUND_ERROR_TEXT = "We cannot locate our application page.  Please accept our apologies."
         private const val UI_ROUTING_TABLE_FILE_NAME = "app/app.routing.ts"
-        private var freeMarkerConfiguration: Configuration? = null
     }
 
     private val staticFilesPath: String?
@@ -81,48 +81,29 @@ internal class StaticFilesHandler(private val uiModuleRegistry: UiModuleRegistry
 
     override fun handle(ctx: Context) {
         if (staticFilesPath != null) {
-            val staticFileName = ctx.request.path
-            when {
-                staticFileName.isNullOrBlank() -> ctx.response.sendFile(Paths.get(staticFilesPath, STATIC_FILES_LANDING_PAGE))
-                staticFileName == UI_ROUTING_TABLE_FILE_NAME -> ctx.response.send(uiRouteGenerator.generateRoutes(uiModuleRegistry.routeNames()))
-                else -> ctx.response.sendFile(Paths.get(staticFilesPath, staticFileName))
-            }
+            handleStaticFileRequest(ctx)
         } else {
-            sendErrorPage(ctx, LANDING_PAGE_NOT_FOUND_STATUS, ERROR_PAGE_BACKGROUND_COLOR, ERROR_PAGE_TEXT_COLOR,
-                    ERROR_PAGE_TITLE, LANDING_PAGE_NOT_FOUND_ERROR_TEXT)
+            handleStaticFileRequestError(ctx)
         }
     }
 
-    private fun sendErrorPage(ctx: Context, httpStatus: Int, backgroundColor: String, textColor: String, pageTitle: String, errorText: String) {
-        val errorPageConfigurableValues = ErrorPageConfigurableValues(httpStatus,
-                backgroundColor,
-                textColor,
-                pageTitle,
-                errorText)
-
-        val errorPageTemplate = freeMarkerConfiguration().getTemplate(ERROR_PAGE_TEMPLATE)
-
-        val stringWriter = StringWriter()
-
-        errorPageTemplate.process(errorPageConfigurableValues, stringWriter)
-
-        ctx.response.status(httpStatus).contentType("text/html").send(stringWriter.toString())
-    }
-
-    private fun freeMarkerConfiguration() : Configuration {
-        synchronized(StaticFilesHandler::class.java) {
-            if (freeMarkerConfiguration == null) {
-                freeMarkerConfiguration = Configuration()
-                freeMarkerConfiguration?.setDirectoryForTemplateLoading(resourceBundleLocation())
-                freeMarkerConfiguration?.defaultEncoding = "UTF-8"
-                freeMarkerConfiguration?.templateExceptionHandler = TemplateExceptionHandler.RETHROW_HANDLER
-            }
-
-            return freeMarkerConfiguration!!
+    private fun handleStaticFileRequest(ctx: Context) {
+        val staticFileName = ctx.request.path
+        when {
+            staticFileName.isNullOrBlank() -> ctx.response.sendFile(Paths.get(staticFilesPath, STATIC_FILES_LANDING_PAGE))
+            staticFileName == UI_ROUTING_TABLE_FILE_NAME -> ctx.response.send(uiRouteGenerator.generateRoutes(uiModuleRegistry.routeNames()))
+            else -> ctx.response.sendFile(Paths.get(staticFilesPath, staticFileName))
         }
     }
 
-    private fun resourceBundleLocation() : File {
-        return File(javaClass.classLoader.getResource(ERROR_PAGE_TEMPLATE).path).parentFile
+    private fun handleStaticFileRequestError(ctx: Context) {
+        ctx.response
+                .status(LANDING_PAGE_NOT_FOUND_STATUS)
+                .contentType("text/html")
+                .send(dynamicContentGenerator.moduleNotFoundContent(ERROR_PAGE_BACKGROUND_COLOR,
+                        ERROR_PAGE_TEXT_COLOR,
+                        ERROR_PAGE_TITLE,
+                        LANDING_PAGE_NOT_FOUND_ERROR_TEXT)
+                )
     }
 }
