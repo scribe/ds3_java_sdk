@@ -33,7 +33,7 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(HttpProvider::class.java)
-        private val staticFilesLoaderPage = "index.html"
+        private const val STATIC_FILES_LOADER_PAGE = "index.html"
     }
 
     var server : RatpackServer? = null
@@ -71,7 +71,7 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
 
     private fun maybeSetStaticFileBaseFolder(serverConfigBuilder: ServerConfigBuilder) {
         try {
-            val webUiResources = File(webUi.javaClass.classLoader.getResource(staticFilesLoaderPage).path).parentFile
+            val webUiResources = File(webUi.javaClass.classLoader.getResource(STATIC_FILES_LOADER_PAGE).path).parentFile
             serverConfigBuilder.baseDir(webUiResources)
         } catch (throwable: Throwable) {
             LOG.error("Could not find folder with web UI files.", throwable)

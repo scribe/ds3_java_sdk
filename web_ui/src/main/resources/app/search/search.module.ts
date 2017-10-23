@@ -1,7 +1,7 @@
-import { SearchComponent } from "./search.component";
-import { NgModule } from "@angular/core";
+import { SearchComponent } from './search.component';
+import { NgModule } from '@angular/core';
 
-import { routing } from "./search.routing";
+import { routing } from './search.routing';
 
 @NgModule({
     declarations: [

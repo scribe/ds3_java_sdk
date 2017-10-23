@@ -19,7 +19,8 @@ import ratpack.func.Action
 import ratpack.handling.Chain
 
 interface UiModuleRegistry {
-    fun registerUiModule(uiRegistration: UiModuleRegistration)
+    fun registerUiModule(uiModuleRegistration: UiModuleRegistration)
+    fun routeNames() : Sequence<String>
 }
 
 /**
@@ -27,9 +28,23 @@ interface UiModuleRegistry {
  *
  * The name is used not only for displaying the module in the UI, but also for resolving paths in the UI.
  * For example, with a module name of 'search' the path use to resolve the modules root component would be:
- * '/app/search/search.module'
+ * 'app/search/search.module#SearchModule'
  *
  * The resourceResolver tells the UI where to get it's own resources.  This allows a module implementer to
  * implement their UI logic however they want without the UI having to know how/where resources are retrieved.
  */
 data class UiModuleRegistration(val name: String, val resourceResolver: Action<Chain>)
+
+/*
+
+import { ModuleWithProviders } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { Routes } from '@angular/router';
+
+const routeNames: Routes = [
+    { path: 'search', loadChildren: 'app/search/search.module#SearchModule'}
+];
+
+export const routing: ModuleWithProviders = RouterModule.forRoot(routeNames);
+
+ */

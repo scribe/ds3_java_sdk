@@ -15,8 +15,23 @@
 
 package com.spectralogic.escapepod.webui
 
-internal data class ErrorPageConfigurableValues(val httpStatus: Number,
-                                                val backgroundColor: String,
-                                                val textColor: String,
-                                                val pageTitle: String,
-                                                val pageText: String)
+import com.google.common.collect.ImmutableList
+import com.spectralogic.escapepod.httpservice.UiModuleRegistration
+import com.spectralogic.escapepod.httpservice.UiModuleRegistry
+
+internal class UiModuleRegistryImpl: UiModuleRegistry {
+    private var uiModuleRegistrations: ImmutableList<UiModuleRegistration> = ImmutableList.of()
+
+    override fun registerUiModule(uiModuleRegistration: UiModuleRegistration) {
+        synchronized(this) {
+            uiModuleRegistrations = ImmutableList.builder<UiModuleRegistration>().addAll(uiModuleRegistrations).add(uiModuleRegistration).build()
+        }
+    }
+
+    override fun routeNames(): Sequence<String> {
+        synchronized(this) {
+            return uiModuleRegistrations.asSequence()
+                    .map { it.name }
+        }
+    }
+}

@@ -48,14 +48,14 @@ internal class RatpackHttpRouter : HttpRouter, Action<Chain>{
             throw Exception("Handler for exception $exceptionClass already exists")
         }
 
-        exceptionMap = exceptionMap.put(exceptionClass) { ctx, t ->
-            handler.invoke(ctx, t as T)
+        exceptionMap = exceptionMap.put(exceptionClass) { ctx, throwable ->
+            handler.invoke(ctx, throwable as T)
         }
     }
 
-    override fun execute(t: Chain) {
+    override fun execute(chain: Chain) {
         actionChains.forEach {
-            t.register {
+            chain.register {
                 it.add(ExceptionHandlerMapperImpl(exceptionMap))
             }.prefix(it.prefix, it.actionChain)
         }

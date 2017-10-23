@@ -15,24 +15,37 @@
 
 package com.spectralogic.escapepod.webui
 
+import com.spectralogic.escapepod.httpservice.UIRouteGenerator
+import com.spectralogic.escapepod.httpservice.UiModuleRegistration
+import com.spectralogic.escapepod.httpservice.UiModuleRegistry
 import com.spectralogic.escapepod.httpservice.WebUi
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.server.BaseDir
 import java.nio.file.Paths
 import org.slf4j.LoggerFactory
+import ratpack.func.Action
+import ratpack.handling.Chain
+import javax.inject.Inject
 import freemarker.template.Configuration
 import freemarker.template.TemplateExceptionHandler
 import java.io.File
 import java.io.StringWriter
 
-internal class WebUiImpl: WebUi {
+internal class WebUiImpl @Inject constructor(private val uiModuleRegistry: UiModuleRegistry, private val uiRouteGenerator: UIRouteGenerator): WebUi {
     override fun slashHandler(): Handler {
-        return StaticFilesHandler()
+        return StaticFilesHandler(uiModuleRegistry, uiRouteGenerator)
     }
 }
 
-internal class StaticFilesHandler: Handler {
+// !!! get rid of this.  it's just here for development
+internal class StubActionChain : Action<Chain> {
+    override fun execute(t: Chain?) {
+
+    }
+}
+
+internal class StaticFilesHandler(private val uiModuleRegistry: UiModuleRegistry, private val uiRouteGenerator: UIRouteGenerator): Handler {
     private companion object {
         private  val LOG = LoggerFactory.getLogger(StaticFilesHandler::class.java)
         private const val STATIC_FILES_LANDING_PAGE = "index.html"
@@ -42,12 +55,17 @@ internal class StaticFilesHandler: Handler {
         private const val ERROR_PAGE_TITLE = "Error page"
         private const val ERROR_PAGE_TEMPLATE = "errorPage.ftl"
         private const val LANDING_PAGE_NOT_FOUND_ERROR_TEXT = "We cannot locate our application page.  Please accept our apologies."
+        private const val UI_ROUTING_TABLE_FILE_NAME = "app/app.routing.ts"
         private var freeMarkerConfiguration: Configuration? = null
     }
 
     private val staticFilesPath: String?
 
     init {
+        // !!! get rid of this.  it's just here for development
+        uiModuleRegistry.registerUiModule(UiModuleRegistration("search", StubActionChain()))
+
+
         staticFilesPath = findStaticFilesPath()
 
         if (staticFilesPath == null) {
@@ -63,11 +81,11 @@ internal class StaticFilesHandler: Handler {
 
     override fun handle(ctx: Context) {
         if (staticFilesPath != null) {
-            val staticFileName = ctx.pathBinding.pastBinding
-            if (staticFileName.isNullOrBlank()) {
-                ctx.response.sendFile(Paths.get(staticFilesPath, STATIC_FILES_LANDING_PAGE))
-            } else {
-                ctx.response.sendFile(Paths.get(staticFilesPath, staticFileName))
+            val staticFileName = ctx.request.path
+            when {
+                staticFileName.isNullOrBlank() -> ctx.response.sendFile(Paths.get(staticFilesPath, STATIC_FILES_LANDING_PAGE))
+                staticFileName == UI_ROUTING_TABLE_FILE_NAME -> ctx.response.send(uiRouteGenerator.generateRoutes(uiModuleRegistry.routeNames()))
+                else -> ctx.response.sendFile(Paths.get(staticFilesPath, staticFileName))
             }
         } else {
             sendErrorPage(ctx, LANDING_PAGE_NOT_FOUND_STATUS, ERROR_PAGE_BACKGROUND_COLOR, ERROR_PAGE_TEXT_COLOR,
@@ -76,7 +94,7 @@ internal class StaticFilesHandler: Handler {
     }
 
     private fun sendErrorPage(ctx: Context, httpStatus: Int, backgroundColor: String, textColor: String, pageTitle: String, errorText: String) {
-        val errorPageConfigurableValues = ErrorPageConfigurableValues(LANDING_PAGE_NOT_FOUND_STATUS,
+        val errorPageConfigurableValues = ErrorPageConfigurableValues(httpStatus,
                 backgroundColor,
                 textColor,
                 pageTitle,
