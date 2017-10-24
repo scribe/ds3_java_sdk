@@ -69,7 +69,7 @@ class ClusterModule @Inject constructor(private val clusterServiceProvider: Clus
                 ctx.response.status(400).send(objectMapper.writeValueAsBytes(DefaultException(t.message?: "Encountered an error when communicating with the cluster", 400)))
             }
             emitter.onComplete()
-        }.mergeWith(clusterServiceProvider.startService())
+        }.andThen(clusterServiceProvider.startService())
     }
 
     override fun shutdownModule(): Completable {

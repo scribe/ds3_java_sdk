@@ -1,10 +1,8 @@
 package com.spectralogic.escapepod.pammigrate
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.AbstractModule
 import com.spectralogic.escapepod.api.Module
 import com.spectralogic.escapepod.api.ModuleRegistration
-import com.spectralogic.escapepod.httpservice.DefaultException
 import com.spectralogic.escapepod.httpservice.HttpDeregistrationAggregator
 import com.spectralogic.escapepod.httpservice.HttpRouter
 import io.reactivex.Completable
@@ -41,12 +39,6 @@ class PamMigrateModule
     override fun startModule(): Completable {
         return Completable.create { emitter ->
             LOG.info("Starting PamMigrate Module")
-            httpRouter.registerExceptionHandler(Throwable::class.java) { ctx, t ->
-                val objectMapper = ctx.get(ObjectMapper::class.java)
-                ctx.response
-                        .status(400)
-                        .send(objectMapper.writeValueAsBytes(DefaultException(t.message?: "Encountered an error when communicating with the pam system", 400)))
-            }
             emitter.onComplete()
         }
     }

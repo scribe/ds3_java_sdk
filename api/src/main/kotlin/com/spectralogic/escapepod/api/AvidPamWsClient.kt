@@ -1,22 +1,21 @@
 package com.spectralogic.escapepod.api
 
-import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 
 interface AvidPamWsClient {
-    fun getPamAssets(interplayURI: String): Observable<PamAsset>
-    fun getPamFolders(interplayURI: String): Observable<PamFolder>
-    fun getPamProfiles(workgroupURI: String, services: Array<String>, showParameters: Boolean): Observable<PamProfile>
-    fun getPamJobStatus(jobURI: String): Single<PamJobStatus>
-    fun getPamMaxArchiveAssetSize(interplayURI: String): Single<PamMaxArchiveAssetSize>
+    fun getPamAssets(folder: String): Observable<PamAsset>
+    fun getPamFolders(): Observable<PamFolder>
+    fun getPamProfiles(): Observable<PamProfile>
+    fun getPamJobStatus(jobId: String): Single<PamJobStatus>
+    fun getPamMaxArchiveAssetSize(): Single<PamMaxArchiveAssetSize>
     fun getPamWorkGroups(): Observable<PamWorkGroup>
-    fun getFileLocations(interplayURI: String): Observable<FileLocation>
-    fun getSequenceRelatives(interplayURI: String): Observable<SequenceRelative>
-    fun getAssetType(interplayURI: String): Single<AssetType>
+    fun getFileLocations(mobid: String): Observable<FileLocation>
+    fun getSequenceRelatives(mobid: String): Observable<SequenceRelative>
+    fun getAssetType(mobid: String): Single<AssetType>
 
-    fun restorePamAsset(profile: String, interplayURI: String): Single<PamJob>
-    fun archivePamAsset(profile: String, interplayURI: String): Single<PamJob>
+    fun restorePamAsset(profile: String, mobid: String): Single<PamJob>
+    fun archivePamAsset(profile: String, mobid: String): Single<PamJob>
 }
 
 data class PamAsset(
@@ -76,3 +75,13 @@ data class SequenceRelative(
 enum class AssetType {
     MASTERCLIP, SEQUENCE, UNKNOWN
 }
+
+
+open class PamNotFoundException(override val message: String) : RuntimeException(message)
+
+open class PamExistsException(override val message: String) : RuntimeException(message)
+
+interface AvidPamWsClientBuilder {
+    fun buildAvidPamWsClient(name: String): Single<AvidPamWsClient>
+}
+
