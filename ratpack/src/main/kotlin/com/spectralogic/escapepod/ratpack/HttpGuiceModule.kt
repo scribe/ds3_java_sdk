@@ -23,7 +23,7 @@ import com.spectralogic.escapepod.httpservice.HttpServiceProvider
 internal class HttpGuiceModule : AbstractModule() {
     override fun configure() {
         bind(HttpServiceProvider::class.java).to(HttpProvider::class.java).`in`(Singleton::class.java)
-        bind(RootApiChain::class.java).`in`(Singleton::class.java)
+        bind(RootApiHandler::class.java).`in`(Singleton::class.java)
         bind(RatpackHttpRouter::class.java).`in`(Singleton::class.java)
         bind(HttpRouter::class.java).to(RatpackHttpRouter::class.java).`in`(Singleton::class.java)
     }

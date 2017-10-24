@@ -13,11 +13,27 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.api
+package com.spectralogic.escapepod.bpclient
 
+import com.google.common.cache.CacheBuilder
+import com.google.common.cache.CacheLoader
+import com.google.common.cache.LoadingCache
 import com.spectralogic.ds3client.Ds3Client
+import com.spectralogic.escapepod.api.BpClientFactory
 import io.reactivex.Single
+import java.util.concurrent.TimeUnit
 
-interface BpClientFactory {
-    fun createBpClient(clientName: String): Single<Ds3Client>
+internal class BpClientFactoryImpl: BpClientFactory {
+
+    private val cache: LoadingCache<String, Ds3Client> = CacheBuilder.newBuilder()
+            .expireAfterAccess(1, TimeUnit.HOURS)
+            .build(CacheLoader.from( { key ->  this.cacheLoader(key!!)})) // this makes sure the key passed to cacheLoader, is not null
+
+    override fun createBpClient(clientName: String): Single<Ds3Client> {
+        return Single.just(cache[clientName])
+    }
+
+    private fun cacheLoader(key: String): Ds3Client {
+        throw NotImplementedError()
+    }
 }

@@ -17,12 +17,14 @@ package com.spectralogic.escapepod.persistence
 
 import com.google.common.collect.ImmutableMap
 import com.spectralogic.escapepod.api.RequestContext
+import jetbrains.exodus.entitystore.EntityRemovedInDatabaseException
 import jetbrains.exodus.entitystore.PersistentEntityStores
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 
 class XodusPersistenceService_Test {
 
@@ -32,7 +34,7 @@ class XodusPersistenceService_Test {
     @Test
     fun createNode() {
         withPersistenceService {
-            val entity = it.addNode("type", ImmutableMap.of<String, String>("key", "value") as Map<String, Comparable<Any?>>)
+            val entity = it.addNode("type", ImmutableMap.of("key", "value") as Map<String, Comparable<Any?>>)
 
             assertThat(entity.id).isNotNull()
 
@@ -44,8 +46,8 @@ class XodusPersistenceService_Test {
     @Test
     fun linkNode() {
         withPersistenceService {
-            val entity1 = it.addNode("type", ImmutableMap.of<String, String>("key", "value1") as Map<String, Comparable<Any?>>)
-            val entity2 = it.addNode("type", ImmutableMap.of<String, String>("key", "value2") as Map<String, Comparable<Any?>>)
+            val entity1 = it.addNode("type", ImmutableMap.of("key", "value1") as Map<String, Comparable<Any?>>)
+            val entity2 = it.addNode("type", ImmutableMap.of("key", "value2") as Map<String, Comparable<Any?>>)
 
             it.link(entity1.id, "hasA", entity2.id)
 
@@ -60,8 +62,8 @@ class XodusPersistenceService_Test {
     @Test
     fun listNodes() {
         withPersistenceService {
-            it.addNode("type", ImmutableMap.of<String, String>("key", "value1") as Map<String, Comparable<Any?>>)
-            it.addNode("type", ImmutableMap.of<String, String>("key", "value2") as Map<String, Comparable<Any?>>)
+            it.addNode("type", ImmutableMap.of("key", "value1") as Map<String, Comparable<Any?>>)
+            it.addNode("type", ImmutableMap.of("key", "value2") as Map<String, Comparable<Any?>>)
 
             val sequence = it.get("type")
 
@@ -72,12 +74,53 @@ class XodusPersistenceService_Test {
     @Test
     fun findNode() {
         withPersistenceService {
-            it.addNode("type", ImmutableMap.of<String, String>("key", "value1") as Map<String, Comparable<Any?>>)
-            it.addNode("type", ImmutableMap.of<String, String>("key", "value2") as Map<String, Comparable<Any?>>)
+            it.addNode("type", ImmutableMap.of("key", "value1") as Map<String, Comparable<Any?>>)
+            it.addNode("type", ImmutableMap.of("key", "value2") as Map<String, Comparable<Any?>>)
 
             val sequence = it.find("type", "key", "value2" as Comparable<Any?>)
-
             assertThat(sequence.count()).isEqualTo(1)
+        }
+    }
+
+    @Test
+    fun deleteOnlyNode() {
+        withPersistenceService {
+            val addNode = it.addNode("type", ImmutableMap.of("key", "value1") as Map<String, Comparable<Any?>>)
+            it.deleteNode(addNode.id)
+
+            assertThatThrownBy {
+                it.get(addNode.id)
+            }.isInstanceOf(EntityRemovedInDatabaseException::class.java)
+                    .hasMessageContaining("type")
+        }
+    }
+
+    @Test
+    fun deleteOneNode() {
+        withPersistenceService {
+            val addNode = it.addNode("type", ImmutableMap.of("key", "value1") as Map<String, Comparable<Any?>>)
+            it.addNode("type", ImmutableMap.of("key", "value2") as Map<String, Comparable<Any?>>)
+            it.deleteNode(addNode.id)
+
+            assertThatThrownBy {
+                it.get(addNode.id)
+            }.isInstanceOf(EntityRemovedInDatabaseException::class.java)
+                    .hasMessageContaining("type")
+        }
+    }
+
+    @Test
+    fun updateNode() {
+        withPersistenceService {
+            val addNode = it.addNode("type", ImmutableMap.of("key", "value1") as Map<String, Comparable<Any?>>)
+
+            it.updateNode(addNode.id, ImmutableMap.of("key", "valueUpdated") as Map<String, Comparable<Any?>>)
+
+            val updatedNode = it.get(addNode.id)
+
+            assertThat(addNode.id).isEqualTo(updatedNode.id)
+
+            assertThat(updatedNode.properties["key"]).isEqualTo("valueUpdated")
         }
     }
 

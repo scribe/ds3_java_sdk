@@ -4,7 +4,7 @@ import com.google.inject.AbstractModule
 
 class PamMigrateGuiceModule : AbstractModule() {
     override fun configure() {
-        bind(PamMigrateProvider::class.java)
+        bind(PamMigrateHandlers::class.java)
         bind(PamMigrateModuleRegistration::class.java)
     }
 

@@ -26,20 +26,20 @@ import java.nio.file.Files
 import java.nio.file.Path
 import javax.inject.Inject
 import javax.inject.Named
+import javax.inject.Singleton
 
+@Singleton
 internal class XodusPersistenceProvider
 @Inject constructor(
-        //        private val clusterServiceProvider: ClusterServiceProvider,
-//      @Named("interfaceIp") private val interfaceIp : String,
-        @Named("dataDir") private val dataDir : Path,
+        @Named("dataDir") private val dataDir: Path,
         @Named("persistencePort") private val persistencePort: Int
-) : PersistenceServiceProvider{
+) : PersistenceServiceProvider {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(XodusPersistenceProvider::class.java)
     }
 
-    private var entityStore : PersistentEntityStore? = null
+    private var entityStore: PersistentEntityStore? = null
 
 
     override fun shutdown(): Completable {
@@ -57,7 +57,7 @@ internal class XodusPersistenceProvider
                 Files.createDirectories(dataDir)
                 entityStore = PersistentEntityStores.newInstance(dataDir.toFile())
                 emitter.onComplete()
-            } catch (e : IOException) {
+            } catch (e: IOException) {
                 LOG.error("Failed to access data directory for Xodus", e)
                 emitter.onError(e)
             }
@@ -81,7 +81,7 @@ internal class XodusPersistenceProvider
     }
 
     override fun createNewPersistenceCluster(name: String, port: Int): Completable {
-        LOG.warn("create new persistence cluster not implemented")
+        //purposely not implemented
         return Completable.complete()
     }
 
@@ -91,11 +91,11 @@ internal class XodusPersistenceProvider
     }
 
     fun clusterHandler(event: ClusterEvent) {
-        when(event) {
+        when (event) {
             is ClusterCreatedEvent -> {
                 val createNewPersistenceCluster = createNewPersistenceCluster(event.clusterName, persistencePort)
                 createNewPersistenceCluster
-                        .doOnError{ t ->
+                        .doOnError { t ->
                             LOG.error("Failed to create xodus persistence node", t)
                         }.subscribe()
             }

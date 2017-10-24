@@ -14,7 +14,7 @@
  */
 
 buildscript {
-    ext.kotlin_version = '1.1.50'
+    ext.kotlin_version = '1.1.51'
 
     repositories {
         maven {
@@ -86,7 +86,7 @@ task unit(dependsOn: [':util:test', ':api:test', ':xoduspersistence:test', ':run
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.1'
+    gradleVersion = '4.2.1'
 }
 
 project (":api") {
@@ -94,6 +94,13 @@ project (":api") {
         compile project(":util")
     }
 }
+
+project(":bpclient") {
+    dependencies {
+        compile project(":api")
+    }
+}
+
 project(":localcache") {
     dependencies {
         compile project(":api")
@@ -148,6 +155,7 @@ project(":avidmamclient") {
     dependencies {
         compile project(":api")
         compile project(":restclientutils")
+        compile project(":httpservice")
     }
 }
 

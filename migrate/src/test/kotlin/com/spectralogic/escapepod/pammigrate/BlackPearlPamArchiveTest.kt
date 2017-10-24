@@ -6,8 +6,9 @@ import com.spectralogic.ds3client.Ds3ClientBuilder
 import com.spectralogic.ds3client.commands.HeadObjectRequest
 import com.spectralogic.ds3client.helpers.Ds3ClientHelpers
 import com.spectralogic.ds3client.models.common.Credentials
+import com.spectralogic.escapepod.api.AvidPamWsClient
 import com.spectralogic.escapepod.api.BpClientFactory
-import com.spectralogic.escapepod.avidpamwsclient.AvidPamWsClient
+import com.spectralogic.escapepod.avidpamwsclient.AvidPamWsClientImpl
 import io.reactivex.Single
 import io.reactivex.observers.TestObserver
 import org.assertj.core.api.Assertions
@@ -21,16 +22,18 @@ internal class BlackPearlPamArchiveTest {
     private companion object {
 
         //Avid WS info
+        private val NAME = "test"
         private val USERNAME = "spectra"
         private val PASSWORD = ""
         private val ENDPOINT = "10.1.2.164:80"
+        private val WORKGROUP = "AvidWorkgroup"
 
         //BP info
         private val BP_ENDPOINT = "10.1.19.204"
         private val ACCESS_ID = "c2hhcm9u"
         private val SECRET_KEY = "qawsedrf"
 
-        private lateinit var avidPamWsClient: AvidPamWsClient
+        private lateinit var avidPamWsClientImpl: AvidPamWsClient
         private lateinit var blackPearlPamArchive: BlackPearlPamArchive
 
         private lateinit var CLIENT: Ds3Client
@@ -52,7 +55,7 @@ internal class BlackPearlPamArchiveTest {
             CLIENT = ds3Client
             HELPERS = Ds3ClientHelpers.wrap(CLIENT)
 
-            avidPamWsClient = AvidPamWsClient(USERNAME, PASSWORD, ENDPOINT)
+            avidPamWsClientImpl = AvidPamWsClientImpl(NAME, USERNAME, PASSWORD, ENDPOINT, WORKGROUP)
         }
 
         @AfterClass
@@ -67,9 +70,9 @@ internal class BlackPearlPamArchiveTest {
         val bucket = "archiveMasterClipToBlackPearlTest"
 
         try {
-            val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
+            val mobid = "060a2b340101010101010f0013-000000-59de815c2623026a-060e2b347f7f-2a80"
 
-            val observable = blackPearlPamArchive.archivePamToBlackPearl(avidPamWsClient, BP_ENDPOINT, bucket, interplayURL)
+            val observable = blackPearlPamArchive.archivePamToBlackPearl(avidPamWsClientImpl, BP_ENDPOINT, bucket, mobid)
                     .toObservable<Unit>()
             val testObserver = TestObserver<Unit>()
 
@@ -130,9 +133,9 @@ internal class BlackPearlPamArchiveTest {
     fun archiveSequenceToBlackPearlTest() {
         val bucket = "archiveSequenceToBlackPearlTest"
         try {
-            val interplayURL = "interplay://AvidWorkgroup?mobid=060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
+            val mobid = "060a2b340101010101010f0013-000000-59d6baef37175864-060e2b347f7f-2a80"
 
-            val observable = blackPearlPamArchive.archivePamToBlackPearl(avidPamWsClient, BP_ENDPOINT, bucket, interplayURL).toObservable<Unit>()
+            val observable = blackPearlPamArchive.archivePamToBlackPearl(avidPamWsClientImpl, BP_ENDPOINT, bucket, mobid).toObservable<Unit>()
             val testObserver = TestObserver<Unit>()
 
             observable.subscribe(testObserver)

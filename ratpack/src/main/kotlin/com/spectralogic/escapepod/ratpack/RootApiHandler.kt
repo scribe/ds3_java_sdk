@@ -13,11 +13,19 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.api
+package com.spectralogic.escapepod.ratpack
 
-import com.spectralogic.ds3client.Ds3Client
-import io.reactivex.Single
+import ratpack.handling.Context
+import ratpack.handling.Handler
+import ratpack.handling.Handlers
+import javax.inject.Inject
 
-interface BpClientFactory {
-    fun createBpClient(clientName: String): Single<Ds3Client>
+internal class RootApiHandler
+@Inject constructor(
+        private val ratpackHttpRouter: RatpackHttpRouter
+) : Handler {
+    override fun handle(ctx: Context) {
+        Handlers.chain(TracerHandler(),
+        Handlers.chain(ctx.serverConfig, ratpackHttpRouter)).handle(ctx)
+    }
 }

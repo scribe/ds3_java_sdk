@@ -29,7 +29,7 @@ import ratpack.server.RatpackServer
 import ratpack.server.ServerConfigBuilder
 import java.io.File
 
-internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootApiChain: RootApiChain, private val objectMapper: ObjectMapper, private val webUi: WebUi) : HttpServiceProvider {
+internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootApiHandler: RootApiHandler, private val objectMapper: ObjectMapper, private val webUi: WebUi) : HttpServiceProvider {
 
     private companion object {
         private val LOG = LoggerFactory.getLogger(HttpProvider::class.java)
@@ -60,7 +60,9 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
                 }
 
                 server.handlers {
-                    it.prefix("api", rootApiChain)
+                    it.prefix("api") {
+                        it.all(rootApiHandler)
+                    }
                     it.all(webUi.slashHandler())
                 }
 

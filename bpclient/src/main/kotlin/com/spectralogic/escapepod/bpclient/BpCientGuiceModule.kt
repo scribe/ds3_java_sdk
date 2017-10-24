@@ -13,20 +13,14 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.ratpack
+package com.spectralogic.escapepod.bpclient
 
-import ratpack.func.Action
-import ratpack.handling.Chain
-import javax.inject.Inject
+import com.google.inject.AbstractModule
+import com.spectralogic.escapepod.api.BpClientFactory
+import javax.inject.Singleton
 
-internal class RootApiChain
-@Inject constructor(
-        private val ratpackHttpRouter: RatpackHttpRouter
-) : Action<Chain> {
-
-    override fun execute(chain: Chain) {
-        chain.all(TracerHandler())
-
-        ratpackHttpRouter.execute(chain)
+class BpCientGuiceModule: AbstractModule() {
+    override fun configure() {
+        bind(BpClientFactory::class.java).to(BpClientFactoryImpl::class.java).`in`(Singleton::class.java)
     }
 }

@@ -13,35 +13,4 @@
 #  ****************************************************************************
 #
 
-apacheAxis=1.4
-assertjVersion=3.8.0
-bpclientVersion=3.5.2
-bpmgmtVersion=1.0.0
-commonsDiscovery=0.5
-commonsLogging=1.2
-commonslang3Version=3.6
-elasticsearchVersion=5.5.3
-guavaVersion=23.1-jre
-guiceVersion=4.1.0
-hamcrestVersion=1.3
-iocommonsVersion=2.5
-jacksonVersion=2.9.0
-jaegerVersion=0.20.6
-jaxrpcApi=1.1
-junitVersion=4.12
-kotlincoroutineVersion=0.17
-logbackVersion=1.2.3
-mockitoVersion=2.+
-mssqljdbcVersion=6.2.1.jre8
-okioVersion=3.8.0
-opentracingVersion=0.30.0
-ratpackVersion=1.5.0
-retrofitVersion=2.3.0
-rxjavaVersion=2.1.3
-rxkotlinVersion=2.1.0
-simpleXmlVersion=2.7.1
-slf4jVersion=1.7.25
-tpfrVersion=0.1.0
-vavrVersion=0.9.0
-wsdl4j=1.6.3
-xodusVersion=1.0.6
+com.spectralogic.escapepod.avidpamwsclient.AvidPamWsClientModuleRegistration
