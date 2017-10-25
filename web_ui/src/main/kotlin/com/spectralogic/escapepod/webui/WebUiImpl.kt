@@ -15,12 +15,11 @@
 
 package com.spectralogic.escapepod.webui
 
-import com.spectralogic.escapepod.httpservice.UiModuleRegistration
 import com.spectralogic.escapepod.httpservice.UiModuleRegistry
 import com.spectralogic.escapepod.httpservice.WebUi
 import ratpack.handling.Context
 import ratpack.handling.Handler
-import ratpack.server.BaseDir
+import com.spectralogic.escapepod.ratpack.staticFilesPath
 import java.nio.file.Paths
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
@@ -34,16 +33,9 @@ internal class WebUiImpl @Inject constructor(private val uiModuleRegistry: UiMod
     }
 }
 
-// !!! get rid of this.  it's just here for development
-internal class StubHandler : Handler {
-    override fun handle(ctx: Context?) {
-        ctx?.response?.sendFile(Paths.get(BaseDir.find("index.html").toString(), ctx.request.path))
-    }
-}
-
 internal class StaticFilesHandler(private val uiModuleRegistry: UiModuleRegistry,
-                                  private val uiRouteGenerator: UIRouteGenerator,
-                                  private val dynamicContentGenerator: DynamicContentGenerator): Handler
+                                           private val uiRouteGenerator: UIRouteGenerator,
+                                           private val dynamicContentGenerator: DynamicContentGenerator): Handler
 {
     private companion object {
         private  val LOG = LoggerFactory.getLogger(StaticFilesHandler::class.java)
@@ -56,29 +48,20 @@ internal class StaticFilesHandler(private val uiModuleRegistry: UiModuleRegistry
         private const val UI_ROUTING_TABLE_FILE_NAME = "app/app.routing.ts"
     }
 
-    private val staticFilesPath: String?
+    private var staticFilesPath: String? = null
 
     init {
-        // !!! get rid of this.  it's just here for development
-        uiModuleRegistry.registerUiModule(UiModuleRegistration("search", "app/search/search.module#SearchModule", "app/search/search.module.ts", StubHandler()))
-
-        staticFilesPath = findStaticFilesPath()
-
-        if (staticFilesPath == null) {
+        try {
+            staticFilesPath = staticFilesPath().toString()
+        } catch (throwable: Throwable) {
             LOG.error("Could not locate web ui static files.")
         }
     }
 
-    private fun findStaticFilesPath(): String? {
-        val staticFilesFolderPath = BaseDir.find(STATIC_FILES_LANDING_PAGE)
-
-        return staticFilesFolderPath?.toString()
-    }
-
     override fun handle(ctx: Context) {
-        if (staticFilesPath != null) {
+        try {
             handleFileRequest(ctx)
-        } else {
+        } catch (throwable: Throwable) {
             handleFileRequestError(ctx)
         }
     }

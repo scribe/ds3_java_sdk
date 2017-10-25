@@ -28,13 +28,27 @@ internal class UiModuleRegistryImpl: UiModuleRegistry {
         }
     }
 
-    override fun registration(routeName: String): UiModuleRegistration? {
+    override fun unRegisterUiModule(url: String) {
         synchronized(this) {
-            return uiModuleRegistrations[routeName]
+            uiModuleRegistrations = ImmutableMap.copyOf(
+                    uiModuleRegistrations
+                            .filter { uiModuleRegistration ->
+                                uiModuleRegistration.key != url
+                            }
+                            .toMap()
+            )
+        }
+    }
+
+    override fun registration(url: String): UiModuleRegistration? {
+        synchronized(this) {
+            return uiModuleRegistrations[url]
         }
     }
 
     override fun registrations() : ImmutableMap<String, UiModuleRegistration> {
-        return uiModuleRegistrations
+        synchronized(this, {
+            return uiModuleRegistrations
+        })
     }
 }

@@ -189,6 +189,7 @@ project(":metadatasearch") {
     dependencies {
         compile project(":api")
         compile project(":util")
+        compile project(":ratpack")
     }
 }
 
@@ -217,5 +218,6 @@ project(":web_ui") {
     dependencies {
         compile project(":api")
         compile project(":httpservice")
+        compile project(":ratpack")
     }
 }

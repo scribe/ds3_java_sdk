@@ -17,7 +17,13 @@ package com.spectralogic.escapepod.metadatasearch
 
 import com.google.inject.AbstractModule
 import com.spectralogic.escapepod.api.*
+import com.spectralogic.escapepod.httpservice.UiModuleRegistration
+import com.spectralogic.escapepod.httpservice.UiModuleRegistry
+import com.spectralogic.escapepod.ratpack.staticFilesPath
 import io.reactivex.Completable
+import ratpack.handling.Context
+import ratpack.handling.Handler
+import java.nio.file.Paths
 import javax.inject.Inject
 
 class MetadataSearchModuleRegistration : ModuleRegistration<MetadataSearchModule> {
@@ -29,9 +35,15 @@ class MetadataSearchModuleRegistration : ModuleRegistration<MetadataSearchModule
 class MetadataSearchModule
 @Inject constructor(
         private val clusterServiceProvider: ClusterServiceProvider,
-        private val metadataSearchServiceProvider: MetadataSearchServiceProvider) : Module {
-
+        private val metadataSearchServiceProvider: MetadataSearchServiceProvider,
+        private val uiModuleRegistry: UiModuleRegistry) : Module
+{
     override val name: String = "Metadata Search"
+
+    // This has to come after the injected name field, otherwise the injection fails.  Shrug.
+    private companion object {
+        private const val uiUrl = "app/search/search.module.ts"
+    }
 
     override fun loadModule(): Completable {
         return Completable.create { emitter ->
@@ -40,8 +52,21 @@ class MetadataSearchModule
         }
     }
 
-    override fun startModule(): Completable = Completable.complete()
+    override fun startModule(): Completable {
+        uiModuleRegistry.registerUiModule(UiModuleRegistration(name, "app/search/search.module#SearchModule", uiUrl, SearchModuleUiHandler()))
 
-    override fun shutdownModule(): Completable = Completable.complete()
+        return Completable.complete()
+    }
 
+    override fun shutdownModule(): Completable {
+        uiModuleRegistry.unRegisterUiModule(uiUrl)
+
+        return Completable.complete()
+    }
+}
+
+internal class SearchModuleUiHandler : Handler {
+    override fun handle(ctx: Context?) {
+        ctx?.response?.sendFile(Paths.get(staticFilesPath().toString(), ctx.request.path))
+    }
 }
