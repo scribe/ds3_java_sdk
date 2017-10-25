@@ -15,14 +15,20 @@
 
 package com.spectralogic.escapepod.webui
 
+import com.google.common.collect.ImmutableMap
+import com.spectralogic.escapepod.httpservice.UiModuleRegistration
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import ratpack.handling.Handler
 
 class UIRouteGenerator_Test {
     @Test
     fun testGeneratingAppRoutingContentWithOneRoute() {
         val uiRouteGenerator = UIRouteGeneratorImpl(DynamicContentGeneratorImpl())
-        val routingFileContent = uiRouteGenerator.generateRoutes(sequenceOf("search"))
+        val moduleName = "search"
+        val uiModuleRegistration = UiModuleRegistration(moduleName, "app/search/search.module#SearchModule", "app/search/search.module.ts", Handler {  })
+        val routingInfo = ImmutableMap.of(moduleName, uiModuleRegistration)
+        val routingFileContent = uiRouteGenerator.generateRoutes(routingInfo)
 
         val expected = "import { ModuleWithProviders } from '@angular/core';\n" +
                 "import { RouterModule } from '@angular/router';\n" +
@@ -42,7 +48,12 @@ class UIRouteGenerator_Test {
     @Test
     fun testGeneratingAppRoutingContentWithTwoRoutes() {
         val uiRouteGenerator = UIRouteGeneratorImpl(DynamicContentGeneratorImpl())
-        val routingFileContent = uiRouteGenerator.generateRoutes(sequenceOf("search", "Gracie"))
+        val moduleName = "search"
+        val moduleName2 = "Gracie"
+        val uiModuleRegistration = UiModuleRegistration(moduleName, "app/search/search.module#SearchModule", "app/search/search.module.ts", Handler {  })
+        val uiModuleRegistration2 = UiModuleRegistration(moduleName2, "app/Gracie/Gracie.module#GracieModule", "app/search/search.module.ts", Handler {  })
+        val routingInfo = ImmutableMap.of(moduleName, uiModuleRegistration, moduleName2, uiModuleRegistration2)
+        val routingFileContent = uiRouteGenerator.generateRoutes(routingInfo)
 
         val expected = "import { ModuleWithProviders } from '@angular/core';\n" +
                 "import { RouterModule } from '@angular/router';\n" +

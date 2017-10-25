@@ -18,5 +18,5 @@ package com.spectralogic.escapepod.httpservice
 import ratpack.handling.Handler
 
 interface WebUi {
-    fun slashHandler(): Handler
+    fun slashHandler() : Handler
 }

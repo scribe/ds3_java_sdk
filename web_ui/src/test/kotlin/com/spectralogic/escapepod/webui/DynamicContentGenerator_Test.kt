@@ -27,7 +27,7 @@ class DynamicContentGenerator_Test {
         val landingPageNotFoundErrorText = "We cannot locate our application page.  Please accept our apologies."
 
         val moduleNogtFoundPageText = DynamicContentGeneratorImpl()
-                .moduleNotFoundContent(errorPageBackgroundColor, errorPageTextColor, errorPageTitle, landingPageNotFoundErrorText)
+                .resourceNotFoundContent(errorPageBackgroundColor, errorPageTextColor, errorPageTitle, landingPageNotFoundErrorText)
 
         val expected = "<!--\n" +
                 "* *****************************************************************************\n" +

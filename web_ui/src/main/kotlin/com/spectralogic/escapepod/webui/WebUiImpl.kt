@@ -15,7 +15,6 @@
 
 package com.spectralogic.escapepod.webui
 
-import com.spectralogic.escapepod.httpservice.UIRouteGenerator
 import com.spectralogic.escapepod.httpservice.UiModuleRegistration
 import com.spectralogic.escapepod.httpservice.UiModuleRegistry
 import com.spectralogic.escapepod.httpservice.WebUi
@@ -24,8 +23,6 @@ import ratpack.handling.Handler
 import ratpack.server.BaseDir
 import java.nio.file.Paths
 import org.slf4j.LoggerFactory
-import ratpack.func.Action
-import ratpack.handling.Chain
 import javax.inject.Inject
 
 internal class WebUiImpl @Inject constructor(private val uiModuleRegistry: UiModuleRegistry,
@@ -38,9 +35,9 @@ internal class WebUiImpl @Inject constructor(private val uiModuleRegistry: UiMod
 }
 
 // !!! get rid of this.  it's just here for development
-internal class StubActionChain : Action<Chain> {
-    override fun execute(t: Chain?) {
-
+internal class StubHandler : Handler {
+    override fun handle(ctx: Context?) {
+        ctx?.response?.sendFile(Paths.get(BaseDir.find("index.html").toString(), ctx.request.path))
     }
 }
 
@@ -63,8 +60,7 @@ internal class StaticFilesHandler(private val uiModuleRegistry: UiModuleRegistry
 
     init {
         // !!! get rid of this.  it's just here for development
-        uiModuleRegistry.registerUiModule(UiModuleRegistration("search", StubActionChain()))
-
+        uiModuleRegistry.registerUiModule(UiModuleRegistration("search", "app/search/search.module#SearchModule", "app/search/search.module.ts", StubHandler()))
 
         staticFilesPath = findStaticFilesPath()
 
@@ -81,26 +77,36 @@ internal class StaticFilesHandler(private val uiModuleRegistry: UiModuleRegistry
 
     override fun handle(ctx: Context) {
         if (staticFilesPath != null) {
-            handleStaticFileRequest(ctx)
+            handleFileRequest(ctx)
         } else {
-            handleStaticFileRequestError(ctx)
+            handleFileRequestError(ctx)
         }
     }
 
-    private fun handleStaticFileRequest(ctx: Context) {
-        val staticFileName = ctx.request.path
+    private fun handleFileRequest(ctx: Context) {
+        val urlPath = ctx.request.path
         when {
-            staticFileName.isNullOrBlank() -> ctx.response.sendFile(Paths.get(staticFilesPath, STATIC_FILES_LANDING_PAGE))
-            staticFileName == UI_ROUTING_TABLE_FILE_NAME -> ctx.response.send(uiRouteGenerator.generateRoutes(uiModuleRegistry.routeNames()))
-            else -> ctx.response.sendFile(Paths.get(staticFilesPath, staticFileName))
+            urlPath.isNullOrBlank() -> ctx.response.sendFile(Paths.get(staticFilesPath, STATIC_FILES_LANDING_PAGE))
+            urlPath == UI_ROUTING_TABLE_FILE_NAME -> ctx.response.send(uiRouteGenerator.generateRoutes(uiModuleRegistry.registrations()))
+            else -> handleModuleChain(urlPath, ctx)
         }
     }
 
-    private fun handleStaticFileRequestError(ctx: Context) {
+    private fun handleModuleChain(urlPath: String, ctx: Context) {
+        val uiModuleRegistration = uiModuleRegistry.registration(urlPath)
+
+        if (uiModuleRegistration != null) {
+            ctx.insert(uiModuleRegistration.resourceResolver)
+        } else {
+            ctx.response.sendFile(Paths.get(staticFilesPath, urlPath))
+        }
+    }
+
+    private fun handleFileRequestError(ctx: Context) {
         ctx.response
                 .status(LANDING_PAGE_NOT_FOUND_STATUS)
                 .contentType("text/html")
-                .send(dynamicContentGenerator.moduleNotFoundContent(ERROR_PAGE_BACKGROUND_COLOR,
+                .send(dynamicContentGenerator.resourceNotFoundContent(ERROR_PAGE_BACKGROUND_COLOR,
                         ERROR_PAGE_TEXT_COLOR,
                         ERROR_PAGE_TITLE,
                         LANDING_PAGE_NOT_FOUND_ERROR_TEXT)

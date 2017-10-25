@@ -15,6 +15,8 @@
 
 package com.spectralogic.escapepod.webui
 
+import com.google.common.collect.ImmutableMap
+import com.spectralogic.escapepod.httpservice.UiModuleRegistration
 import freemarker.template.Configuration
 import freemarker.template.Template
 import freemarker.template.TemplateExceptionHandler
@@ -22,10 +24,10 @@ import java.io.File
 import java.io.StringWriter
 
 class DynamicContentGeneratorImpl : DynamicContentGenerator {
-    override fun moduleNotFoundContent(backgroundColor: String,
-                                       textColor: String,
-                                       pageTitle: String,
-                                       errorText: String): String
+    override fun resourceNotFoundContent(backgroundColor: String,
+                                         textColor: String,
+                                         pageTitle: String,
+                                         errorText: String): String
     {
         val errorPageTemplate = template("errorPage.ftl")
 
@@ -58,12 +60,12 @@ class DynamicContentGeneratorImpl : DynamicContentGenerator {
         return File(javaClass.classLoader.getResource(templateFileName).path).parentFile
     }
 
-    override fun webClientRoutingFileContent(routeNames: Sequence<String>): String {
+    override fun webClientRoutingFileContent(routingInfo: ImmutableMap<String, UiModuleRegistration>) : String {
         val routingFileContentTemplate = template("appRoutingTypescriptFile.ftl")
 
         val stringWriter = StringWriter()
 
-        val appRoutingConfigurableValues = AppRoutingConfigurableValues(routeNames)
+        val appRoutingConfigurableValues = AppRoutingConfigurableValues(routingInfo)
 
         routingFileContentTemplate.process(appRoutingConfigurableValues, stringWriter)
 

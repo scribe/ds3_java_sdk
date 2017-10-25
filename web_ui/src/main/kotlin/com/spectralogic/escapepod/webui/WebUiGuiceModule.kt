@@ -16,7 +16,6 @@
 package com.spectralogic.escapepod.webui
 
 import com.google.inject.AbstractModule
-import com.spectralogic.escapepod.httpservice.UIRouteGenerator
 import com.spectralogic.escapepod.httpservice.UiModuleRegistry
 import com.spectralogic.escapepod.httpservice.WebUi
 import javax.inject.Singleton

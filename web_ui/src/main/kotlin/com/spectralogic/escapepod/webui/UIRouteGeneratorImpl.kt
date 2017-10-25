@@ -15,11 +15,12 @@
 
 package com.spectralogic.escapepod.webui
 
-import com.spectralogic.escapepod.httpservice.UIRouteGenerator
+import com.google.common.collect.ImmutableMap
+import com.spectralogic.escapepod.httpservice.UiModuleRegistration
 import javax.inject.Inject
 
 class UIRouteGeneratorImpl @Inject constructor(private val dynamicContentGenerator: DynamicContentGenerator): UIRouteGenerator {
-    override fun generateRoutes(routeNames: Sequence<String>) : String {
-        return dynamicContentGenerator.webClientRoutingFileContent(routeNames)
+    override fun generateRoutes(routingInfo: ImmutableMap<String, UiModuleRegistration>) : String {
+        return dynamicContentGenerator.webClientRoutingFileContent(routingInfo)
     }
 }

@@ -15,23 +15,26 @@
 
 package com.spectralogic.escapepod.webui
 
-import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import com.spectralogic.escapepod.httpservice.UiModuleRegistration
 import com.spectralogic.escapepod.httpservice.UiModuleRegistry
 
 internal class UiModuleRegistryImpl: UiModuleRegistry {
-    private var uiModuleRegistrations: ImmutableList<UiModuleRegistration> = ImmutableList.of()
+    private var uiModuleRegistrations: ImmutableMap<String, UiModuleRegistration> = ImmutableMap.of()
 
     override fun registerUiModule(uiModuleRegistration: UiModuleRegistration) {
         synchronized(this) {
-            uiModuleRegistrations = ImmutableList.builder<UiModuleRegistration>().addAll(uiModuleRegistrations).add(uiModuleRegistration).build()
+            uiModuleRegistrations = ImmutableMap.builder<String, UiModuleRegistration>().putAll(uiModuleRegistrations).put(uiModuleRegistration.url, uiModuleRegistration).build()
         }
     }
 
-    override fun routeNames(): Sequence<String> {
+    override fun registration(routeName: String): UiModuleRegistration? {
         synchronized(this) {
-            return uiModuleRegistrations.asSequence()
-                    .map { it.name }
+            return uiModuleRegistrations[routeName]
         }
+    }
+
+    override fun registrations() : ImmutableMap<String, UiModuleRegistration> {
+        return uiModuleRegistrations
     }
 }

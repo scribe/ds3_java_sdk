@@ -15,7 +15,10 @@
 
 package com.spectralogic.escapepod.webui
 
+import com.google.common.collect.ImmutableMap
+import com.spectralogic.escapepod.httpservice.UiModuleRegistration
+
 interface DynamicContentGenerator {
-    fun moduleNotFoundContent(backgroundColor: String, textColor: String, pageTitle: String, errorText: String) : String
-    fun webClientRoutingFileContent(routeNames: Sequence<String>) : String
+    fun resourceNotFoundContent(backgroundColor: String, textColor: String, pageTitle: String, errorText: String) : String
+    fun webClientRoutingFileContent(routingInfo: ImmutableMap<String, UiModuleRegistration>) : String
 }
