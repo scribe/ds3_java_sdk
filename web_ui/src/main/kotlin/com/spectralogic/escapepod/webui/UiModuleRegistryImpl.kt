@@ -30,13 +30,15 @@ internal class UiModuleRegistryImpl: UiModuleRegistry {
 
     override fun unRegisterUiModule(url: String) {
         synchronized(this) {
-            uiModuleRegistrations = ImmutableMap.copyOf(
-                    uiModuleRegistrations
-                            .filter { uiModuleRegistration ->
-                                uiModuleRegistration.key != url
-                            }
-                            .toMap()
-            )
+            uiModuleRegistrations = ImmutableMap.builder<String, UiModuleRegistration>()
+                    .putAll(
+                            uiModuleRegistrations
+                                    .filter { uiModuleRegistration ->
+                                        uiModuleRegistration.key != url
+                                    }
+                                    .toMap()
+                    )
+                    .build()
         }
     }
 
