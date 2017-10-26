@@ -15,40 +15,45 @@
 
 package com.spectralogic.escapepod.flashnetclient.transport
 
-import org.slf4j.Logger
+import io.reactivex.Completable
+import io.reactivex.Single
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.Socket
 
-import org.slf4j.LoggerFactory
 import java.io.BufferedWriter
 import java.io.OutputStreamWriter
 
-class SocketTransportImpl(private val hostNameOrIpAddress : String, private val portNumber : Int) : SocketTransport
-{
+class SocketTransportImpl constructor(private val hostNameOrIpAddress: String, private val portNumber: Int) : SocketTransport {
     private companion object {
-        val LOG : Logger = LoggerFactory.getLogger(SocketTransportImpl::class.java)
         const val BEGIN_DELIMITER = '<'
     }
 
-    override fun readResponse(): String {
-        val socket : Socket?
+    private val socket: Socket by lazy {
+        Socket(hostNameOrIpAddress, portNumber)
+    }
 
-        try {
-            socket = Socket(hostNameOrIpAddress, portNumber)
+    override fun writeRead(request: String): Single<String> {
+        return write(request).andThen(read())
+    }
 
-            BufferedReader(InputStreamReader(socket.getInputStream())).use { bufferedReader ->
-                val xmlStringSize = xmlStringSize(readToBeginDelimeter(bufferedReader))
+    override fun read(): Single<String> {
+        return Single.create{ emitter ->
+            try {
+                BufferedReader(InputStreamReader(socket.getInputStream())).use { bufferedReader ->
+                    val xmlStringSize = xmlStringSize(readToBeginDelimiter(bufferedReader))
 
-                if (xmlStringSize > 0) {
-                    return xmlBody(bufferedReader, xmlStringSize)
+                    if (xmlStringSize > 0) {
+                        emitter.onSuccess(xmlBody(bufferedReader, xmlStringSize))
+                        return@create
+                    }
                 }
+            } catch (throwable : Throwable) {
+                emitter.onError(throwable)
             }
-        } catch (throwable : Throwable) {
-            LOG.error("Error reading response.", throwable)
-        }
 
-        return String()
+            emitter.onSuccess("")
+        }
     }
 
     private fun xmlStringSize(flashNetResponseHeader : String) : Int {
@@ -60,7 +65,7 @@ class SocketTransportImpl(private val hostNameOrIpAddress : String, private val 
         return 0
     }
 
-    private fun readToBeginDelimeter(bufferedReader: BufferedReader) : String {
+    private fun readToBeginDelimiter(bufferedReader: BufferedReader) : String {
         var c : Char
         val buffer = StringBuilder()
 
@@ -96,17 +101,21 @@ class SocketTransportImpl(private val hostNameOrIpAddress : String, private val 
         }
     }
 
-    override fun writeRequest(request: String) {
-        val socket : Socket?
+    override fun write(request: String): Completable {
 
-        try {
-            socket = Socket(hostNameOrIpAddress, portNumber)
-
-            BufferedWriter(OutputStreamWriter(socket.getOutputStream())).use {
-                bufferedWriter -> bufferedWriter.write(request)
+        return Completable.create { emitter ->
+            try {
+                BufferedWriter(OutputStreamWriter(socket.getOutputStream())).use {
+                    bufferedWriter -> bufferedWriter.write(request)
+                }
+                emitter.onComplete()
+            } catch (t: Throwable) {
+                emitter.onError(t)
             }
-        } catch (throwable : Throwable) {
-            LOG.error("Error writing request.", throwable)
         }
+    }
+
+    override fun close() {
+        socket.close()
     }
 }
