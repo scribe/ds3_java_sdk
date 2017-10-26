@@ -20,9 +20,9 @@ import com.spectralogic.escapepod.flashnetclient.bindToUnusedPort
 import com.spectralogic.escapepod.flashnetclient.read
 import com.spectralogic.escapepod.flashnetclient.requests.FlashNetRequestFactoryImpl
 import com.spectralogic.escapepod.flashnetclient.requests.Status
+import org.assertj.core.api.Assertions.assertThat
 
 import org.junit.Test
-import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import java.io.BufferedReader
 
@@ -30,6 +30,7 @@ import java.io.BufferedWriter
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.util.concurrent.CountDownLatch
+import kotlin.concurrent.thread
 
 class SocketTransport_Test {
     @Test
@@ -55,7 +56,7 @@ class SocketTransport_Test {
 
         val requestPayload = " FlashNet XML " + originalXmlString.length + " " + originalXmlString
 
-        kotlin.concurrent.thread(start = true, isDaemon = false, contextClassLoader = null, name = "Writer Socket", priority = -1,
+        thread(start = true, isDaemon = false, contextClassLoader = null, name = "Writer Socket", priority = -1,
                 block = {
                     countDownLatch.countDown()
                     val newSocket = socketPortTuple.socket?.accept()
@@ -68,9 +69,9 @@ class SocketTransport_Test {
         countDownLatch.await()
 
         val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
-        val xmlResponseString = clientSocket.readResponse()
+        val xmlResponseString = clientSocket.read().blockingGet()
 
-        assertEquals(originalXmlString, xmlResponseString)
+        assertThat(originalXmlString).isEqualTo(xmlResponseString)
     }
 
     @Test
@@ -95,7 +96,7 @@ class SocketTransport_Test {
 
         val requestPayload = " FlashNet XML $originalXmlStringLength $originalXmlString "
 
-        kotlin.concurrent.thread(start = true, isDaemon = false, contextClassLoader = null, name = "Writer Socket", priority = -1,
+        thread(start = true, isDaemon = false, contextClassLoader = null, name = "Writer Socket", priority = -1,
                 block = {
                     countDownLatch.countDown()
                     val newSocket = socketPortTuple.socket?.accept()
@@ -108,9 +109,9 @@ class SocketTransport_Test {
         countDownLatch.await()
 
         val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
-        val xmlResponseString = clientSocket.readResponse()
+        val xmlResponseString = clientSocket.read().blockingGet()
 
-        assertEquals(originalXmlString, xmlResponseString)
+        assertThat(originalXmlString).isEqualTo(xmlResponseString)
     }
 
     @Test
@@ -133,7 +134,7 @@ class SocketTransport_Test {
 
         val charsReadFromSocket = CharArray(originalString.length)
 
-        kotlin.concurrent.thread(start = true, isDaemon = false, contextClassLoader = null, name = "Reader Socket", priority = -1,
+        thread(start = true, isDaemon = false, contextClassLoader = null, name = "Reader Socket", priority = -1,
                 block = {
                     countDownLatch.countDown()
                     val newSocket = socketPortTuple.socket?.accept()
@@ -146,9 +147,8 @@ class SocketTransport_Test {
         countDownLatch.await()
 
         val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
-        clientSocket.writeRequest(originalString)
-
-        assertEquals(originalString, String(charsReadFromSocket))
+        clientSocket.write(originalString).blockingAwait()
+        assertThat(originalString).isEqualTo(String(charsReadFromSocket))
     }
 
     @Test
@@ -168,7 +168,7 @@ class SocketTransport_Test {
 
         val charsReadFromSocket = CharArray(statusRequestPayload.length)
 
-        kotlin.concurrent.thread(start = true, isDaemon = false, contextClassLoader = null, name = "Reader Socket", priority = -1,
+        thread(start = true, isDaemon = false, contextClassLoader = null, name = "Reader Socket", priority = -1,
                 block = {
                     readyToReadLatch.countDown()
                     val newSocket = socketPortTuple.socket?.accept()
@@ -182,12 +182,12 @@ class SocketTransport_Test {
         readyToReadLatch.await()
 
         val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
-        clientSocket.writeRequest(statusRequestPayload)
+        clientSocket.write(statusRequestPayload).blockingAwait()
 
         doneReadingLatch.await()
 
-        assertEquals("FlashNet XML 266 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.0\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"Status\">\n" +
+        assertThat(String(charsReadFromSocket)).isEqualTo("FlashNet XML 266 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.0\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"Status\">\n" +
                 "   <Status RequestId.DWD=\"85\" Guid=\"A guid\"/>\n" +
-                "</FlashNetXML>", String(charsReadFromSocket))
+                "</FlashNetXML>")
     }
 }

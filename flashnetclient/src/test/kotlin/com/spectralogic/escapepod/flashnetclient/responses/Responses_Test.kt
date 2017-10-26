@@ -51,7 +51,7 @@ class Responses_Test {
         countDownLatch.await()
 
         val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
-        val xmlResponseString = clientSocket.readResponse()
+        val xmlResponseString = clientSocket.read().blockingGet()
 
         val reply = FlashNetReplyFactory.fromResponsePayload(xmlResponseString)
 
@@ -88,7 +88,7 @@ class Responses_Test {
         countDownLatch.await()
 
         val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
-        val xmlResponseString = clientSocket.readResponse()
+        val xmlResponseString = clientSocket.read().blockingGet()
 
         val reply = FlashNetReplyFactory.fromResponsePayload(xmlResponseString)
 
