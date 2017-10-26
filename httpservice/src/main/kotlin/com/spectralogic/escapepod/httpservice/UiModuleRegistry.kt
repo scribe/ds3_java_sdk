@@ -21,7 +21,7 @@ import ratpack.handling.Handler
 interface UiModuleRegistry {
     fun registerUiModule(uiModuleRegistration: UiModuleRegistration)
     fun unRegisterUiModule(url: String)
-    fun registration(routeName: String): UiModuleRegistration?
+    fun registration(url: String): UiModuleRegistration?
     fun registrations() : ImmutableMap<String, UiModuleRegistration>
 }
 
