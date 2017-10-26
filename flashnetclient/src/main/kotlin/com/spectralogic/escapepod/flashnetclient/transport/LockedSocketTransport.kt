@@ -1,5 +1,5 @@
 /*
- * ****************************************************************************
+ * *****************************************************************************
  *    Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *    Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *    this file except in compliance with the License. A copy of the License is located at
@@ -15,12 +15,15 @@
 
 package com.spectralogic.escapepod.flashnetclient.transport
 
-import io.reactivex.Completable
-import io.reactivex.Single
-import java.io.Closeable
+import java.util.concurrent.Semaphore
 
-interface SocketTransport: Closeable {
-    fun writeRead(request: String): Single<String>
-    fun write(request: String): Completable
-    fun read(): Single<String>
+class LockedSocketTransport(st: SocketTransport, private val semaphore: Semaphore): SocketTransport by st {
+    override fun close() {
+        semaphore.release()
+    }
+}
+
+fun SocketTransport.toLockedSocketTransport(semaphore: Semaphore): SocketTransport {
+    semaphore.acquire()
+    return LockedSocketTransport(this, semaphore)
 }
