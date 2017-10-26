@@ -18,6 +18,7 @@ package com.spectralogic.ds3client.utils;
 import com.google.common.collect.Multimap;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public final class Guard {
@@ -58,5 +59,27 @@ public final class Guard {
 
     public static boolean isMapNullOrEmpty(final Map<?, ?> map) {
         return map == null || map.isEmpty();
+    }
+
+    public static boolean allExistent(final Object... things) {
+        for(Object thing : things) {
+            if(thing == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean allExistentAndFull(final Object... things) {
+        for(Object thing : things) {
+            if(thing == null) {
+                return false;
+            } else if (thing instanceof String) {
+                return !((String) thing).isEmpty();
+            } else if (thing instanceof Iterable) {
+                return !((Iterable) thing).iterator().hasNext();
+            }
+        }
+        return true;
     }
 }
