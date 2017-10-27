@@ -16,6 +16,7 @@
 package com.spectralogic.escapepod.api
 
 import io.reactivex.Observable
+import io.reactivex.Single
 
 // Asynchronous: Implement observable to know when operation is complete
 
@@ -26,10 +27,10 @@ interface VideoMediaClient {
     // Returns migration job id
     // Category? -- FlashNet doesn't have that concept as a separate entity
     // Asynchronous: Call to start a migration.  Implement observable to know when migration is complete
-    fun <T> beginMigration(itemsToMigrate : Sequence<StorageGroupItem>, migrationDestination : String, priority : MigrationPriority) : Observable<MigrationJobId<T>>
+    fun restoreAssets(itemsToMigrate : Sequence<StorageGroupItem>, migrationDestination : String, priority : MigrationPriority) : Single<Int>
 
     // TODO: Create abstraction for migrationJobId
-    fun <T> getMigrationStatus(migrationJobId : MigrationJobId<T>) : Observable<MigrationStatus>
+    fun getStatus(requestId: Int) : Single<RequestStatus>
 
-    fun <T> cancelMigration(migrationJobId : MigrationJobId<T>) : Observable<String>
+    fun cancelRequest(requestId: Int) : Single<String>
 }

@@ -17,13 +17,17 @@ package com.spectralogic.escapepod.flashnetclient.responses
 
 import org.simpleframework.xml.Attribute
 
-data class StatusInfo(
+class StatusInfo {
     @field:Attribute(name = "Priority.DWD", required = false)
-    @param:Attribute(name = "Priority.DWD", required = false)
-    val Priority : Int?,
+    var priority : Int = 0
 
     @field:Attribute(name = "SourceServer", required = false)
-    @param:Attribute(name = "SourceServer", required = false)
-    val SourceServer : String?
-)
+    var sourceServer : String = ""
+
+    @field:Attribute(name = "JobStatus", required = false)
+    var jobStatus: String = ""
+
+    @field:Attribute(name = "ProcessType", required = false)
+    var processType: String = ""
+}
 

@@ -17,6 +17,12 @@ package com.spectralogic.escapepod.flashnetclient.transport
 
 import java.util.concurrent.Semaphore
 
+/**
+ * The LockedSocketTransport is used to help manage the lifecycle of the socket so that it can be reused
+ * between multiple calls to the Socket Provider, but making sure that only one call for the same socket
+ * can succeed at a time.  This is to help prevent conditions where multiple callers call the SocketProvider
+ * and get the same socket back at the same time.
+ */
 class LockedSocketTransport(st: SocketTransport, private val semaphore: Semaphore): SocketTransport by st {
     override fun close() {
         semaphore.release()

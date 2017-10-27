@@ -101,9 +101,10 @@ class Responses_Test {
 
     @Test
     fun testParsingStatusResponse() {
-        val statusReplyText = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <Reply Version=\"6.3.00.0\" Status=\"Passed\" >" +
-                "<StatusInfo Priority.DWD=\"4\"></StatusInfo>" +
-                "</Reply>"
+        val statusReplyText = """<?xml version="1.0" encoding="UTF-8"?> <Reply Version="6.3.00.0" Status="Passed">
+                <StatusInfo Priority.DWD="4"></StatusInfo>
+                <JobEndTime>Some time</JobEndTime>
+            </Reply>"""
 
         var priority : Int = -1
         var replyException : Throwable? = null
@@ -112,8 +113,8 @@ class Responses_Test {
                 .fromResponsePayload(statusReplyText)
                 .toStatusReply()
                 .subscribe(
-                        { (Priority) ->
-                            priority = Priority!!
+                        {
+                            priority = it.priority
                         },
                         { throwable ->
                             replyException = throwable
@@ -136,8 +137,8 @@ class Responses_Test {
                 .fromResponsePayload(statusReplyText)
                 .toStatusReply()
                 .subscribe(
-                        { (Priority) ->
-                            priority = Priority!!
+                        {
+                            priority = it.priority
                         },
                         { throwable ->
                             replyException = throwable
@@ -197,8 +198,8 @@ class Responses_Test {
                 .fromResponsePayload(statusReplyText)
                 .toStatusReply()
                 .subscribe(
-                        { (Priority) ->
-                            priority = Priority!!
+                        {
+                            priority = it.priority
                         },
                         { throwable ->
                             replyException = throwable
