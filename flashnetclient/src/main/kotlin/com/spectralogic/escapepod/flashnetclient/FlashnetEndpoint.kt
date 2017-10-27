@@ -1,5 +1,5 @@
 /*
- * ****************************************************************************
+ * *****************************************************************************
  *    Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *    Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *    this file except in compliance with the License. A copy of the License is located at
@@ -13,16 +13,6 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.flashnetclient.responses
+package com.spectralogic.escapepod.flashnetclient
 
-import io.reactivex.Single
-
-interface FlashNetReply {
-    val Version : String?
-    val Status : String?
-    val Error : String?
-    val RequestId : Int?
-
-    fun toStatusReply() : Single<StatusInfo>
-    fun toListGroupReply() : Single<GroupDetails>
-}
+data class FlashnetEndpoint(val host: String, val port: Int = 8199)

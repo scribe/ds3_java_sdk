@@ -16,8 +16,8 @@
 package com.spectralogic.escapepod.flashnetclient.requests
 
 import com.spectralogic.escapepod.flashnetclient.FlashNetConfigImpl
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import org.junit.Assert.*
 import org.simpleframework.xml.core.Persister
 import java.io.Writer
 
@@ -31,7 +31,7 @@ class Requests_Test {
         serializer.write(migrateDetails, memoryWriter)
         val xmlString = memoryWriter.xmlString
 
-        assertEquals("<Migrate SourceVolume=\"source volume\" SourceArchive.DWD=\"1\" DestVolume=\"destination volume\" MoveAssets.DWD=\"0\"/>", xmlString)
+        assertThat(xmlString).isEqualTo("<Migrate SourceVolume=\"source volume\" SourceArchive.DWD=\"1\" DestVolume=\"destination volume\" MoveAssets.DWD=\"0\"/>")
     }
 
     private class MemoryWriter : Writer() {
@@ -52,14 +52,14 @@ class Requests_Test {
 
     @Test
     fun testSerializingBaseRequest() {
-        val requestEnvelope = Request(APIVersion = "1.0", SourceServer = "source server", UserName = "Gracie", CallingApplication = "escape pod", Operation = "MigrateAssets", requestSpecificElement = null)
+        val requestEnvelope = Request(APIVersion = "1.1", SourceServer = "source server", UserName = "Gracie", CallingApplication = "escape pod", Operation = "MigrateAssets", requestSpecificElement = null)
 
         val serializer = Persister()
         val memoryWriter = MemoryWriter()
         serializer.write(requestEnvelope, memoryWriter)
         val xmlString = memoryWriter.xmlString
 
-        assertEquals("<FlashNetXML APIVersion=\"1.0\" SourceServer=\"source server\" UserName=\"Gracie\" CallingApplication=\"escape pod\" Operation=\"MigrateAssets\"/>", xmlString)
+        assertThat(xmlString).isEqualTo("<FlashNetXML APIVersion=\"1.1\" SourceServer=\"source server\" UserName=\"Gracie\" CallingApplication=\"escape pod\" Operation=\"MigrateAssets\"/>")
     }
 
     @Test
@@ -68,9 +68,9 @@ class Requests_Test {
         val flashNetRequest = FlashNetRequestFactoryImpl(FlashNetConfigImpl())
         val migrationRequest = flashNetRequest.toMigrateAssetsRequest(migrateRequest)
 
-        assertEquals("FlashNet XML 343 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.0\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"MigrateAssets\">\n" +
+        assertThat(migrationRequest).isEqualTo("FlashNet XML 343 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.1\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"MigrateAssets\">\n" +
                 "   <Migrate SourceVolume=\"source volume\" SourceArchive.DWD=\"1\" DestVolume=\"destination volume\" MoveAssets.DWD=\"0\"/>\n" +
-                "</FlashNetXML>", migrationRequest)
+                "</FlashNetXML>")
     }
 
     @Test
@@ -79,8 +79,16 @@ class Requests_Test {
         val flashNetRequest = FlashNetRequestFactoryImpl(FlashNetConfigImpl())
         val statusRequestPayload = flashNetRequest.toStatusRequest(statusRequest)
 
-        assertEquals("FlashNet XML 266 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.0\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"Status\">\n" +
+        assertThat(statusRequestPayload).isEqualTo("FlashNet XML 266 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.1\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"Status\">\n" +
                 "   <Status RequestId.DWD=\"85\" Guid=\"A guid\"/>\n" +
-                "</FlashNetXML>", statusRequestPayload)
+                "</FlashNetXML>")
+    }
+
+    @Test
+    fun testSerializingListGroupRequest() {
+        val flashNetRequest = FlashNetRequestFactoryImpl(FlashNetConfigImpl())
+        val listGroupRequest = flashNetRequest.toListGroupRequest()
+
+        assertThat(listGroupRequest).isEqualTo("FlashNet XML 209 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.1\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"ListGroup\"/>")
     }
 }

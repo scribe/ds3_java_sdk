@@ -15,8 +15,9 @@
 
 package com.spectralogic.escapepod.flashnetclient.transport
 
+import com.spectralogic.escapepod.flashnetclient.FlashnetEndpoint
 import io.reactivex.Single
 
 interface SocketProvider {
-    fun socket(hostNameOrIpAddress : String, portNumber : Int): Single<SocketTransport>
+    fun socket(endpoint: FlashnetEndpoint): Single<SocketTransport>
 }

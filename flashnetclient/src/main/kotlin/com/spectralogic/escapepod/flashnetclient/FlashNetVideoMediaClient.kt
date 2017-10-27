@@ -2,12 +2,28 @@ package com.spectralogic.escapepod.flashnetclient
 
 import com.google.inject.Inject
 import com.spectralogic.escapepod.api.*
+import com.spectralogic.escapepod.flashnetclient.requests.FlashNetRequestFactory
+import com.spectralogic.escapepod.flashnetclient.responses.FlashNetReplyFactory
+import com.spectralogic.escapepod.flashnetclient.transport.SocketProvider
 import io.reactivex.Observable
 
-class FlashNetVideoMediaClient @Inject constructor(private val flashNetConfig: FlashNetConfig) : VideoMediaClient {
+class FlashNetVideoMediaClient @Inject constructor(private val endpoint: FlashnetEndpoint, private val requestFactory: FlashNetRequestFactory, private val socketProvider: SocketProvider) : VideoMediaClient {
+
     override fun listStorageGroups(): Observable<StorageGroup> {
 
-        TODO("not implemented")
+        val listGroupRequest = requestFactory.toListGroupRequest()
+
+        return socketProvider.socket(endpoint).flatMap{
+            it.writeRead(listGroupRequest)
+        }.map {
+            FlashNetReplyFactory.fromResponsePayload(it)
+        }.flatMap {
+            it.toListGroupReply()
+        }.flatMapObservable {
+            Observable.fromIterable(it.groups)
+        }.map {
+            StorageGroup(it.groupName)
+        }
     }
 
     override fun listStorageGroupContents(storageGroup: StorageGroup): Observable<StorageGroupItem> {

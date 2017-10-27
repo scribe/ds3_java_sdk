@@ -16,9 +16,8 @@
 package com.spectralogic.escapepod.flashnetclient
 
 interface FlashNetConfig {
-    fun portNumber(flashNetHost : String) : Int?
-    fun flashNetApiVersion() : String
-    fun flashNetSourceServer() : String
-    fun flashNetUserName() : String
-    fun flashNetCallingApplication() : String 
+    var flashNetApiVersion: String
+    var flashNetSourceServer: String
+    var flashNetUserName: String
+    var flashNetCallingApplication: String
 }

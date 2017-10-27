@@ -15,7 +15,7 @@
 
 package com.spectralogic.escapepod.flashnetclient.responses
 
-import io.reactivex.Observable
+import io.reactivex.Single
 import kotlin.reflect.KClass
 
 class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
@@ -32,22 +32,19 @@ class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
     override val RequestId: Int?
         get() = reply.RequestId
 
-    override fun toStatusReply() : Observable<StatusInfo> {
+    override fun toStatusReply() : Single<StatusInfo> {
         return toFlashNetReply(StatusInfo::class)
     }
 
-    private fun <T : Any> toFlashNetReply(replyType : KClass<T>) : Observable<T> {
+    private fun <T : Any> toFlashNetReply(replyType : KClass<T>) : Single<T> {
         if (failed()) {
-            return Observable.create { emitter ->
-                emitter.onError(FlashNetResponseException(reply.Error ?: ""))
-            }
+            return Single.error(FlashNetResponseException(reply.Error ?: ""))
         }
 
-        return Observable.create( { emitter ->
+        return Single.create( { emitter ->
             try {
                 val flashNetReply : T? = replyForType(replyType)
-                emitter.onNext(flashNetReply!!)
-                emitter.onComplete()
+                emitter.onSuccess(flashNetReply!!)
             } catch (throwable : Throwable) {
                 emitter.onError(FlashNetResponseException(throwable.message ?: ""))
             }
@@ -59,14 +56,14 @@ class FlashNetReplyImpl(private val reply : Reply) : FlashNetReply {
     }
 
     private fun <T : Any> replyForType(replyType : KClass<T>) : T? {
-        when (replyType) {
-            StatusInfo::class -> return reply.StatusInfo as T
-            GroupDetails::class -> return reply.GroupDetails as T
-            else -> return null
+        return when (replyType) {
+            StatusInfo::class -> reply.StatusInfo as T
+            GroupDetails::class -> reply.GroupDetails as T
+            else -> null
         }
     }
 
-    override fun toListGroupReply(): Observable<GroupDetails> {
+    override fun toListGroupReply(): Single<GroupDetails> {
         return toFlashNetReply(GroupDetails::class)
     }
 }

@@ -15,6 +15,7 @@
 
 package com.spectralogic.escapepod.flashnetclient.transport
 
+import com.spectralogic.escapepod.flashnetclient.FlashnetEndpoint
 import io.reactivex.Completable
 import io.reactivex.Single
 import java.io.BufferedReader
@@ -24,13 +25,13 @@ import java.net.Socket
 import java.io.BufferedWriter
 import java.io.OutputStreamWriter
 
-class SocketTransportImpl constructor(private val hostNameOrIpAddress: String, private val portNumber: Int) : SocketTransport {
+class SocketTransportImpl constructor(private val endpoint: FlashnetEndpoint) : SocketTransport {
     private companion object {
         const val BEGIN_DELIMITER = '<'
     }
 
     private val socket: Socket by lazy {
-        Socket(hostNameOrIpAddress, portNumber)
+        Socket(endpoint.host, endpoint.port)
     }
 
     override fun writeRead(request: String): Single<String> {

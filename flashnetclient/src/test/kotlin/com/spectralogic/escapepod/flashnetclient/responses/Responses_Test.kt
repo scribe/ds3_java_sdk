@@ -15,6 +15,7 @@
 
 package com.spectralogic.escapepod.flashnetclient.responses
 
+import com.spectralogic.escapepod.flashnetclient.FlashnetEndpoint
 import com.spectralogic.escapepod.flashnetclient.bindToUnusedPort
 import com.spectralogic.escapepod.flashnetclient.transport.SocketTransportImpl
 import org.junit.Assert.*
@@ -50,7 +51,7 @@ class Responses_Test {
 
         countDownLatch.await()
 
-        val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
+        val clientSocket = SocketTransportImpl(FlashnetEndpoint("127.0.0.1", socketPortTuple.boundPort))
         val xmlResponseString = clientSocket.read().blockingGet()
 
         val reply = FlashNetReplyFactory.fromResponsePayload(xmlResponseString)
@@ -87,7 +88,7 @@ class Responses_Test {
 
         countDownLatch.await()
 
-        val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
+        val clientSocket = SocketTransportImpl(FlashnetEndpoint("127.0.0.1", socketPortTuple.boundPort))
         val xmlResponseString = clientSocket.read().blockingGet()
 
         val reply = FlashNetReplyFactory.fromResponsePayload(xmlResponseString)
@@ -178,10 +179,10 @@ class Responses_Test {
         assertEquals(2, groupDetails?.groupCount)
         assertNotNull(groupDetails?.groups)
         assertEquals(2, groupDetails?.groups?.size)
-        assertEquals(groupName1, groupDetails!!.groups[0].GroupName)
-        assertEquals(groupName2, groupDetails!!.groups[1].GroupName)
-        assertEquals(groupAge, groupDetails!!.groups[0].GroupAge)
-        assertEquals(groupAge, groupDetails!!.groups[1].GroupAge)
+        assertEquals(groupName1, groupDetails!!.groups[0].groupName)
+        assertEquals(groupName2, groupDetails!!.groups[1].groupName)
+        assertEquals(groupAge, groupDetails!!.groups[0].groupAge)
+        assertEquals(groupAge, groupDetails!!.groups[1].groupAge)
     }
 
     @Test
