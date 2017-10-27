@@ -16,7 +16,9 @@
 package com.spectralogic.escapepod.flashnetclient.responses
 
 import org.simpleframework.xml.Attribute
+import org.simpleframework.xml.Root
 
+@Root(strict = false)
 data class Group(
         @field:Attribute(name = "GroupName", required = false)
         @param:Attribute(name = "GroupName", required = false)

@@ -21,10 +21,12 @@ import com.spectralogic.escapepod.flashnetclient.bindToUnusedPort
 import com.spectralogic.escapepod.flashnetclient.read
 import com.spectralogic.escapepod.flashnetclient.requests.FlashNetRequestFactoryImpl
 import com.spectralogic.escapepod.flashnetclient.requests.Status
+import com.spectralogic.escapepod.util.ifNotNull
 import org.assertj.core.api.Assertions.assertThat
 
 import org.junit.Test
 import org.junit.Assert.fail
+import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 
 import java.io.BufferedWriter
@@ -34,6 +36,11 @@ import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.thread
 
 class SocketTransport_Test {
+
+    private companion object {
+        private val LOG = LoggerFactory.getLogger(SocketTransport_Test::class.java)
+    }
+
     @Test
     fun testConnectingToIPAddress() {
         val socketPortTuple = bindToUnusedPort()
@@ -108,11 +115,13 @@ class SocketTransport_Test {
         )
 
         countDownLatch.await()
+        var xmlResponseString: String? = null
+        SocketTransportImpl(FlashnetEndpoint("127.0.0.1", socketPortTuple.boundPort)).use {
+           xmlResponseString = it.read().blockingGet()
+        }
 
-        val clientSocket = SocketTransportImpl(FlashnetEndpoint("127.0.0.1", socketPortTuple.boundPort))
-        val xmlResponseString = clientSocket.read().blockingGet()
-
-        assertThat(originalXmlString).isEqualTo(xmlResponseString)
+        assertThat(xmlResponseString).isNotNull()
+        assertThat(xmlResponseString).isEqualTo(originalXmlString)
     }
 
     @Test
@@ -178,8 +187,10 @@ class SocketTransport_Test {
                 block = {
                     readyToReadLatch.countDown()
                     val newSocket = socketPortTuple.socket?.accept()
-                    BufferedReader(InputStreamReader(newSocket?.getInputStream())).use {
-                        socketReader -> read(socketReader, charsReadFromSocket)
+                    BufferedReader(InputStreamReader(newSocket?.getInputStream())).use { socketReader ->
+                        LOG.info("Server Reading")
+                        read(socketReader, charsReadFromSocket)
+                        LOG.info("Server Finished Reading")
                     }
                     doneReadingLatch.countDown()
                 }
@@ -187,9 +198,11 @@ class SocketTransport_Test {
 
         readyToReadLatch.await()
 
-        val clientSocket = SocketTransportImpl(FlashnetEndpoint("127.0.0.1", socketPortTuple.boundPort))
-        clientSocket.write(statusRequestPayload).blockingAwait()
-
+        SocketTransportImpl(FlashnetEndpoint("127.0.0.1", socketPortTuple.boundPort)).use {
+            LOG.info("Ready to write request")
+            it.write(statusRequestPayload).blockingAwait()
+            LOG.info("Finished writing request")
+        }
         doneReadingLatch.await()
 
         assertThat(String(charsReadFromSocket)).isEqualTo("FlashNet XML 266 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.1\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"Status\">\n" +

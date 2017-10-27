@@ -157,7 +157,7 @@ class Responses_Test {
 
         val listGroupReplyText = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <Reply Version=\"6.3.00.0\" Status=\"Passed\" >" +
                 "<GroupDetails GroupCount.DWD=\"2\">" +
-                "<Group GroupName=\"" + groupName1 + "\" GroupAge.DWD=\"" + groupAge + "\" />" +
+                "<Group GroupName=\"" + groupName1 + "\" GroupAge.DWD=\"" + groupAge + "\" VolumeCount.DWD=\"12\"/>" +
                 "<Group GroupName=\"" + groupName2 + "\" GroupAge.DWD=\"" + groupAge + "\" />" +
                 "</GroupDetails> </Reply>"
 

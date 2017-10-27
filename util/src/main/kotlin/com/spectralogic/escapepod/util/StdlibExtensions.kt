@@ -15,6 +15,8 @@
 
 package com.spectralogic.escapepod.util
 
+import java.io.Closeable
+
 fun <T: AutoCloseable> T.use(action: (T) -> Unit) {
     try {
         action.invoke(this)
