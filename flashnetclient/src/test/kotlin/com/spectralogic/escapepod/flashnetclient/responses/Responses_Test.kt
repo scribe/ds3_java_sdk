@@ -15,6 +15,7 @@
 
 package com.spectralogic.escapepod.flashnetclient.responses
 
+import com.spectralogic.escapepod.flashnetclient.FlashnetEndpoint
 import com.spectralogic.escapepod.flashnetclient.bindToUnusedPort
 import com.spectralogic.escapepod.flashnetclient.transport.SocketTransportImpl
 import org.junit.Assert.*
@@ -50,7 +51,7 @@ class Responses_Test {
 
         countDownLatch.await()
 
-        val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
+        val clientSocket = SocketTransportImpl(FlashnetEndpoint("127.0.0.1", socketPortTuple.boundPort))
         val xmlResponseString = clientSocket.read().blockingGet()
 
         val reply = FlashNetReplyFactory.fromResponsePayload(xmlResponseString)
@@ -87,7 +88,7 @@ class Responses_Test {
 
         countDownLatch.await()
 
-        val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
+        val clientSocket = SocketTransportImpl(FlashnetEndpoint("127.0.0.1", socketPortTuple.boundPort))
         val xmlResponseString = clientSocket.read().blockingGet()
 
         val reply = FlashNetReplyFactory.fromResponsePayload(xmlResponseString)
@@ -100,9 +101,10 @@ class Responses_Test {
 
     @Test
     fun testParsingStatusResponse() {
-        val statusReplyText = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <Reply Version=\"6.3.00.0\" Status=\"Passed\" >" +
-                "<StatusInfo Priority.DWD=\"4\"></StatusInfo>" +
-                "</Reply>"
+        val statusReplyText = """<?xml version="1.0" encoding="UTF-8"?> <Reply Version="6.3.00.0" Status="Passed">
+                <StatusInfo Priority.DWD="4"></StatusInfo>
+                <JobEndTime>Some time</JobEndTime>
+            </Reply>"""
 
         var priority : Int = -1
         var replyException : Throwable? = null
@@ -111,8 +113,8 @@ class Responses_Test {
                 .fromResponsePayload(statusReplyText)
                 .toStatusReply()
                 .subscribe(
-                        { (Priority) ->
-                            priority = Priority!!
+                        {
+                            priority = it.priority
                         },
                         { throwable ->
                             replyException = throwable
@@ -135,8 +137,8 @@ class Responses_Test {
                 .fromResponsePayload(statusReplyText)
                 .toStatusReply()
                 .subscribe(
-                        { (Priority) ->
-                            priority = Priority!!
+                        {
+                            priority = it.priority
                         },
                         { throwable ->
                             replyException = throwable
@@ -155,7 +157,7 @@ class Responses_Test {
 
         val listGroupReplyText = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <Reply Version=\"6.3.00.0\" Status=\"Passed\" >" +
                 "<GroupDetails GroupCount.DWD=\"2\">" +
-                "<Group GroupName=\"" + groupName1 + "\" GroupAge.DWD=\"" + groupAge + "\" />" +
+                "<Group GroupName=\"" + groupName1 + "\" GroupAge.DWD=\"" + groupAge + "\" VolumeCount.DWD=\"12\"/>" +
                 "<Group GroupName=\"" + groupName2 + "\" GroupAge.DWD=\"" + groupAge + "\" />" +
                 "</GroupDetails> </Reply>"
 
@@ -178,10 +180,10 @@ class Responses_Test {
         assertEquals(2, groupDetails?.groupCount)
         assertNotNull(groupDetails?.groups)
         assertEquals(2, groupDetails?.groups?.size)
-        assertEquals(groupName1, groupDetails!!.groups[0].GroupName)
-        assertEquals(groupName2, groupDetails!!.groups[1].GroupName)
-        assertEquals(groupAge, groupDetails!!.groups[0].GroupAge)
-        assertEquals(groupAge, groupDetails!!.groups[1].GroupAge)
+        assertEquals(groupName1, groupDetails!!.groups[0].groupName)
+        assertEquals(groupName2, groupDetails!!.groups[1].groupName)
+        assertEquals(groupAge, groupDetails!!.groups[0].groupAge)
+        assertEquals(groupAge, groupDetails!!.groups[1].groupAge)
     }
 
     @Test
@@ -196,8 +198,8 @@ class Responses_Test {
                 .fromResponsePayload(statusReplyText)
                 .toStatusReply()
                 .subscribe(
-                        { (Priority) ->
-                            priority = Priority!!
+                        {
+                            priority = it.priority
                         },
                         { throwable ->
                             replyException = throwable

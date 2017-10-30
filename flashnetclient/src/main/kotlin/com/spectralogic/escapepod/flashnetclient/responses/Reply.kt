@@ -17,7 +17,9 @@ package com.spectralogic.escapepod.flashnetclient.responses
 
 import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Element
+import org.simpleframework.xml.Root
 
+@Root(strict = false)
 data class Reply(
         @field:Attribute(name = "Version", required = false)
         @param:Attribute(name = "Version", required = false)

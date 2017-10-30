@@ -15,8 +15,10 @@
 
 package com.spectralogic.escapepod.flashnetclient.transport
 
+import com.spectralogic.escapepod.flashnetclient.FlashnetEndpoint
 import io.reactivex.Completable
 import io.reactivex.Single
+import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.Socket
@@ -24,13 +26,28 @@ import java.net.Socket
 import java.io.BufferedWriter
 import java.io.OutputStreamWriter
 
-class SocketTransportImpl constructor(private val hostNameOrIpAddress: String, private val portNumber: Int) : SocketTransport {
+class SocketTransportImpl constructor(endpoint: FlashnetEndpoint) : SocketTransport {
     private companion object {
         const val BEGIN_DELIMITER = '<'
+        private val LOG = LoggerFactory.getLogger(SocketTransportImpl::class.java)
+        private fun createSocket(endpoint: FlashnetEndpoint): Socket {
+            try {
+                LOG.info("Creating flashnet socket")
+                return CloseAnnotatedSocket(endpoint.host, endpoint.port)
+            } catch (t: Throwable) {
+                LOG.error("Failed to create socket to flashnet node: $endpoint", t)
+                throw t
+            }
+        }
     }
 
-    private val socket: Socket by lazy {
-        Socket(hostNameOrIpAddress, portNumber)
+    private val socket: Socket = createSocket(endpoint)
+    private val reader: BufferedReader by lazy {
+        BufferedReader(InputStreamReader(socket.getInputStream()))
+    }
+
+    private val writer: BufferedWriter by lazy {
+        BufferedWriter(OutputStreamWriter(socket.getOutputStream()))
     }
 
     override fun writeRead(request: String): Single<String> {
@@ -40,19 +57,18 @@ class SocketTransportImpl constructor(private val hostNameOrIpAddress: String, p
     override fun read(): Single<String> {
         return Single.create{ emitter ->
             try {
-                BufferedReader(InputStreamReader(socket.getInputStream())).use { bufferedReader ->
-                    val xmlStringSize = xmlStringSize(readToBeginDelimiter(bufferedReader))
+                val xmlStringSize = xmlStringSize(readToBeginDelimiter(reader))
 
-                    if (xmlStringSize > 0) {
-                        emitter.onSuccess(xmlBody(bufferedReader, xmlStringSize))
-                        return@create
-                    }
+                if (xmlStringSize > 0) {
+                    emitter.onSuccess(xmlBody(reader, xmlStringSize))
+                    return@create
+                } else {
+                    emitter.onError(Exception("Malformed XML Header"))
                 }
             } catch (throwable : Throwable) {
                 emitter.onError(throwable)
             }
 
-            emitter.onSuccess("")
         }
     }
 
@@ -105,9 +121,8 @@ class SocketTransportImpl constructor(private val hostNameOrIpAddress: String, p
 
         return Completable.create { emitter ->
             try {
-                BufferedWriter(OutputStreamWriter(socket.getOutputStream())).use {
-                    bufferedWriter -> bufferedWriter.write(request)
-                }
+                writer.write(request)
+                writer.flush()
                 emitter.onComplete()
             } catch (t: Throwable) {
                 emitter.onError(t)
@@ -116,6 +131,14 @@ class SocketTransportImpl constructor(private val hostNameOrIpAddress: String, p
     }
 
     override fun close() {
-        socket.close()
+        LOG.info("Flashnet client socket was closed")
+        try {
+            writer.flush()
+            reader.close()
+        } finally {
+            if (!socket.isClosed) {
+                socket.close()
+            }
+        }
     }
 }

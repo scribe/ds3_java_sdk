@@ -16,14 +16,17 @@
 package com.spectralogic.escapepod.flashnetclient.transport
 
 import com.spectralogic.escapepod.flashnetclient.FlashNetConfigImpl
+import com.spectralogic.escapepod.flashnetclient.FlashnetEndpoint
 import com.spectralogic.escapepod.flashnetclient.bindToUnusedPort
 import com.spectralogic.escapepod.flashnetclient.read
 import com.spectralogic.escapepod.flashnetclient.requests.FlashNetRequestFactoryImpl
 import com.spectralogic.escapepod.flashnetclient.requests.Status
+import com.spectralogic.escapepod.util.ifNotNull
 import org.assertj.core.api.Assertions.assertThat
 
 import org.junit.Test
 import org.junit.Assert.fail
+import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 
 import java.io.BufferedWriter
@@ -33,6 +36,11 @@ import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.thread
 
 class SocketTransport_Test {
+
+    private companion object {
+        private val LOG = LoggerFactory.getLogger(SocketTransport_Test::class.java)
+    }
+
     @Test
     fun testConnectingToIPAddress() {
         val socketPortTuple = bindToUnusedPort()
@@ -44,7 +52,7 @@ class SocketTransport_Test {
         val countDownLatch = CountDownLatch(1)
 
         val originalXmlString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<FlashNetXML APIVersion=\"1.0\" SourceServer=\"cluster-svr1\" UserName=\"Paul\" CallingApplication=\"test_xml_api\" Operation=\"Restore\">\n" +
+                "<FlashNetXML APIVersion=\"1.1\" SourceServer=\"cluster-svr1\" UserName=\"Paul\" CallingApplication=\"test_xml_api\" Operation=\"Restore\">\n" +
                 "<Restore Priority.DWD=\"8\">\n" +
                 "<FileDetails FileCount.DWD=\"1\">\n" +
                 "<File\n" +
@@ -68,7 +76,7 @@ class SocketTransport_Test {
 
         countDownLatch.await()
 
-        val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
+        val clientSocket = SocketTransportImpl(FlashnetEndpoint("127.0.0.1", socketPortTuple.boundPort))
         val xmlResponseString = clientSocket.read().blockingGet()
 
         assertThat(originalXmlString).isEqualTo(xmlResponseString)
@@ -107,11 +115,13 @@ class SocketTransport_Test {
         )
 
         countDownLatch.await()
+        var xmlResponseString: String? = null
+        SocketTransportImpl(FlashnetEndpoint("127.0.0.1", socketPortTuple.boundPort)).use {
+           xmlResponseString = it.read().blockingGet()
+        }
 
-        val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
-        val xmlResponseString = clientSocket.read().blockingGet()
-
-        assertThat(originalXmlString).isEqualTo(xmlResponseString)
+        assertThat(xmlResponseString).isNotNull()
+        assertThat(xmlResponseString).isEqualTo(originalXmlString)
     }
 
     @Test
@@ -122,7 +132,8 @@ class SocketTransport_Test {
             fail("Could not bind a socket.")
         }
 
-        val countDownLatch = CountDownLatch(1)
+        val readyLatch = CountDownLatch(1)
+        val readLatch = CountDownLatch(1)
 
         val stringBuilder = StringBuilder()
 
@@ -136,19 +147,23 @@ class SocketTransport_Test {
 
         thread(start = true, isDaemon = false, contextClassLoader = null, name = "Reader Socket", priority = -1,
                 block = {
-                    countDownLatch.countDown()
+                    readyLatch.countDown()
                     val newSocket = socketPortTuple.socket?.accept()
                     BufferedReader(InputStreamReader(newSocket?.getInputStream())).use {
                         socketReader -> read(socketReader, charsReadFromSocket)
                     }
+                    readLatch.countDown()
                 }
         )
 
-        countDownLatch.await()
+        readyLatch.await()
 
-        val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
-        clientSocket.write(originalString).blockingAwait()
-        assertThat(originalString).isEqualTo(String(charsReadFromSocket))
+        SocketTransportImpl(FlashnetEndpoint("127.0.0.1", socketPortTuple.boundPort)).use {
+            it.write(originalString).blockingAwait()
+        }
+
+        readLatch.await()
+        assertThat(String(charsReadFromSocket)).isEqualTo(originalString)
     }
 
     @Test
@@ -172,8 +187,10 @@ class SocketTransport_Test {
                 block = {
                     readyToReadLatch.countDown()
                     val newSocket = socketPortTuple.socket?.accept()
-                    BufferedReader(InputStreamReader(newSocket?.getInputStream())).use {
-                        socketReader -> read(socketReader, charsReadFromSocket)
+                    BufferedReader(InputStreamReader(newSocket?.getInputStream())).use { socketReader ->
+                        LOG.info("Server Reading")
+                        read(socketReader, charsReadFromSocket)
+                        LOG.info("Server Finished Reading")
                     }
                     doneReadingLatch.countDown()
                 }
@@ -181,12 +198,14 @@ class SocketTransport_Test {
 
         readyToReadLatch.await()
 
-        val clientSocket = SocketTransportImpl("127.0.0.1", socketPortTuple.boundPort)
-        clientSocket.write(statusRequestPayload).blockingAwait()
-
+        SocketTransportImpl(FlashnetEndpoint("127.0.0.1", socketPortTuple.boundPort)).use {
+            LOG.info("Ready to write request")
+            it.write(statusRequestPayload).blockingAwait()
+            LOG.info("Finished writing request")
+        }
         doneReadingLatch.await()
 
-        assertThat(String(charsReadFromSocket)).isEqualTo("FlashNet XML 266 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.0\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"Status\">\n" +
+        assertThat(String(charsReadFromSocket)).isEqualTo("FlashNet XML 266 <?xml version=\"1.0\" encoding=\"UTF-8\"?><FlashNetXML APIVersion=\"1.1\" SourceServer=\"FlashNet-source-server\" UserName=\"FlashNet-user-name\" CallingApplication=\"FlashNet-calling-application\" Operation=\"Status\">\n" +
                 "   <Status RequestId.DWD=\"85\" Guid=\"A guid\"/>\n" +
                 "</FlashNetXML>")
     }

@@ -65,11 +65,15 @@ class FlashNetRequestFactoryImpl @Inject constructor(private val flashNetConfig:
         return makeFlashNetRequestPayload(requestType = "MigrateAssets", requestSpecificPayload = migrate)
     }
 
+    override fun toListGroupRequest(): String {
+        return makeFlashNetRequestPayload("ListGroup",null)
+    }
+
     private fun<T> makeFlashNetRequestPayload(requestType : String, requestSpecificPayload : T) : String {
-        val request = Request(flashNetConfig.flashNetApiVersion(),
-                flashNetConfig.flashNetSourceServer(),
-                flashNetConfig.flashNetUserName(),
-                flashNetConfig.flashNetCallingApplication(),
+        val request = Request(flashNetConfig.flashNetApiVersion,
+                flashNetConfig.flashNetSourceServer,
+                flashNetConfig.flashNetUserName,
+                flashNetConfig.flashNetCallingApplication,
                 requestType, requestSpecificPayload)
 
         ByteArrayOutputStream().use { byteArrayOutputStream ->

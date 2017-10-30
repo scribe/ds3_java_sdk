@@ -18,15 +18,16 @@ package com.spectralogic.escapepod.flashnetclient.transport
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
+import com.spectralogic.escapepod.flashnetclient.FlashnetEndpoint
 import io.reactivex.Single
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
 class SocketProviderImpl: SocketProvider {
 
-    private val cache: LoadingCache<Pair<String, Int>, Pair<SocketTransport, Semaphore>> = CacheBuilder.newBuilder()
+    private val cache: LoadingCache<FlashnetEndpoint, Pair<SocketTransport, Semaphore>> = CacheBuilder.newBuilder()
             .expireAfterAccess(10, TimeUnit.MINUTES)
-            .removalListener<Pair<String, Int>, Pair<SocketTransport,Semaphore>> { it ->
+            .removalListener<FlashnetEndpoint, Pair<SocketTransport,Semaphore>> { it ->
                 if (it.wasEvicted()) {
                     closeSocket(it.value)
                 }
@@ -45,16 +46,14 @@ class SocketProviderImpl: SocketProvider {
         }
     }
 
-    private fun createTransport(transportConfig: Pair<String, Int>): SocketTransport {
-        return SocketTransportImpl(transportConfig.first, transportConfig.second)
+    private fun createTransport(endpoint: FlashnetEndpoint): SocketTransport {
+        return SocketTransportImpl(endpoint)
     }
 
-    override fun socket(hostNameOrIpAddress: String, portNumber: Int): Single<SocketTransport> {
+    override fun socket(endpoint: FlashnetEndpoint): Single<SocketTransport> {
 
         return Single.create { emitter ->
-            val pair = Pair(hostNameOrIpAddress, portNumber)
-
-            val (socketTransport, semaphore) = cache[pair]
+            val (socketTransport, semaphore) = cache[endpoint]
 
             emitter.onSuccess(socketTransport.toLockedSocketTransport(semaphore))
         }
