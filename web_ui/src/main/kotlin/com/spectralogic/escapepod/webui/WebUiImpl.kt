@@ -15,76 +15,84 @@
 
 package com.spectralogic.escapepod.webui
 
+import com.spectralogic.escapepod.httpservice.UiModuleRegistry
 import com.spectralogic.escapepod.httpservice.WebUi
 import ratpack.handling.Context
 import ratpack.handling.Handler
-import ratpack.server.BaseDir
+import com.spectralogic.escapepod.ratpack.staticFilesPath
 import java.nio.file.Paths
 import org.slf4j.LoggerFactory
+import javax.inject.Inject
 
-internal class WebUiImpl: WebUi {
+internal class WebUiImpl @Inject constructor(private val uiModuleRegistry: UiModuleRegistry,
+                                             private val uiRouteGenerator: UIRouteGenerator,
+                                             private val dynamicContentGenerator: DynamicContentGenerator) : WebUi
+{
     override fun slashHandler(): Handler {
-        return StaticFilesHandler()
+        return StaticFilesHandler(uiModuleRegistry, uiRouteGenerator, dynamicContentGenerator)
     }
 }
 
-internal class StaticFilesHandler: Handler {
+internal class StaticFilesHandler(private val uiModuleRegistry: UiModuleRegistry,
+                                           private val uiRouteGenerator: UIRouteGenerator,
+                                           private val dynamicContentGenerator: DynamicContentGenerator): Handler
+{
     private companion object {
-        private val LOG = LoggerFactory.getLogger(StaticFilesHandler::class.java)
-        private val STATIC_FILES_LANDING_PAGE = "index.html"
-        private val LANDING_PAGE_NOT_FOUND_STATUS = 404
-        private val ERROR_PAGE_BACKGROUND_COLOR = "cadetBlue"
-        private val ERROR_PAGE_TEXT_COLOR = "white"
-        private val ERROR_PAGE_TITLE = "Error page"
-        private val LANDING_PAGE_NOT_FOUND_ERROR_TEXT = "We cannot locate our application page.  Please accept our apologies."
+        private  val LOG = LoggerFactory.getLogger(StaticFilesHandler::class.java)
+        private const val STATIC_FILES_LANDING_PAGE = "index.html"
+        private const val LANDING_PAGE_NOT_FOUND_STATUS = 404
+        private const val ERROR_PAGE_BACKGROUND_COLOR = "cadetBlue"
+        private const val ERROR_PAGE_TEXT_COLOR = "white"
+        private const val ERROR_PAGE_TITLE = "Error page"
+        private const val LANDING_PAGE_NOT_FOUND_ERROR_TEXT = "We cannot locate our application page.  Please accept our apologies."
+        private const val UI_ROUTING_TABLE_FILE_NAME = "app/app.routing.ts"
     }
 
-    private val staticFilesPath: String?
+    private var staticFilesPath: String? = null
 
     init {
-        staticFilesPath = findStaticFilesPath()
-
-        if (staticFilesPath == null) {
+        try {
+            staticFilesPath = staticFilesPath().toString()
+        } catch (throwable: Throwable) {
             LOG.error("Could not locate web ui static files.")
         }
     }
 
-    private fun findStaticFilesPath(): String? {
-        val staticFilesFolderPath = BaseDir.find(STATIC_FILES_LANDING_PAGE)
-
-        return staticFilesFolderPath?.toString()
-    }
-
     override fun handle(ctx: Context) {
-        if (staticFilesPath != null) {
-            val staticFileName = ctx.pathBinding.pastBinding
-            if (staticFileName.isNullOrBlank()) {
-                ctx.response.sendFile(Paths.get(staticFilesPath, STATIC_FILES_LANDING_PAGE))
-            } else {
-                ctx.response.sendFile(Paths.get(staticFilesPath, staticFileName))
-            }
-        } else {
-            sendErrorPage(ctx, LANDING_PAGE_NOT_FOUND_STATUS, ERROR_PAGE_BACKGROUND_COLOR, ERROR_PAGE_TEXT_COLOR,
-                    ERROR_PAGE_TITLE, LANDING_PAGE_NOT_FOUND_ERROR_TEXT)
+        try {
+            handleFileRequest(ctx)
+        } catch (throwable: Throwable) {
+            handleFileRequestError(ctx)
         }
     }
 
-    private fun sendErrorPage(ctx: Context, httpStatus: Int, backgroundColor: String, textColor: String, pageTitle: String, errorText: String) {
-        val payloadTextBuilder = StringBuilder("<html><head><title>")
-                .append(pageTitle)
-                .append("</title>")
-                .append("<style> body { ")
-                .append("background-color: ")
-                .append(backgroundColor)
-                .append("; ")
-                .append("text-align: center; ")
-                .append("color: ")
-                .append(textColor)
-                .append("} ")
-                .append("</style></head><body><h1>")
-                .append(errorText)
-                .append("</h1></body></html>")
+    private fun handleFileRequest(ctx: Context) {
+        val urlPath = ctx.request.path
+        when {
+            urlPath.isNullOrBlank() -> ctx.response.sendFile(Paths.get(staticFilesPath, STATIC_FILES_LANDING_PAGE))
+            urlPath == UI_ROUTING_TABLE_FILE_NAME -> ctx.response.send(uiRouteGenerator.generateRoutes(uiModuleRegistry.registrations()))
+            else -> handleModuleChain(urlPath, ctx)
+        }
+    }
 
-        ctx.response.status(httpStatus).contentType("text/html").send(payloadTextBuilder.toString())
+    private fun handleModuleChain(urlPath: String, ctx: Context) {
+        val uiModuleRegistration = uiModuleRegistry.registration(urlPath)
+
+        if (uiModuleRegistration != null) {
+            ctx.insert(uiModuleRegistration.resourceResolver)
+        } else {
+            ctx.response.sendFile(Paths.get(staticFilesPath, urlPath))
+        }
+    }
+
+    private fun handleFileRequestError(ctx: Context) {
+        ctx.response
+                .status(LANDING_PAGE_NOT_FOUND_STATUS)
+                .contentType("text/html")
+                .send(dynamicContentGenerator.resourceNotFoundContent(ERROR_PAGE_BACKGROUND_COLOR,
+                        ERROR_PAGE_TEXT_COLOR,
+                        ERROR_PAGE_TITLE,
+                        LANDING_PAGE_NOT_FOUND_ERROR_TEXT)
+                )
     }
 }

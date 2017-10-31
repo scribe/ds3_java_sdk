@@ -13,10 +13,9 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.httpservice
+package com.spectralogic.escapepod.webui
 
-import ratpack.handling.Handler
-
-interface WebUi {
-    fun slashHandler() : Handler
-}
+internal data class ErrorPageConfigurableValues(val backgroundColor: String,
+                                                val textColor: String,
+                                                val pageTitle: String,
+                                                val pageText: String)

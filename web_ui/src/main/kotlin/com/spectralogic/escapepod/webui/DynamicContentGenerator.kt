@@ -13,10 +13,12 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.httpservice
+package com.spectralogic.escapepod.webui
 
-import ratpack.handling.Handler
+import com.google.common.collect.ImmutableMap
+import com.spectralogic.escapepod.httpservice.UiModuleRegistration
 
-interface WebUi {
-    fun slashHandler() : Handler
+interface DynamicContentGenerator {
+    fun resourceNotFoundContent(backgroundColor: String, textColor: String, pageTitle: String, errorText: String) : String
+    fun webClientRoutingFileContent(routingInfo: ImmutableMap<String, UiModuleRegistration>) : String
 }

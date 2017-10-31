@@ -151,8 +151,8 @@ internal class ExceptionChain: Action<Chain> {
 internal class CountingChain(private val prefix: String) : Action<Chain> {
     var count = 0
     private set
-    override fun execute(t: Chain) {
-        t.get(prefix) {
+    override fun execute(chain: Chain) {
+        chain.get(prefix) {
             count++
             it.render("success")
         }

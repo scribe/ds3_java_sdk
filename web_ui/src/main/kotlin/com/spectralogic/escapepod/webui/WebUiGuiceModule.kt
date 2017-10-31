@@ -16,11 +16,15 @@
 package com.spectralogic.escapepod.webui
 
 import com.google.inject.AbstractModule
+import com.spectralogic.escapepod.httpservice.UiModuleRegistry
 import com.spectralogic.escapepod.httpservice.WebUi
 import javax.inject.Singleton
 
 class WebUiGuiceModule: AbstractModule() {
     override fun configure() {
         bind(WebUi::class.java).to(WebUiImpl::class.java).`in`(Singleton::class.java)
+        bind(UiModuleRegistry::class.java).to(UiModuleRegistryImpl::class.java).`in`(Singleton::class.java)
+        bind(UIRouteGenerator::class.java).to(UIRouteGeneratorImpl::class.java).`in`(Singleton::class.java)
+        bind(DynamicContentGenerator::class.java).to(DynamicContentGeneratorImpl::class.java).`in`(Singleton::class.java)
     }
 }

@@ -13,10 +13,14 @@
  *  ****************************************************************************
  */
 
-package com.spectralogic.escapepod.httpservice
+package com.spectralogic.escapepod.webui
 
-import ratpack.handling.Handler
+import com.google.common.collect.ImmutableMap
+import com.spectralogic.escapepod.httpservice.UiModuleRegistration
+import javax.inject.Inject
 
-interface WebUi {
-    fun slashHandler() : Handler
+class UIRouteGeneratorImpl @Inject constructor(private val dynamicContentGenerator: DynamicContentGenerator): UIRouteGenerator {
+    override fun generateRoutes(routingInfo: ImmutableMap<String, UiModuleRegistration>) : String {
+        return dynamicContentGenerator.webClientRoutingFileContent(routingInfo)
+    }
 }

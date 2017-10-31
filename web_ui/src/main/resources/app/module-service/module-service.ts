@@ -13,6 +13,7 @@ export class ModuleService {
 
     constructor(private router: Router) {
         router.config.forEach(route => {
+            console.log("Route: " + route.path);
             this.moduleDescriptors.push(new ModuleDescriptor(this.routerPathToNavigationString(route.path), route.path));
         });
     }

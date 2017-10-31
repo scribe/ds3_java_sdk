@@ -25,15 +25,17 @@ import com.spectralogic.escapepod.httpservice.WebUi
 import io.reactivex.Completable
 import io.reactivex.Single
 import org.slf4j.LoggerFactory
+import ratpack.server.BaseDir
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfigBuilder
 import java.io.File
+import java.nio.file.Path
+
+const val STATIC_FILES_LOADER_PAGE = "index.html"
 
 internal class HttpProvider @Inject constructor (@Named("managementPort") private val port : Int, private val rootApiHandler: RootApiHandler, private val objectMapper: ObjectMapper, private val webUi: WebUi) : HttpServiceProvider {
-
     private companion object {
         private val LOG = LoggerFactory.getLogger(HttpProvider::class.java)
-        private val staticFilesLoaderPage = "index.html"
     }
 
     var server : RatpackServer? = null
@@ -73,7 +75,7 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
 
     private fun maybeSetStaticFileBaseFolder(serverConfigBuilder: ServerConfigBuilder) {
         try {
-            val webUiResources = File(webUi.javaClass.classLoader.getResource(staticFilesLoaderPage).path).parentFile
+            val webUiResources = File(webUi.javaClass.classLoader.getResource(STATIC_FILES_LOADER_PAGE).path).parentFile
             serverConfigBuilder.baseDir(webUiResources)
         } catch (throwable: Throwable) {
             LOG.error("Could not find folder with web UI files.", throwable)
@@ -83,4 +85,8 @@ internal class HttpProvider @Inject constructor (@Named("managementPort") privat
     override fun getService(requestContext: RequestContext): Single<HttpService> {
         TODO("not implemented")
     }
+}
+
+fun staticFilesPath() : Path {
+    return BaseDir.find(STATIC_FILES_LOADER_PAGE)
 }

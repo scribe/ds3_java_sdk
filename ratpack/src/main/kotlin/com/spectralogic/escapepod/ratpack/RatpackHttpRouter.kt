@@ -62,9 +62,9 @@ internal class RatpackHttpRouter : HttpRouter, Action<Chain>{
         }
     }
 
-    override fun execute(t: Chain) {
+    override fun execute(chain: Chain) {
         actionChains.forEach {
-            t.register {
+            chain.register {
                 it.add(ExceptionHandlerMapperImpl(exceptionMap))
             }.prefix(it.prefix, it.actionChain)
         }

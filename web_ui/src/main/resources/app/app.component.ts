@@ -18,8 +18,8 @@ export class AppComponent {
     title = 'Escape Pod';
 
     /**
-     * When we wake up, we talk to the web server that started us to get a list of modules configured
-     * for that instance of the service.  A module descriptor is a json payload that has the name you
+     * When we wake up, get a list of modules configured for the instance of escape pod web
+     * service we are connected to.  A module descriptor is a json payload that has the name you
      * want displayed in the navigation menu and a router URL that holds the content for a named module.
      */
     modules: Array<ModuleDescriptor>;

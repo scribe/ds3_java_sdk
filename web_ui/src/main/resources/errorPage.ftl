@@ -12,29 +12,19 @@
 *    specific language governing permissions and limitations under the License.
 *  ****************************************************************************
 -->
-
 <!DOCTYPE html>
 <html>
-<head>
-    <link href=”https://fonts.googleapis.com/icon?family=Material+Icons" rel=”stylesheet”>
-
-    <title>Escape Pod</title>
-
-    <base href="/">
-
-    <script src="https://cdn.polyfill.io/v2/polyfill.js?features=Intl.~locale.en"></script>
-
-    <script src="node_modules/core-js/client/shim.min.js"></script>
-    <script src="node_modules/zone.js/dist/zone.js"></script>
-
-    <script src="node_modules/typescript/lib/typescript.js"></script>
-    <script src="node_modules/systemjs/dist/system.src.js"></script>
-    <script src="systemjs.config.js"></script>
-    <script>
-        System.import('app').catch(function (err) {console.error(err);});
-    </script>
-</head>
-<body>
-<app-root>Loading...</app-root>
-</body>
+    <head>
+        <title>${pageTitle}</title>
+        <style>
+            body {
+                background-color: ${backgroundColor};
+                text-align: center;
+                color: ${textColor}
+            }
+        </style>
+    </head>
+    <body>
+        <h1>${pageText}</h1>
+    </body>
 </html>
