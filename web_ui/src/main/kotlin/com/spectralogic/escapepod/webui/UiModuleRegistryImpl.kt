@@ -50,7 +50,7 @@ internal class UiModuleRegistryImpl: UiModuleRegistry {
 
     override fun registrations() : ImmutableMap<String, UiModuleRegistration> {
         synchronized(this, {
-            return uiModuleRegistrations
+            return ImmutableMap.copyOf(uiModuleRegistrations)
         })
     }
 }
