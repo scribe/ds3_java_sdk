@@ -66,10 +66,10 @@ class MetadataSearchModule
 }
 
 internal class SearchModuleUiHandler : Handler {
-    override fun handle(ctx: Context?) {
+    override fun handle(ctx: Context) {
         // TODO: This is an example generating content you want independent of whatever else is in the web client.
         // We're rendering html, but you could send back a file by doing something like the following:
-        // ctx?.response?.sendFile(Paths.get(staticFilesPath().toString(), ctx.request.path))
-        ctx?.response?.contentType("text/html")?.send("<html><body><h1>Hello from the Searchinator!</h1></body></html>")
+        // ctx.response.sendFile(Paths.get(staticFilesPath().toString(), ctx.request.path))
+        ctx.response.contentType("text/html").send("<html><body><h1>Hello from the Searchinator!</h1></body></html>")
     }
 }
