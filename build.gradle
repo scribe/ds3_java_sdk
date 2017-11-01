@@ -86,7 +86,7 @@ task unit(dependsOn: [':util:test', ':api:test', ':xoduspersistence:test', ':run
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.2.1'
+    gradleVersion = '4.3'
 }
 
 project (":api") {
