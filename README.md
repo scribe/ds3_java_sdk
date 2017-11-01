@@ -7,8 +7,8 @@ The most important non-funtional goal for Escape Pod is to be transparent to end
 
 ## Assumptions
 * Users want a replacement for Diva, Flashnet, or Masstech.
-* Post replacement, the customer wants a solution that is easy to use, gives them as much information about their storage system as possible, and the replacement (Escape Pod) doesn't complicate their workflow anymore than it already is
-* The BP API is ill-suited for the M&E space due to it's complexity.  A more streamlined, completly asynchronous, solution will better fit the needs of M&E customers.
+* Post replacement, customers want a solution that is easy to use, gives them as much information about their storage system as possible, and the replacement (Escape Pod) doesn't complicate their workflow any more than it already is.
+* The BlackPearl API is ill-suited for the M&E space due to it's complexity.  A more streamlined, completly asynchronous, solution will better fit the needs of M&E customers.
 
 ## Definitions
 * File - A file that contains unspecified content.
@@ -38,12 +38,12 @@ The most important non-funtional goal for Escape Pod is to be transparent to end
 1. Customer has Grass Valley
 
 ## API Design
-The primary interface for moving data will be via the Escape Pod's API.  As such the file transferring interface is the most important part of the API.  Without an easy way to support the above use cases, Escape Pod will not be successful, and will not provide the kind of usability that our customers and partners need.
+The primary interface for moving data will be via the Escape Pod's API.  As such, the file transferring interface is the most important part of the API.  Without an easy way to support the above use cases, Escape Pod will not be successful, and will not provide the kind of usability that our customers and partners need.
 
 ### File Transferring
-File Transferring should be asynchronous and should hide all details of the BlackPearl API.  At no point should we expose Blobs or Chunks to users of this API.  Being Asynchronous means that we'll need to be able to read content that is stored in SMB shares (using UNC paths), Avid's Isis/Nexus storage system, and via FTP.
+File Transferring should be asynchronous and should hide all details of the BlackPearl API.  At no point should we expose Blobs or Chunks to users of this API.  Being asynchronous means that we'll need to be able to simultaneously read content that is stored in SMB shares (using UNC paths), Avid's Isis/Nexus storage system, and via FTP.
 
-Most M&E workflows deal with assets as opposed to files directly.  We have customers who deal only with Assets that are managed (either by Avid PAM or Avid MAM) and customers who deal only with files directly (if stored directly, they could use the browser, but for automation purposes we should incorperate the ability for users to archive individual files, as well as assets).
+Most M&E workflows deal with assets as opposed to files directly.  Though most customers deal only with Assets managed either by Avid PAM or Avid MAM, we do have customers who deal only with files directly (if stored directly, they could use the browser, but for automation purposes we should incorperate the ability for users to archive individual files, as well as assets).
 
 #### Examples:
 
