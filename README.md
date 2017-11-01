@@ -3,7 +3,7 @@
 ## Goals
 The primary goal of Escape Pod is to help customers migrate away from their existing Diva, Flashnet, and Masstech archive solutions.  There are some secondary goals, which are to privide as much feature parity as possible with a customer's existing archive solution so that the transition is transparent.
 
-The most important non-funtional goal for Escape Pod is to be transparent to end users.  By transparent, we mean that a customer should be able to drop Escape Pod into an existing installation, and, with minimal transitional effort, be back up and running.  Perfect use case that describes this, is we should be able to replace a customer's current Avid PAM Archive Plugin with ours and the only down time required to transition them is the time it takes to offline and re-online archive providers (we will explain this specific scenerio more later).
+The most important non-funtional goal for Escape Pod is to be transparent to end users.  By transparent, we mean that a customer should be able to drop Escape Pod into an existing installation, and, with minimal transitional effort, be back up and running.  The perfect use case that describes this is that we should be able to replace a customer's current Avid PAM Archive Plugin with ours, and the only down time required to transition them is the time it takes to offline and re-online archive providers (we will explain this specific scenerio more later).
 
 ## Assumptions
 * Users want a replacement for Diva, Flashnet, or Masstech.
