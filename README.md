@@ -90,7 +90,7 @@ Restore - POST to /api/jobs/restore
       "name": "asset name",
       "destinationUri": "\\Share\foo\bar",
       "timecodeRange": {
-        "start": 123
+        "start": 123,
         "stop": 1253
       }
     }
@@ -116,3 +116,4 @@ Restore - POST to /api/jobs/restore
 * How to support both timecode and byte range Partial File Restores.  Specifically, how does it change when dealing with assets vs raw files.
 * How to restore a specific file inside of an asset?  Is this needed?  If so, how does this work.
 * Do we even need to make a distinction between files and assets?  Or should be use labels, or some other means of linking individual files together into an asset for external searching?
+* Do we need to support multiple range Partial File Restores?  Does Marquis even support this?
