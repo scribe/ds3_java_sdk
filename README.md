@@ -1,14 +1,14 @@
 # escape_pod
 
 ## Goals
-The primary goal of Escape Pod is to help customer's migrated away from their existing Diva, Flashnet, and Masstech archive solutions.  There are some secondary goals, which is to privide as much feature parity with a customer's existing archive solution so that the transition is transparent.
+The primary goal of Escape Pod is to help customers migrate away from their existing Diva, Flashnet, and Masstech archive solutions.  There are some secondary goals, which are to privide as much feature parity as possible with a customer's existing archive solution so that the transition is transparent.
 
-The most important non-funtional goals for Escape Pod is to be transparent to end users.  By transparent, we mean that a customer should be able to drop Escape Pod into an existing customer's install, and with minimal transition effort, they should be back up and running.  Perfect use case that describes this, is we should be able to replace a customer's current Avid PAM Archive Plugin with ours and the only down time required to transition them is the time it takes to offline and re-online archive providers (this specific scenerio will be explain more later).
+The most important non-funtional goals for Escape Pod is to be transparent to end users.  By transparent, we mean that a customer should be able to drop Escape Pod into an existing installation, and, with minimal transition effort, be back up and running.  Perfect use case that describes this, is we should be able to replace a customer's current Avid PAM Archive Plugin with ours and the only down time required to transition them is the time it takes to offline and re-online archive providers (we will explain this specific scenerio more later).
 
 ## Assumptions
 * Users want a replacement for Diva, Flashnet, or Masstech.
 * Post replacement, the customer wants a solution that is easy to use, gives them as much information about their storage system as possible, and the replacement (Escape Pod) doesn't complicate their workflow anymore than it already is
-* The BP API is ill suited for the M&E space due to it's complixity.  A more streamlined, completly asynchronous, solution will better fit the needs of M&E customers.
+* The BP API is ill-suited for the M&E space due to it's complexity.  A more streamlined, completly asynchronous, solution will better fit the needs of M&E customers.
 
 ## Definitions
 * File - A file that contains unspecified content.
@@ -31,19 +31,19 @@ The most important non-funtional goals for Escape Pod is to be transparent to en
 1. Customer has Flashnet with Avid PAM
 1. Customer has Diva with Avid MAM
 1. Customer has Flashnet with Avid MAM
-1. Customer's need a way to deliver content via FTP/SMB
-1. Customer's want insight into which assets are on which Tapes
+1. Customers need a way to deliver content via FTP/SMB
+1. Customers want insight into asset location on tape(s)
 1. Partners developing their own integrations with Black Pearl
 1. Partners developing their own integration with Black Pearl using Partial File Recovery for Assets
 1. Customer has Grass Valley
 
 ## API Design
-The primary interface for moving data will be via the Escape Pod's API.  As such the file transferring interface is the most important part of the API.  Without an easy way to suppor the above use cases, Escape Pod will not be successful, and will not provide the kind of usability that our customer's and partners need.
+The primary interface for moving data will be via the Escape Pod's API.  As such the file transferring interface is the most important part of the API.  Without an easy way to support the above use cases, Escape Pod will not be successful, and will not provide the kind of usability that our customers and partners need.
 
 ### File Transferring
-File Transferring should be Asynchronous and should hide all details of the BP API.  At no point should we expose Blobs or Chunks to users of this API.  Being Asynchronous means that we'll need to be able to read content that is stored in SMB shares (using UNC paths), Avid's Isis/Nexus storage system, and via FTP.
+File Transferring should be asynchronous and should hide all details of the BlackPearl API.  At no point should we expose Blobs or Chunks to users of this API.  Being Asynchronous means that we'll need to be able to read content that is stored in SMB shares (using UNC paths), Avid's Isis/Nexus storage system, and via FTP.
 
-Most M&E workflows deal with assets as opposed to files directly.  We've seen at customer sites where they will deal only with Assets that are managed (either by Avid PAM or Avid MAM), or they will sometimes store files directly (if stored directly, they could use the browser, but for automation purposes we should incorperate the ability for users to archive individual files, as well as assets).
+Most M&E workflows deal with assets as opposed to files directly.  We have customers who deal only with Assets that are managed (either by Avid PAM or Avid MAM) and customers who deal only with files directly (if stored directly, they could use the browser, but for automation purposes we should incorperate the ability for users to archive individual files, as well as assets).
 
 #### Examples:
 
