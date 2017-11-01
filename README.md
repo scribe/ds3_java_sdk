@@ -85,7 +85,34 @@ Restore - POST to /api/jobs/restore
     {
       "name": "asset name",
       "destinationUri": "\\Share\foo\bar"
+    },
+    {
+      "name": "asset name",
+      "destinationUri": "\\Share\foo\bar",
+      "timecodeRange": {
+        "start": 123
+        "stop": 1253
+      }
+    }
+  ],
+  "files": [
+    {
+      "name": "file name",
+      "destination": "\\Share\file\dest"
+    },
+    {
+      "name": "partial file",
+      "destination": "\\Share\partial\dest",
+      "byteRange": {
+        "start": 23,
+        "stop": 2523
+      }
     }
   ]
 }
 ```
+
+## Questions
+* How to support both timecode and byte range Partial File Restores.  Specifically, how does it change when dealing with assets vs raw files.
+* How to restore a specific file inside of an asset?  Is this needed?  If so, how does this work.
+* Do we even need to make a distinction between files and assets?  Or should be use labels, or some other means of linking individual files together into an asset for external searching?
