@@ -25,3 +25,48 @@ The primary interface for moving data will be via the Escape Pod's API.  As such
 
 ### File Transferring
 File Transferring should be Asynchronous and should hide all details of the BP API.  At no point should we expose Blobs or Chunks to users of this API.  Being Asynchronous means that we'll need to be able to read content that is stored in SMB shares (using UNC paths), Avid's Isis/Nexus storage system, and via FTP.
+
+#### Examples:
+
+Archive - POST to /api/jobs/archive
+```json
+{
+  "files": [
+    {
+      "name": "fileName",
+      "uri": "ftp://path"
+    },
+    {
+      "name": "fileName",
+      "uri": "smb://path"
+    },
+    {
+      "name": "filename",
+      "uri": "\\Share\foo\bar"
+    }
+  ],
+  "assets": [
+    {
+      "name": "displayName",
+      "files": [
+        {
+          "name": "filename",
+          "uri": "\\Share\foo\bar\file.mxf"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Restore - POST to /api/jobs/restore
+```json
+{
+  "assets": [
+    {
+      "name": "asset name",
+      "destinationUri": "\\Share\foo\bar"
+    }
+  ]
+}
+```
