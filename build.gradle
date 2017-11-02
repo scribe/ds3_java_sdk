@@ -144,7 +144,7 @@ project(":divaclient") {
     }
 }
 
-project(":flashnetclient") {
+project(":flashnet") {
     dependencies {
         compile project(":api")
         compile project(":restclientutils")

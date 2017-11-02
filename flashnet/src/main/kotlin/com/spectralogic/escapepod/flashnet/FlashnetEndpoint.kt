@@ -13,6 +13,6 @@
  *  ****************************************************************************
  */
 
-include 'api', 'avidmamclient', 'localcache', 'hazelcast', 'restclientutils', 'util', 'gui', 'planner',
-  'runner', 'bpclient', 'scheduler', 'divaclient', 'flashnet', 'migrate', 'xoduspersistence', 'ratpack',
-  'httpservice', 'metadatasearch', 'deviceregistry', 'testutils', 'web_ui'
+package com.spectralogic.escapepod.flashnet
+
+data class FlashnetEndpoint(val host: String, val port: Int = 8199)

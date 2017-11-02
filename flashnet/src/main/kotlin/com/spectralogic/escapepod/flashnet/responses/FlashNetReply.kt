@@ -1,5 +1,5 @@
 /*
- * *****************************************************************************
+ * ****************************************************************************
  *    Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *    Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *    this file except in compliance with the License. A copy of the License is located at
@@ -13,6 +13,16 @@
  *  ****************************************************************************
  */
 
-include 'api', 'avidmamclient', 'localcache', 'hazelcast', 'restclientutils', 'util', 'gui', 'planner',
-  'runner', 'bpclient', 'scheduler', 'divaclient', 'flashnet', 'migrate', 'xoduspersistence', 'ratpack',
-  'httpservice', 'metadatasearch', 'deviceregistry', 'testutils', 'web_ui'
+package com.spectralogic.escapepod.flashnet.responses
+
+import io.reactivex.Single
+
+interface FlashNetReply {
+    val Version : String?
+    val Status : String?
+    val Error : String?
+    val RequestId : Int?
+
+    fun toStatusReply() : Single<StatusInfo>
+    fun toListGroupReply() : Single<GroupDetails>
+}
