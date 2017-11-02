@@ -1,5 +1,5 @@
 /*
- * *****************************************************************************
+ * ****************************************************************************
  *    Copyright 2014-2017 Spectra Logic Corporation. All Rights Reserved.
  *    Licensed under the Apache License, Version 2.0 (the "License"). You may not use
  *    this file except in compliance with the License. A copy of the License is located at
@@ -13,6 +13,14 @@
  *  ****************************************************************************
  */
 
-include 'api', 'avidmamclient', 'localcache', 'hazelcast', 'restclientutils', 'util', 'gui', 'planner',
-  'runner', 'bpclient', 'scheduler', 'divaclient', 'flashnet', 'migrate', 'xoduspersistence', 'ratpack',
-  'httpservice', 'metadatasearch', 'deviceregistry', 'testutils', 'web_ui'
+package com.spectralogic.escapepod.flashnet
+
+class FlashNetConfigImpl : FlashNetConfig {
+    override var flashNetApiVersion = "1.1"
+
+    override var flashNetSourceServer = "FlashNet-source-server"
+
+    override var flashNetUserName = "FlashNet-user-name"
+
+    override var flashNetCallingApplication = "FlashNet-calling-application"
+}

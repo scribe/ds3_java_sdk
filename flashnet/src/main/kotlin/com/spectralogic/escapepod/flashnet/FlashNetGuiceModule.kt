@@ -13,6 +13,15 @@
  *  ****************************************************************************
  */
 
-include 'api', 'avidmamclient', 'localcache', 'hazelcast', 'restclientutils', 'util', 'gui', 'planner',
-  'runner', 'bpclient', 'scheduler', 'divaclient', 'flashnet', 'migrate', 'xoduspersistence', 'ratpack',
-  'httpservice', 'metadatasearch', 'deviceregistry', 'testutils', 'web_ui'
+package com.spectralogic.escapepod.flashnet
+
+import com.google.inject.AbstractModule
+import com.google.inject.Singleton
+import com.spectralogic.escapepod.flashnet.responses.FlashNetReplyFactory
+
+class FlashNetGuiceModule : AbstractModule() {
+    override fun configure() {
+        bind(FlashNetReplyFactory::class.java).`in`(Singleton::class.java)
+        bind(FlashNetConfig::class.java).to(FlashNetConfigImpl::class.java).`in`(Singleton::class.java)
+    }
+}

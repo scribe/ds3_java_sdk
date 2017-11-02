@@ -13,6 +13,11 @@
  *  ****************************************************************************
  */
 
-include 'api', 'avidmamclient', 'localcache', 'hazelcast', 'restclientutils', 'util', 'gui', 'planner',
-  'runner', 'bpclient', 'scheduler', 'divaclient', 'flashnet', 'migrate', 'xoduspersistence', 'ratpack',
-  'httpservice', 'metadatasearch', 'deviceregistry', 'testutils', 'web_ui'
+package com.spectralogic.escapepod.flashnet.transport
+
+import com.spectralogic.escapepod.flashnet.FlashnetEndpoint
+import io.reactivex.Single
+
+interface SocketProvider {
+    fun socket(endpoint: FlashnetEndpoint): Single<SocketTransport>
+}
