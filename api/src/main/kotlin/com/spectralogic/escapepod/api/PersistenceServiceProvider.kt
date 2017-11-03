@@ -27,15 +27,15 @@ interface PersistenceServiceProvider : ServiceProvider<PersistenceService> {
 
 interface PersistenceService {
     fun link(source: PersistenceID, link: String, destination: PersistenceID)
-    fun addNode(nodeType: String, properties: Map<String, Comparable<Any?>> = emptyMap()): PersistenceEntity
-    fun find(nodeType: String, property: String, value: Comparable<Any?>): Sequence<PersistenceEntity>
+    fun addNode(nodeType: String, properties: Map<String, Comparable<Any>> = emptyMap()): PersistenceEntity
+    fun find(nodeType: String, property: String, value: Comparable<Any>): Sequence<PersistenceEntity>
     fun get(nodeType: String): Sequence<PersistenceEntity>
     fun get(id: PersistenceID): PersistenceEntity
-    fun updateNode(id: PersistenceID, properties: Map<String, Comparable<Any?>> = emptyMap()): PersistenceEntity
+    fun updateNode(id: PersistenceID, properties: Map<String, Comparable<Any>> = emptyMap()): PersistenceEntity
     fun deleteNode(id: PersistenceID)
 }
 
 data class PersistenceID(val typeId: Int, val localId: Long)
-data class PersistenceEntity(val id: PersistenceID, val properties: ImmutableMap<String, Comparable<Any?>>, val links: ImmutableMultimap<String, PersistenceID>)
+data class PersistenceEntity(val id: PersistenceID, val properties: ImmutableMap<String, Comparable<Any>>, val links: ImmutableMultimap<String, PersistenceID>)
 
 class PersistenceException(message : String) : RuntimeException(message)
