@@ -44,16 +44,17 @@ internal class AvidPamPersistenceHandlers
                         val message = "A Pam system with name '$name' already exists."
                         Single.error(PamExistsException(message))
                     } else {
-                        val pamSystem = ImmutableMap.of(
-                                "name", name,
-                                "username", username,
-                                "password", password,
-                                "endpoint", endpoint,
-                                "workgroup", workGroup
-                        )
+
+                        val pamSystem = PersistencePropertiesBuilder()
+                            .setString("name", name)
+                            .setString("username", username)
+                            .setString("password", password)
+                            .setString("endpoint", endpoint)
+                            .setString("workgroup", workGroup)
+                            .build().asMap()
 
                         //TODO map result to different type (ex not including password)
-                        Single.just(persistenceService.addNode(PAM_NODE_TYPE, pamSystem as Map<String, Comparable<Any?>>))
+                        Single.just(persistenceService.addNode(PAM_NODE_TYPE, pamSystem))
                     }
                 }
     }
@@ -61,13 +62,14 @@ internal class AvidPamPersistenceHandlers
     fun putPamSystem(name: String, username: String, password: String, endpoint: String, workGroup: String): Single<PersistenceEntity> {
         return persistenceServiceProvider.getService(RequestContext())
                 .flatMap { persistenceService ->
-                    val pamSystem = ImmutableMap.of(
-                            "name", name,
-                            "username", username,
-                            "password", password,
-                            "endpoint", endpoint,
-                            "workgroup", workGroup
-                    ) as Map<String, Comparable<Any?>>
+
+                    val pamSystem = PersistencePropertiesBuilder()
+                            .setString("name", name)
+                            .setString("username", username)
+                            .setString("password", password)
+                            .setString("endpoint", endpoint)
+                            .setString("workgroup", workGroup)
+                            .build().asMap()
 
                     val persistenceEntity = persistenceService.find(PAM_NODE_TYPE, "name", name as Comparable<Any?>).firstOrNull()
 

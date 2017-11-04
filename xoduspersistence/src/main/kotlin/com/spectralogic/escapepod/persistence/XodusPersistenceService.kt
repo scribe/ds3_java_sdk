@@ -25,7 +25,6 @@ import jetbrains.exodus.entitystore.Entity
 import jetbrains.exodus.entitystore.StoreTransaction
 import jetbrains.exodus.entitystore.EntityId
 
-
 internal class XodusPersistenceService(private val entityStore: PersistentEntityStore, private val requestContext: RequestContext) : PersistenceService {
 
     override fun get(id: PersistenceID): PersistenceEntity {
@@ -46,7 +45,7 @@ internal class XodusPersistenceService(private val entityStore: PersistentEntity
         }.asSequence()
     }
 
-    override fun find(nodeType: String, property: String, value: Comparable<Any?>): Sequence<PersistenceEntity> {
+    override fun find(nodeType: String, property: String, value: Comparable<Any>): Sequence<PersistenceEntity> {
         return entityStore.computeInReadonlyTransaction {
             val entities = it.find(nodeType, property, value)
             entities.toList()
@@ -56,7 +55,7 @@ internal class XodusPersistenceService(private val entityStore: PersistentEntity
         }.asSequence()
     }
 
-    override fun addNode(nodeType: String, properties: Map<String, Comparable<Any?>>): PersistenceEntity {
+    override fun addNode(nodeType: String, properties: Map<String, Comparable<Any>>): PersistenceEntity {
         return entityStore.computeInTransaction {
             val e: Entity = it.newEntity(nodeType)
 
@@ -72,7 +71,7 @@ internal class XodusPersistenceService(private val entityStore: PersistentEntity
         }
     }
 
-    override fun updateNode(id: PersistenceID, properties: Map<String, Comparable<Any?>>): PersistenceEntity {
+    override fun updateNode(id: PersistenceID, properties: Map<String, Comparable<Any>>): PersistenceEntity {
         return entityStore.computeInTransaction {
 
             val entity = it.getEntity(id.toEntityId())
@@ -89,7 +88,7 @@ internal class XodusPersistenceService(private val entityStore: PersistentEntity
         }
     }
 
-    private fun persistEntity(transaction: StoreTransaction, entity: Entity, properties: Map<String, Comparable<Any?>>): PersistenceEntity {
+    private fun persistEntity(transaction: StoreTransaction, entity: Entity, properties: Map<String, Comparable<Any>>): PersistenceEntity {
         for((k,v) in properties) {
             entity.setProperty(k, v)
         }
@@ -104,8 +103,8 @@ private fun Entity.toPersistenceEntity(): PersistenceEntity {
     return PersistenceEntity(this.id.toPersistenceId(), this.properties(), this.linkIdList())
 }
 
-private fun Entity.properties(): ImmutableMap<String, Comparable<Any?>> {
-    val propertiesBuilder: ImmutableMap.Builder<String, Comparable<Any?>> = ImmutableMap.builder<String, Comparable<Any?>>()
+private fun Entity.properties(): ImmutableMap<String, Comparable<Any>> {
+    val propertiesBuilder: ImmutableMap.Builder<String, Comparable<Any>> = ImmutableMap.builder<String, Comparable<Any>>()
 
     this.propertyNames.forEach { propertyName ->
         propertiesBuilder.put(propertyName, this.getProperty(propertyName))
