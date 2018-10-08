@@ -66,6 +66,7 @@ task genConfigProperties {
             out.writeLine("build.date=" + new Date().toString())
             out.writeLine("git.commitHash=" + gitInfo.gitHashFull)
         }
+
     }
 }
 
